@@ -1,14 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Header } from "@/components/Header";
+import { ProfileCard } from "@/components/ProfileCard";
 
-const Index = () => {
+const profiles = [
+  {
+    name: "Dilara",
+    age: 20,
+    location: "Chipata",
+    imageUrl: "/lovable-uploads/f2943c08-ebe4-4da4-b40b-904c59b53504.png"
+  },
+  {
+    name: "Antonella",
+    age: 26,
+    location: "Kasama",
+    imageUrl: "/lovable-uploads/fe7e6966-e4f3-4054-bc81-c63bfe7a5613.png"
+  },
+  {
+    name: "Meletta",
+    age: 19,
+    location: "Kabwe",
+    imageUrl: "/lovable-uploads/489eb213-d4d5-4f55-8027-30e1766dca1e.png"
+  }
+];
+
+export default function Index() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen">
+      <Header />
+      
+      <main className="container pt-24 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {profiles.map((profile) => (
+            <ProfileCard key={profile.name} {...profile} />
+          ))}
+        </div>
+      </main>
     </div>
   );
-};
-
-export default Index;
+}
