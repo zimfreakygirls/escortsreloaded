@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Videos from "./pages/Videos";
 import ProfileDetail from "./pages/ProfileDetail";
+import CountryProfiles from "./pages/CountryProfiles";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/videos" element={<Videos />} />
           <Route path="/profile/:id" element={<ProfileDetail />} />
+          <Route path="/country/:country" element={<CountryProfiles />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
