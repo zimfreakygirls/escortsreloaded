@@ -1,5 +1,6 @@
 import { Heart, MessageSquare, Globe, MapPin } from "lucide-react";
 import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 interface ProfileCardProps {
   name: string;
@@ -10,16 +11,16 @@ interface ProfileCardProps {
 
 export const ProfileCard = ({ name, age, location, imageUrl }: ProfileCardProps) => {
   return (
-    <div className="profile-card group relative overflow-hidden rounded-lg bg-card">
-      <div className="aspect-[3/4] overflow-hidden">
-        <img 
-          src={imageUrl} 
-          alt={name}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-        />
-      </div>
+    <div className="profile-card group relative overflow-hidden rounded-lg">
+      <img
+        src={imageUrl}
+        alt={name}
+        className="aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+      />
       
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+      <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+      
+      <div className="absolute bottom-0 left-0 right-0 p-4">
         <div className="flex items-end justify-between">
           <div>
             <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
@@ -30,7 +31,16 @@ export const ProfileCard = ({ name, age, location, imageUrl }: ProfileCardProps)
               </div>
               <div className="flex items-center gap-1">
                 <Globe className="h-4 w-4" />
-                <span className="text-sm">Zambia</span>
+                <Select defaultValue="zambia">
+                  <SelectTrigger className="w-[100px] h-7 text-sm">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="zambia">Zambia</SelectItem>
+                    <SelectItem value="zimbabwe">Zimbabwe</SelectItem>
+                    <SelectItem value="malawi">Malawi</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
