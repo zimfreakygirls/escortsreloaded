@@ -1,6 +1,5 @@
-import { Heart, MessageSquare, Globe, MapPin } from "lucide-react";
+import { Heart, MessageSquare, MapPin } from "lucide-react";
 import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 interface ProfileCardProps {
   name: string;
@@ -28,19 +27,6 @@ export const ProfileCard = ({ name, age, location, imageUrl }: ProfileCardProps)
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span className="text-sm">{location}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Globe className="h-4 w-4" />
-                <Select defaultValue="zambia">
-                  <SelectTrigger className="w-[100px] h-7 text-sm">
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="zambia">Zambia</SelectItem>
-                    <SelectItem value="zimbabwe">Zimbabwe</SelectItem>
-                    <SelectItem value="malawi">Malawi</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
