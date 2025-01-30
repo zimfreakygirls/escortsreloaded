@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Heart, MessageSquare, Globe, MapPin } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface ProfileCardProps {
@@ -23,11 +23,25 @@ export const ProfileCard = ({ name, age, location, imageUrl }: ProfileCardProps)
         <div className="flex items-end justify-between">
           <div>
             <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
-            <p className="text-sm text-gray-300">{location}</p>
+            <div className="flex items-center gap-3 text-gray-300">
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{location}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Globe className="h-4 w-4" />
+                <span className="text-sm">Zambia</span>
+              </div>
+            </div>
           </div>
-          <Button size="icon" variant="secondary" className="rounded-full">
-            <Heart className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button size="icon" variant="secondary" className="rounded-full">
+              <MessageSquare className="h-5 w-5" />
+            </Button>
+            <Button size="icon" variant="secondary" className="rounded-full">
+              <Heart className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

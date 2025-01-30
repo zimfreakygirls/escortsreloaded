@@ -1,5 +1,7 @@
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const profiles = [
   {
@@ -32,6 +34,13 @@ export default function Index() {
           {profiles.map((profile) => (
             <ProfileCard key={profile.name} {...profile} />
           ))}
+        </div>
+        
+        <div className="mt-12 flex justify-center">
+          <Button size="lg" className="gap-2">
+            <Plus className="w-5 h-5" />
+            Load More
+          </Button>
         </div>
       </main>
     </div>

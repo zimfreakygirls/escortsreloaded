@@ -1,4 +1,4 @@
-import { Heart, Search, User } from "lucide-react";
+import { Heart, Search, User, Mail } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 
@@ -16,6 +16,11 @@ export const Header = () => {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon">
             <Search className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a href="mailto:contact@onenight.com">
+              <Mail className="w-5 h-5" />
+            </a>
           </Button>
           <Link to="/login">
             <Button>
