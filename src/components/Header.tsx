@@ -1,4 +1,4 @@
-import { Heart, User, Mail, Video, Globe } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -36,16 +36,21 @@ export const Header = () => {
         </div>
         
         <div className="flex items-center gap-4">
+          <Link to="/chat">
+            <Button variant="ghost" size="icon">
+              <MessageSquare className="w-5 h-5" />
+            </Button>
+          </Link>
           <Link to="/videos">
             <Button variant="ghost" size="icon">
               <Video className="w-5 h-5" />
             </Button>
           </Link>
-          <Button variant="ghost" size="icon" asChild>
-            <a href="mailto:contact@onenight.com">
+          <Link to="/contact">
+            <Button variant="ghost" size="icon">
               <Mail className="w-5 h-5" />
-            </a>
-          </Button>
+            </Button>
+          </Link>
           <Link to="/login">
             <Button>
               <User className="w-5 h-5 mr-2" />

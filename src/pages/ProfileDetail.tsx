@@ -10,7 +10,8 @@ const profiles = [
     id: "1",
     name: "Dilara",
     age: 20,
-    location: "Chipata",
+    location: "Zambia",
+    city: "Chipata",
     images: [
       "/lovable-uploads/f2943c08-ebe4-4da4-b40b-904c59b53504.png",
       "/lovable-uploads/fe7e6966-e4f3-4054-bc81-c63bfe7a5613.png",
@@ -24,7 +25,8 @@ const profiles = [
     id: "2",
     name: "Antonella",
     age: 26,
-    location: "Kasama",
+    location: "Zimbabwe",
+    city: "Kasama",
     images: [
       "/lovable-uploads/fe7e6966-e4f3-4054-bc81-c63bfe7a5613.png",
       "/lovable-uploads/f2943c08-ebe4-4da4-b40b-904c59b53504.png",
@@ -38,7 +40,8 @@ const profiles = [
     id: "3",
     name: "Meletta",
     age: 19,
-    location: "Kabwe",
+    location: "Malawi",
+    city: "Kabwe",
     images: [
       "/lovable-uploads/489eb213-d4d5-4f55-8027-30e1766dca1e.png",
       "/lovable-uploads/f2943c08-ebe4-4da4-b40b-904c59b53504.png",
@@ -114,7 +117,7 @@ export default function ProfileDetail() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-2 text-lg">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span>{profile.location}</span>
+                <span>{profile.location}, {profile.city}</span>
               </div>
               
               <div className="flex items-center gap-2 text-lg">

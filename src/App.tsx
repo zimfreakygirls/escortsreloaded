@@ -9,6 +9,8 @@ import Signup from "./pages/Signup";
 import Videos from "./pages/Videos";
 import ProfileDetail from "./pages/ProfileDetail";
 import CountryProfiles from "./pages/CountryProfiles";
+import Chat from "./pages/Chat";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/videos" element={<Videos />} />
           <Route path="/profile/:id" element={<ProfileDetail />} />
           <Route path="/country/:country" element={<CountryProfiles />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
