@@ -52,9 +52,12 @@ export const Header = () => {
             </Button>
           </Link>
           <Link to="/login">
-            <Button>
+            <Button className="hidden sm:flex">
               <User className="w-5 h-5 mr-2" />
               Login
+            </Button>
+            <Button variant="ghost" size="icon" className="sm:hidden">
+              <User className="w-5 h-5" />
             </Button>
           </Link>
         </div>
