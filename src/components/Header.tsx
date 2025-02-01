@@ -51,12 +51,12 @@ export const Header = () => {
               <Mail className="w-5 h-5" />
             </Button>
           </Link>
-          <Link to="/login">
-            <Button className="hidden sm:flex">
+          <Link to="/login" className="inline-flex">
+            <Button className="hidden sm:inline-flex items-center">
               <User className="w-5 h-5 mr-2" />
               Login
             </Button>
-            <Button variant="ghost" size="icon" className="sm:hidden">
+            <Button variant="ghost" size="icon" className="sm:hidden inline-flex">
               <User className="w-5 h-5" />
             </Button>
           </Link>
