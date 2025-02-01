@@ -8,20 +8,20 @@ export const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <div className="container flex h-16 items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <Heart className="w-6 h-6 text-primary" fill="currentColor" />
-          <span className="text-xl font-bold">OneNight</span>
+      <div className="container flex h-14 items-center justify-between px-4 gap-4">
+        <Link to="/" className="flex items-center gap-1.5 shrink-0">
+          <Heart className="w-5 h-5 text-primary" fill="currentColor" />
+          <span className="text-lg font-semibold">OneNight</span>
         </Link>
         
-        <div className="flex-1 flex items-center justify-center">
+        <nav className="hidden md:flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Globe className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Globe className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => navigate('/country/zambia')}>
                 Zambia
               </DropdownMenuItem>
@@ -33,31 +33,31 @@ export const Header = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </nav>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
           <Link to="/chat">
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <MessageSquare className="w-4 h-4" />
             </Button>
           </Link>
           <Link to="/videos">
-            <Button variant="ghost" size="icon">
-              <Video className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Video className="w-4 h-4" />
             </Button>
           </Link>
           <Link to="/contact">
-            <Button variant="ghost" size="icon">
-              <Mail className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Mail className="w-4 h-4" />
             </Button>
           </Link>
           <Link to="/login" className="inline-flex">
-            <Button className="hidden sm:inline-flex items-center">
-              <User className="w-5 h-5 mr-2" />
+            <Button className="hidden sm:inline-flex items-center h-9 px-3">
+              <User className="w-4 h-4 mr-2" />
               Login
             </Button>
-            <Button variant="ghost" size="icon" className="sm:hidden inline-flex">
-              <User className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
+              <User className="w-4 h-4" />
             </Button>
           </Link>
         </div>
