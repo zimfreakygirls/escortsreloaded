@@ -11,6 +11,7 @@ import ProfileDetail from "./pages/ProfileDetail";
 import CountryProfiles from "./pages/CountryProfiles";
 import Chat from "./pages/Chat";
 import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/country/:country" element={<CountryProfiles />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
