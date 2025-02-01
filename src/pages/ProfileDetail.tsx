@@ -65,14 +65,14 @@ export default function ProfileDetail() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="container pt-24 pb-12">
+      <main className="container px-4 sm:px-6 pt-24 pb-12">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             <div className="rounded-lg overflow-hidden">
               <img 
                 src={profile.images[selectedImage]} 
                 alt={profile.name}
-                className="w-full h-[500px] object-cover"
+                className="w-full h-[300px] sm:h-[500px] object-cover"
               />
             </div>
             
@@ -105,27 +105,27 @@ export default function ProfileDetail() {
                 <img 
                   src={image} 
                   alt={`${profile.name} ${index + 1}`}
-                  className="w-20 h-20 object-cover"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover"
                 />
               </button>
             ))}
           </div>
           
           <div className="mt-6 space-y-4">
-            <h1 className="text-3xl font-bold">{profile.name}, {profile.age}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{profile.name}, {profile.age}</h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2 text-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2 text-base sm:text-lg">
                 <MapPin className="h-5 w-5 text-primary" />
                 <span>{profile.location}, {profile.city}</span>
               </div>
               
-              <div className="flex items-center gap-2 text-lg">
+              <div className="flex items-center gap-2 text-base sm:text-lg">
                 <Clock className="h-5 w-5 text-primary" />
                 <span>${profile.pricePerHour}/hr</span>
               </div>
               
-              <div className="flex items-center gap-2 text-lg">
+              <div className="flex items-center gap-2 text-base sm:text-lg">
                 <Phone className="h-5 w-5 text-primary" />
                 <span>{profile.phone}</span>
               </div>
