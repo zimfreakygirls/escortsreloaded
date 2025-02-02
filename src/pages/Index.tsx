@@ -86,7 +86,14 @@ export default function Index() {
       <main className="container pt-24 pb-12">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Discover Profiles</h1>
-          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)}>
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(value) => {
+              console.log("View mode changed to:", value);
+              if (value) setViewMode(value);
+            }}
+          >
             <ToggleGroupItem value="grid-2" aria-label="2x2 Grid View">
               <Grid2x2 className="h-4 w-4" />
             </ToggleGroupItem>
