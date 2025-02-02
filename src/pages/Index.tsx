@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Grid2x2, Grid3x3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FavoritesSidebar } from "@/components/FavoritesSidebar";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const allProfiles = [
   {
@@ -60,18 +61,42 @@ const allProfiles = [
 
 export default function Index() {
   const [visibleProfiles, setVisibleProfiles] = useState(4);
+  const [viewMode, setViewMode] = useState("grid-3");
 
   const handleLoadMore = () => {
     setVisibleProfiles(prev => Math.min(prev + 4, allProfiles.length));
   };
 
+  const getGridClass = () => {
+    switch (viewMode) {
+      case "grid-2":
+        return "grid-cols-1 sm:grid-cols-2";
+      case "grid-3":
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+      default:
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
       <Header />
       <FavoritesSidebar />
       
       <main className="container pt-24 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">Discover Profiles</h1>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)}>
+            <ToggleGroupItem value="grid-2" aria-label="2x2 Grid View">
+              <Grid2x2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="grid-3" aria-label="3x3 Grid View">
+              <Grid3x3 className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        <div className={`grid ${getGridClass()} gap-6`}>
           {allProfiles.slice(0, visibleProfiles).map((profile) => (
             <Link key={profile.id} to={`/profile/${profile.id}`}>
               <ProfileCard {...profile} />
