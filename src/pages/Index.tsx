@@ -26,6 +26,34 @@ const allProfiles = [
     age: 19,
     location: "Kabwe",
     imageUrl: "/lovable-uploads/489eb213-d4d5-4f55-8027-30e1766dca1e.png"
+  },
+  {
+    id: "4",
+    name: "Sarah",
+    age: 23,
+    location: "Lusaka",
+    imageUrl: "https://images.unsplash.com/photo-1517022812141-23620dba5c23"
+  },
+  {
+    id: "5",
+    name: "Elena",
+    age: 24,
+    location: "Ndola",
+    imageUrl: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d"
+  },
+  {
+    id: "6",
+    name: "Maria",
+    age: 22,
+    location: "Kitwe",
+    imageUrl: "https://images.unsplash.com/photo-1493962853295-0fd70327578a"
+  },
+  {
+    id: "7",
+    name: "Lisa",
+    age: 25,
+    location: "Livingstone",
+    imageUrl: "https://images.unsplash.com/photo-1452960962994-acf4fd70b632"
   }
 ];
 
@@ -33,7 +61,7 @@ export default function Index() {
   const [visibleProfiles, setVisibleProfiles] = useState(4);
 
   const handleLoadMore = () => {
-    setVisibleProfiles(prev => prev + 4);
+    setVisibleProfiles(prev => Math.min(prev + 4, allProfiles.length));
   };
 
   return (

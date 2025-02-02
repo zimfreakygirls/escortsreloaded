@@ -14,7 +14,7 @@ export const Header = () => {
           <span className="text-lg font-semibold">OneNight</span>
         </Link>
         
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
