@@ -4,6 +4,7 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FavoritesSidebar } from "@/components/FavoritesSidebar";
 
 const allProfiles = [
   {
@@ -67,6 +68,7 @@ export default function Index() {
   return (
     <div className="min-h-screen">
       <Header />
+      <FavoritesSidebar />
       
       <main className="container pt-24 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -82,7 +84,7 @@ export default function Index() {
             <Button 
               size="lg" 
               onClick={handleLoadMore}
-              className="px-8 py-6 bg-gradient-to-r from-primary/90 to-purple-500 hover:from-primary hover:to-purple-600 transition-all duration-300 text-base"
+              className="px-8 py-6 bg-gradient-to-r from-primary/90 to-purple-500 hover:from-primary hover:to-purple-600 transition-all duration-300 text-base shadow-lg hover:shadow-xl"
             >
               <Plus className="w-5 h-5 mr-2" />
               Load More Profiles
