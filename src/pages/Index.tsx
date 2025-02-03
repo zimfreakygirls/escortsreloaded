@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid2x2, Grid3x3 } from "lucide-react";
+import { Plus, Grid2x2, Grid3x3, LayoutList } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FavoritesSidebar } from "@/components/FavoritesSidebar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -69,6 +69,8 @@ export default function Index() {
 
   const getGridClass = () => {
     switch (viewMode) {
+      case "list":
+        return "grid-cols-1";
       case "grid-2":
         return "grid-cols-1 sm:grid-cols-2";
       case "grid-3":
@@ -76,6 +78,13 @@ export default function Index() {
       default:
         return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
     }
+  };
+
+  const getCardClass = () => {
+    if (viewMode === "list") {
+      return "flex flex-col sm:flex-row items-center gap-4 bg-card p-4 rounded-xl";
+    }
+    return "";
   };
 
   return (
@@ -93,11 +102,27 @@ export default function Index() {
               console.log("View mode changed to:", value);
               if (value) setViewMode(value);
             }}
+            className="bg-secondary rounded-lg p-1"
           >
-            <ToggleGroupItem value="grid-2" aria-label="2x2 Grid View">
+            <ToggleGroupItem 
+              value="list" 
+              aria-label="List View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2"
+            >
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="grid-2" 
+              aria-label="2x2 Grid View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2"
+            >
               <Grid2x2 className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="grid-3" aria-label="3x3 Grid View">
+            <ToggleGroupItem 
+              value="grid-3" 
+              aria-label="3x3 Grid View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2"
+            >
               <Grid3x3 className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -105,7 +130,7 @@ export default function Index() {
 
         <div className={`grid ${getGridClass()} gap-6`}>
           {allProfiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`}>
+            <Link key={profile.id} to={`/profile/${profile.id}`} className={getCardClass()}>
               <ProfileCard {...profile} />
             </Link>
           ))}
