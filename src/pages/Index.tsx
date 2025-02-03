@@ -70,7 +70,7 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 max-w-3xl mx-auto gap-4";
+        return "grid-cols-1 max-w-3xl mx-auto gap-6";
       case "grid-2":
         return "grid-cols-1 sm:grid-cols-2 gap-6";
       case "grid-3":

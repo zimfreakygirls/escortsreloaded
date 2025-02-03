@@ -18,12 +18,14 @@ export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3"
     e.preventDefault(); // Prevent navigation
     e.stopPropagation(); // Stop event bubbling
     
-    setIsFavorite(!isFavorite);
-    console.log("Favorite toggled:", name, "New state:", !isFavorite);
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
+    console.log("Favorite toggled:", name, "New state:", newFavoriteState);
     
     toast({
-      title: !isFavorite ? "Added to favorites" : "Removed from favorites",
-      description: !isFavorite ? `${name} was added to your favorites` : `${name} was removed from your favorites`,
+      title: newFavoriteState ? "Added to favorites" : "Removed from favorites",
+      description: newFavoriteState ? `${name} was added to your favorites` : `${name} was removed from your favorites`,
+      duration: 2000,
     });
   };
 
