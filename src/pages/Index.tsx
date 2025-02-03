@@ -70,21 +70,14 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 max-w-3xl mx-auto";
+        return "grid-cols-1 max-w-3xl mx-auto gap-4";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2";
+        return "grid-cols-1 sm:grid-cols-2 gap-6";
       case "grid-3":
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
     }
-  };
-
-  const getCardClass = () => {
-    if (viewMode === "list") {
-      return "block w-full";
-    }
-    return "";
   };
 
   return (
@@ -130,9 +123,9 @@ export default function Index() {
           </ToggleGroup>
         </div>
 
-        <div className={`grid ${getGridClass()} gap-6`}>
+        <div className={`grid ${getGridClass()}`}>
           {allProfiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className={getCardClass()}>
+            <Link key={profile.id} to={`/profile/${profile.id}`}>
               <ProfileCard {...profile} viewMode={viewMode} />
             </Link>
           ))}

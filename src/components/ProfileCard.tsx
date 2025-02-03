@@ -15,12 +15,15 @@ export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3"
   const { toast } = useToast();
 
   const handleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation when clicking the heart
-    e.stopPropagation(); // Stop event from bubbling up
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Stop event bubbling
+    
     setIsFavorite(!isFavorite);
+    console.log("Favorite toggled:", name, "New state:", !isFavorite);
+    
     toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: isFavorite ? `${name} was removed from your favorites` : `${name} was added to your favorites`,
+      title: !isFavorite ? "Added to favorites" : "Removed from favorites",
+      description: !isFavorite ? `${name} was added to your favorites` : `${name} was removed from your favorites`,
     });
   };
 
