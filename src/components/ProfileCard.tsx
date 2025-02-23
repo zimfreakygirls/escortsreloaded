@@ -7,16 +7,16 @@ interface ProfileCardProps {
   viewMode?: string;
 }
 
-export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-4" }: ProfileCardProps) {
+export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3" }: ProfileCardProps) {
   const isListView = viewMode === "list";
 
   return (
-    <div className={`profile-card group relative w-full ${
+    <div className={`profile-card group relative ${
       isListView 
-        ? "flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 bg-card rounded-xl overflow-hidden"
+        ? "flex items-center gap-6 bg-card rounded-xl overflow-hidden"
         : "rounded-xl overflow-hidden bg-card"
     }`}>
-      <div className={isListView ? "w-full sm:w-40 h-48 sm:h-40 flex-shrink-0" : "aspect-[3/4]"}>
+      <div className={isListView ? "w-40 h-40 flex-shrink-0" : "aspect-[3/4]"}>
         <img
           src={imageUrl}
           alt={name}

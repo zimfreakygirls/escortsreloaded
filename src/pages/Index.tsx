@@ -61,7 +61,7 @@ const allProfiles = [
 
 export default function Index() {
   const [visibleProfiles, setVisibleProfiles] = useState(4);
-  const [viewMode, setViewMode] = useState("grid-4");
+  const [viewMode, setViewMode] = useState("grid-3");
 
   const handleLoadMore = () => {
     setVisibleProfiles(prev => Math.min(prev + 4, allProfiles.length));
@@ -70,13 +70,13 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 max-w-3xl mx-auto gap-4";
+        return "grid-cols-1 max-w-3xl mx-auto gap-6";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-4";
-      case "grid-4":
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+        return "grid-cols-2 gap-4 sm:gap-6"; // Fixed grid-2 for mobile
+      case "grid-3":
+        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
     }
   };
 
@@ -84,8 +84,8 @@ export default function Index() {
     <div className="min-h-screen relative">
       <Header />
       
-      <main className="container px-4 sm:px-6 pt-24 pb-12">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 sm:justify-between mb-8">
+      <main className="container pt-24 pb-12">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Discover Profiles</h1>
           <ToggleGroup 
             type="single" 
@@ -113,8 +113,8 @@ export default function Index() {
               <Grid2x2 className="h-4 w-4" />
             </ToggleGroupItem>
             <ToggleGroupItem 
-              value="grid-4" 
-              aria-label="4x4 Grid View"
+              value="grid-3" 
+              aria-label="3x3 Grid View"
               className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
             >
               <Grid3x3 className="h-4 w-4" />
