@@ -7,7 +7,7 @@ interface ProfileCardProps {
   viewMode?: string;
 }
 
-export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3" }: ProfileCardProps) {
+export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-4" }: ProfileCardProps) {
   const isListView = viewMode === "list";
 
   return (
