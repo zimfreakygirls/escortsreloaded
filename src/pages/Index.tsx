@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid2x2, Grid4x4, LayoutList } from "lucide-react";
+import { Plus, Grid2x2, Grid3x3, LayoutList } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -117,7 +117,7 @@ export default function Index() {
               aria-label="4x4 Grid View"
               className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
             >
-              <Grid4x4 className="h-4 w-4" />
+              <Grid3x3 className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
