@@ -70,13 +70,13 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 max-w-3xl mx-auto gap-4 sm:gap-6";
+        return "grid-cols-1 max-w-3xl mx-auto gap-4";
       case "grid-2":
-        return "grid-cols-2 gap-4 sm:gap-6";
+        return "grid-cols-1 sm:grid-cols-2 gap-4";
       case "grid-4":
-        return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
       default:
-        return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
     }
   };
 
@@ -84,8 +84,8 @@ export default function Index() {
     <div className="min-h-screen relative">
       <Header />
       
-      <main className="container pt-24 pb-12">
-        <div className="flex justify-between items-center mb-8">
+      <main className="container px-4 sm:px-6 pt-24 pb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 sm:justify-between mb-8">
           <h1 className="text-2xl font-bold">Discover Profiles</h1>
           <ToggleGroup 
             type="single" 
