@@ -1,6 +1,3 @@
-import { Heart } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 interface ProfileCardProps {
   name: string;
@@ -11,24 +8,6 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3" }: ProfileCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
-  const { toast } = useToast();
-
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
-    e.stopPropagation(); // Stop event bubbling
-    
-    const newFavoriteState = !isFavorite;
-    setIsFavorite(newFavoriteState);
-    console.log("Favorite toggled:", name, "New state:", newFavoriteState);
-    
-    toast({
-      title: newFavoriteState ? "Added to favorites" : "Removed from favorites",
-      description: newFavoriteState ? `${name} was added to your favorites` : `${name} was removed from your favorites`,
-      duration: 2000,
-    });
-  };
-
   const isListView = viewMode === "list";
 
   return (
@@ -46,19 +25,6 @@ export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3"
           }`}
         />
       </div>
-      
-      <button
-        onClick={handleFavorite}
-        className={`absolute ${
-          isListView ? "top-4 right-4" : "top-4 right-4"
-        } p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors z-10`}
-      >
-        <Heart
-          className={`w-5 h-5 transition-colors ${
-            isFavorite ? "text-primary fill-primary" : "text-white"
-          }`}
-        />
-      </button>
 
       <div className={`${
         isListView 

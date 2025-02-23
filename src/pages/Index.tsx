@@ -1,10 +1,10 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Grid2x2, Grid3x3, LayoutList } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FavoritesSidebar } from "@/components/FavoritesSidebar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const allProfiles = [
@@ -72,18 +72,17 @@ export default function Index() {
       case "list":
         return "grid-cols-1 max-w-3xl mx-auto gap-6";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-6";
+        return "grid-cols-2 gap-4 sm:gap-6"; // Fixed grid-2 for mobile
       case "grid-3":
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
+        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
+        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
     }
   };
 
   return (
     <div className="min-h-screen relative">
       <Header />
-      <FavoritesSidebar />
       
       <main className="container pt-24 pb-12">
         <div className="flex justify-between items-center mb-8">
