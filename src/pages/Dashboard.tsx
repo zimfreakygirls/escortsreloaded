@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,28 +65,44 @@ export default function Dashboard() {
   const uploadImages = async (files: FileList): Promise<string[]> => {
     const uploadedUrls: string[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${fileName}`;
+    try {
+      // Create the storage bucket if it doesn't exist
+      const { data: bucketData, error: bucketError } = await supabase.storage
+        .getBucket('profile-images');
 
-      const { error: uploadError } = await supabase.storage
-        .from('profile-images')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
+      if (bucketError && bucketError.message.includes('does not exist')) {
+        await supabase.storage.createBucket('profile-images', {
+          public: true,
+          fileSizeLimit: 5242880 // 5MB
+        });
       }
 
-      const { data: urlData } = supabase.storage
-        .from('profile-images')
-        .getPublicUrl(filePath);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-      uploadedUrls.push(urlData.publicUrl);
+        const { error: uploadError } = await supabase.storage
+          .from('profile-images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(urlData.publicUrl);
+      }
+
+      return uploadedUrls;
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      throw new Error('Failed to upload images: ' + error.message);
     }
-
-    return uploadedUrls;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,8 +115,9 @@ export default function Dashboard() {
       }
 
       const imageUrls = await uploadImages(selectedImages);
+      console.log('Uploaded image URLs:', imageUrls);
 
-      const { error } = await supabase.from('profiles').insert({
+      const { data, error } = await supabase.from('profiles').insert({
         name: formData.name,
         age: parseInt(formData.age),
         location: formData.location,
@@ -109,9 +127,14 @@ export default function Dashboard() {
         phone: formData.phone || null,
         video_url: formData.video_url || null,
         images: imageUrls,
-      });
+      }).select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
+
+      console.log('Inserted profile:', data);
 
       toast({
         title: "Success",
@@ -134,6 +157,7 @@ export default function Dashboard() {
       // Refresh profiles list
       fetchProfiles();
     } catch (error: any) {
+      console.error('Submission error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -146,17 +170,21 @@ export default function Dashboard() {
 
   const fetchProfiles = async () => {
     try {
+      console.log('Fetching profiles...');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Fetch error:', error);
         throw error;
       }
 
+      console.log('Fetched profiles:', data);
       setProfiles(data || []);
     } catch (error: any) {
+      console.error('Fetch error:', error);
       toast({
         title: "Error",
         description: "Failed to fetch profiles",
@@ -167,6 +195,20 @@ export default function Dashboard() {
 
   const deleteProfile = async (id: string) => {
     try {
+      const profile = profiles.find(p => p.id === id);
+      
+      if (profile) {
+        // Delete images from storage
+        for (const imageUrl of profile.images) {
+          const fileName = imageUrl.split('/').pop();
+          if (fileName) {
+            await supabase.storage
+              .from('profile-images')
+              .remove([fileName]);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -181,6 +223,7 @@ export default function Dashboard() {
 
       fetchProfiles();
     } catch (error: any) {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
         description: error.message,
