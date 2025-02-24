@@ -1,44 +1,46 @@
+
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
-
-const countryProfiles = {
-  zambia: [
-    {
-      id: "1",
-      name: "Dilara",
-      age: 20,
-      location: "Chipata",
-      imageUrl: "/lovable-uploads/f2943c08-ebe4-4da4-b40b-904c59b53504.png"
-    },
-    {
-      id: "2",
-      name: "Antonella",
-      age: 26,
-      location: "Kasama",
-      imageUrl: "/lovable-uploads/fe7e6966-e4f3-4054-bc81-c63bfe7a5613.png"
-    }
-  ],
-  zimbabwe: [
-    {
-      id: "3",
-      name: "Meletta",
-      age: 19,
-      location: "Harare",
-      imageUrl: "/lovable-uploads/489eb213-d4d5-4f55-8027-30e1766dca1e.png"
-    }
-  ],
-  malawi: []
-};
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function CountryProfiles() {
   const { country } = useParams();
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(4);
+  const { toast } = useToast();
   
-  const profiles = country ? countryProfiles[country as keyof typeof countryProfiles] : [];
+  useEffect(() => {
+    if (country) {
+      fetchProfiles();
+    }
+  }, [country]);
+
+  const fetchProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('country', country)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setProfiles(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch profiles",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleLoadMore = () => {
     setVisibleProfiles(prev => prev + 4);
@@ -54,7 +56,12 @@ export default function CountryProfiles() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {profiles.slice(0, visibleProfiles).map((profile) => (
             <Link key={profile.id} to={`/profile/${profile.id}`}>
-              <ProfileCard {...profile} />
+              <ProfileCard 
+                name={profile.name}
+                age={profile.age}
+                location={profile.location}
+                imageUrl={profile.images[0] || '/placeholder.svg'}
+              />
             </Link>
           ))}
         </div>
@@ -65,6 +72,12 @@ export default function CountryProfiles() {
               <Plus className="w-5 h-5" />
               Load More
             </Button>
+          </div>
+        )}
+
+        {profiles.length === 0 && (
+          <div className="text-center text-gray-500 mt-8">
+            No profiles found for {country}
           </div>
         )}
       </main>
