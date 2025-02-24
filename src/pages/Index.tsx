@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid2x2, Grid3x3, LayoutList } from "lucide-react";
+import { Plus, Grid2x2, LayoutList } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -61,7 +60,7 @@ const allProfiles = [
 
 export default function Index() {
   const [visibleProfiles, setVisibleProfiles] = useState(4);
-  const [viewMode, setViewMode] = useState("grid-3");
+  const [viewMode, setViewMode] = useState("grid-2");
 
   const handleLoadMore = () => {
     setVisibleProfiles(prev => Math.min(prev + 4, allProfiles.length));
@@ -72,11 +71,9 @@ export default function Index() {
       case "list":
         return "grid-cols-1 max-w-3xl mx-auto gap-6";
       case "grid-2":
-        return "grid-cols-2 gap-4 sm:gap-6"; // Fixed grid-2 for mobile
-      case "grid-3":
-        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
+        return "grid-cols-2 gap-4 sm:gap-6";
       default:
-        return "grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6";
+        return "grid-cols-2 gap-4 sm:gap-6";
     }
   };
 
@@ -92,7 +89,6 @@ export default function Index() {
             value={viewMode} 
             onValueChange={(value) => {
               if (value) {
-                console.log("View mode changed to:", value);
                 setViewMode(value);
               }
             }}
@@ -107,17 +103,10 @@ export default function Index() {
             </ToggleGroupItem>
             <ToggleGroupItem 
               value="grid-2" 
-              aria-label="2x2 Grid View"
+              aria-label="Grid View"
               className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
             >
               <Grid2x2 className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem 
-              value="grid-3" 
-              aria-label="3x3 Grid View"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
-            >
-              <Grid3x3 className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
         </div>

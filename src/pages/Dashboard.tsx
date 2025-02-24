@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -190,7 +189,7 @@ export default function Dashboard() {
   // Fetch profiles when component mounts
   useState(() => {
     fetchProfiles();
-  }, []);
+  });
 
   return (
     <div className="min-h-screen bg-background">
