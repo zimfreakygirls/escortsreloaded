@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import {
@@ -145,21 +145,24 @@ export default function Dashboard() {
   };
 
   const fetchProfiles = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      setProfiles(data || []);
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to fetch profiles",
         variant: "destructive",
       });
-      return;
     }
-
-    setProfiles(data);
   };
 
   const deleteProfile = async (id: string) => {
@@ -186,10 +189,9 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch profiles when component mounts
-  useState(() => {
+  useEffect(() => {
     fetchProfiles();
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">

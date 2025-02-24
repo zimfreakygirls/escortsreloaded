@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -59,11 +60,11 @@ const allProfiles = [
 ];
 
 export default function Index() {
-  const [visibleProfiles, setVisibleProfiles] = useState(4);
+  const [visibleProfiles, setVisibleProfiles] = useState(6); // Changed from 4 to 6
   const [viewMode, setViewMode] = useState("grid-2");
 
   const handleLoadMore = () => {
-    setVisibleProfiles(prev => Math.min(prev + 4, allProfiles.length));
+    setVisibleProfiles(prev => Math.min(prev + 6, allProfiles.length)); // Changed from 4 to 6
   };
 
   const getGridClass = () => {
