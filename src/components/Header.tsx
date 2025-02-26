@@ -19,11 +19,12 @@ export const Header = () => {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('countries')
           .select('*')
           .order('name', { ascending: true });
           
+        if (error) throw error;
         setCountries(data || []);
       } catch (error) {
         console.error('Error fetching countries:', error);
