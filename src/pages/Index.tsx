@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid2x2, LayoutList, GridIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,13 +47,13 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 max-w-3xl mx-auto gap-6";
+        return "grid-cols-1 gap-4";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6";
+        return "grid-cols-2 gap-4";
       case "grid-1":
         return "grid-cols-1 gap-4";
       default:
-        return "grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6";
+        return "grid-cols-2 gap-4";
     }
   };
 
@@ -61,7 +61,7 @@ export default function Index() {
     <div className="min-h-screen relative">
       <Header />
       
-      <main className="container pt-24 pb-12">
+      <main className="container pt-24 pb-12 px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Discover Profiles</h1>
           <ToggleGroup 
@@ -77,30 +77,41 @@ export default function Index() {
             <ToggleGroupItem 
               value="grid-1" 
               aria-label="Single Column"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
             >
-              <GridIcon className="h-4 w-4" />
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+              </svg>
             </ToggleGroupItem>
             <ToggleGroupItem 
               value="grid-2" 
               aria-label="Grid View"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
             >
-              <Grid2x2 className="h-4 w-4" />
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="13" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="13" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+              </svg>
             </ToggleGroupItem>
             <ToggleGroupItem 
               value="list" 
               aria-label="List View"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
             >
-              <LayoutList className="h-4 w-4" />
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="10" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="16" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+              </svg>
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
 
         <div className={`grid ${getGridClass()}`}>
           {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`}>
+            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full">
               <ProfileCard 
                 name={profile.name}
                 age={profile.age}
