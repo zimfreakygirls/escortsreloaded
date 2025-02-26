@@ -2,16 +2,36 @@
 import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Country {
+  id: string;
+  name: string;
+  active: boolean;
+}
 
 export const Header = () => {
   const navigate = useNavigate();
+  const [countries, setCountries] = useState<Country[]>([]);
 
-  const countries = [
-    { name: 'Zambia', active: true },
-    { name: 'Zimbabwe', active: true },
-    { name: 'Malawi', active: true }
-  ];
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const { data } = await supabase
+          .from('countries')
+          .select('*')
+          .order('name', { ascending: true });
+          
+        setCountries(data || []);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    };
+
+    fetchCountries();
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -31,7 +51,7 @@ export const Header = () => {
             <DropdownMenuContent align="end">
               {countries.filter(c => c.active).map((country) => (
                 <DropdownMenuItem 
-                  key={country.name} 
+                  key={country.id} 
                   onClick={() => navigate(`/country/${country.name.toLowerCase()}`)}
                 >
                   {country.name}

@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,39 +14,96 @@ interface Country {
 
 export function CountryManager() {
   const [newCountry, setNewCountry] = useState("");
-  const [countries, setCountries] = useState<Country[]>([
-    { id: '1', name: 'Zambia', active: true },
-    { id: '2', name: 'Zimbabwe', active: true },
-    { id: '3', name: 'Malawi', active: true }
-  ]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const handleAddCountry = () => {
-    if (!newCountry.trim()) return;
-    
-    const country = {
-      id: crypto.randomUUID(),
-      name: newCountry.trim(),
-      active: true
-    };
-    
-    setCountries([...countries, country]);
-    setNewCountry("");
-    
-    toast({
-      title: "Success",
-      description: `${country.name} has been added to the countries list.`,
-    });
+  const fetchCountries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setCountries(data || []);
+    } catch (error: any) {
+      console.error('Error fetching countries:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch countries list",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemoveCountry = (id: string) => {
-    setCountries(countries.filter(country => country.id !== id));
+  useEffect(() => {
+    fetchCountries();
+  }, []);
+
+  const handleAddCountry = async () => {
+    if (!newCountry.trim()) return;
     
-    toast({
-      title: "Success",
-      description: "Country has been removed from the list.",
-    });
+    try {
+      const { data, error } = await supabase
+        .from('countries')
+        .insert([{ name: newCountry.trim(), active: true }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCountries([...countries, data]);
+      setNewCountry("");
+      
+      toast({
+        title: "Success",
+        description: `${data.name} has been added to the countries list.`,
+      });
+    } catch (error: any) {
+      console.error('Error adding country:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
+
+  const handleRemoveCountry = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('countries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCountries(countries.filter(country => country.id !== id));
+      
+      toast({
+        title: "Success",
+        description: "Country has been removed from the list.",
+      });
+    } catch (error: any) {
+      console.error('Error removing country:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
