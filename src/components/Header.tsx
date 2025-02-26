@@ -1,3 +1,4 @@
+
 import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -5,6 +6,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 export const Header = () => {
   const navigate = useNavigate();
+
+  const countries = [
+    { name: 'Zambia', active: true },
+    { name: 'Zimbabwe', active: true },
+    { name: 'Malawi', active: true }
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -22,15 +29,14 @@ export const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/country/zambia')}>
-                Zambia
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/country/zimbabwe')}>
-                Zimbabwe
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/country/malawi')}>
-                Malawi
-              </DropdownMenuItem>
+              {countries.filter(c => c.active).map((country) => (
+                <DropdownMenuItem 
+                  key={country.name} 
+                  onClick={() => navigate(`/country/${country.name.toLowerCase()}`)}
+                >
+                  {country.name}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
@@ -64,4 +70,4 @@ export const Header = () => {
       </div>
     </header>
   );
-};
+}

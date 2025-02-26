@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CountryManager } from "@/components/CountryManager";
 
 interface Profile {
   id: string;
@@ -242,6 +242,18 @@ export default function Dashboard() {
       
       <main className="container px-4 py-24">
         <div className="max-w-6xl mx-auto space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Countries</CardTitle>
+              <CardDescription>
+                Add or remove countries from the navigation menu
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CountryManager />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Add New Profile</CardTitle>

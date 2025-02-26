@@ -5,9 +5,29 @@ interface ProfileCardProps {
   location: string;
   imageUrl: string;
   viewMode?: string;
+  height?: string;
+  weight?: string;
+  proportions?: string;
+  hairColor?: string;
+  eyeColor?: string;
+  meetingWith?: string;
+  city?: string;
 }
 
-export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3" }: ProfileCardProps) {
+export function ProfileCard({ 
+  name, 
+  age, 
+  location, 
+  imageUrl, 
+  viewMode = "grid-3",
+  height,
+  weight,
+  proportions,
+  hairColor,
+  eyeColor,
+  meetingWith,
+  city
+}: ProfileCardProps) {
   const isListView = viewMode === "list";
 
   return (
@@ -31,8 +51,21 @@ export function ProfileCard({ name, age, location, imageUrl, viewMode = "grid-3"
           ? "p-4 flex-grow"
           : "absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
       }`}>
-        <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
-        <p className="text-sm text-gray-300">{location}</p>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
+          <p className="text-sm text-gray-300">{city || location}</p>
+          
+          {isListView && (
+            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-400">
+              {height && <p>Height: {height}</p>}
+              {weight && <p>Weight: {weight}</p>}
+              {proportions && <p>Proportions: {proportions}</p>}
+              {hairColor && <p>Hair: {hairColor}</p>}
+              {eyeColor && <p>Eyes: {eyeColor}</p>}
+              {meetingWith && <p>Meeting with: {meetingWith}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
