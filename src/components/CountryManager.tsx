@@ -16,6 +16,7 @@ export function CountryManager() {
   const [newCountry, setNewCountry] = useState("");
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const fetchCountries = async () => {
@@ -43,9 +44,11 @@ export function CountryManager() {
     fetchCountries();
   }, []);
 
-  const handleAddCountry = async () => {
-    if (!newCountry.trim()) return;
+  const handleAddCountry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCountry.trim() || isSubmitting) return;
     
+    setIsSubmitting(true);
     try {
       const { data, error } = await supabase
         .from('countries')
@@ -55,7 +58,7 @@ export function CountryManager() {
 
       if (error) throw error;
 
-      setCountries([...countries, data]);
+      setCountries(prev => [...prev, data]);
       setNewCountry("");
       
       toast({
@@ -69,10 +72,15 @@ export function CountryManager() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleRemoveCountry = async (id: string) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from('countries')
@@ -81,7 +89,7 @@ export function CountryManager() {
 
       if (error) throw error;
 
-      setCountries(countries.filter(country => country.id !== id));
+      setCountries(prev => prev.filter(country => country.id !== id));
       
       toast({
         title: "Success",
@@ -94,6 +102,8 @@ export function CountryManager() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,18 +117,25 @@ export function CountryManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4">
+      <form onSubmit={handleAddCountry} className="flex gap-4">
         <Input
           placeholder="Enter country name..."
           value={newCountry}
           onChange={(e) => setNewCountry(e.target.value)}
           className="max-w-xs"
+          disabled={isSubmitting}
         />
-        <Button onClick={handleAddCountry}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Country
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Country
+            </>
+          )}
         </Button>
-      </div>
+      </form>
 
       <div className="space-y-2">
         {countries.map((country) => (
@@ -131,8 +148,13 @@ export function CountryManager() {
               variant="destructive" 
               size="sm"
               onClick={() => handleRemoveCountry(country.id)}
+              disabled={isSubmitting}
             >
-              <Trash2 className="w-4 h-4" />
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
             </Button>
           </div>
         ))}

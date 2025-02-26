@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid2x2, LayoutList } from "lucide-react";
+import { Plus, Grid2x2, LayoutList, GridIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,9 +49,11 @@ export default function Index() {
       case "list":
         return "grid-cols-1 max-w-3xl mx-auto gap-6";
       case "grid-2":
-        return "grid-cols-2 gap-4 sm:gap-6";
+        return "grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6";
+      case "grid-1":
+        return "grid-cols-1 gap-4";
       default:
-        return "grid-cols-2 gap-4 sm:gap-6";
+        return "grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6";
     }
   };
 
@@ -73,11 +75,11 @@ export default function Index() {
             className="bg-secondary rounded-lg p-1"
           >
             <ToggleGroupItem 
-              value="list" 
-              aria-label="List View"
+              value="grid-1" 
+              aria-label="Single Column"
               className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
             >
-              <LayoutList className="h-4 w-4" />
+              <GridIcon className="h-4 w-4" />
             </ToggleGroupItem>
             <ToggleGroupItem 
               value="grid-2" 
@@ -85,6 +87,13 @@ export default function Index() {
               className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
             >
               <Grid2x2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="list" 
+              aria-label="List View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white px-3 py-2 transition-colors"
+            >
+              <LayoutList className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -98,6 +107,7 @@ export default function Index() {
                 location={profile.location}
                 imageUrl={profile.images[0] || '/placeholder.svg'}
                 viewMode={viewMode}
+                city={profile.city}
               />
             </Link>
           ))}
