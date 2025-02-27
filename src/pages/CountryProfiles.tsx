@@ -14,11 +14,13 @@ export default function CountryProfiles() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(4);
   const [viewMode, setViewMode] = useState("grid-2");
+  const [displayLimit, setDisplayLimit] = useState(4);
   const { toast } = useToast();
   
   useEffect(() => {
     if (country) {
       fetchProfiles();
+      fetchSettings();
     }
   }, [country]);
 
@@ -44,8 +46,34 @@ export default function CountryProfiles() {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 'global_settings')
+        .single();
+
+      if (error) {
+        // If settings don't exist yet, we'll use the default value
+        if (error.code === 'PGRST116') {
+          return;
+        }
+        throw error;
+      }
+
+      if (data && data.profiles_per_page) {
+        setVisibleProfiles(data.profiles_per_page);
+        setDisplayLimit(data.profiles_per_page);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch settings:", error);
+      // Continue with default values
+    }
+  };
+
   const handleLoadMore = () => {
-    setVisibleProfiles(prev => prev + 4);
+    setVisibleProfiles(prev => Math.min(prev + displayLimit, profiles.length));
   };
 
   const getGridClass = () => {
@@ -53,11 +81,11 @@ export default function CountryProfiles() {
       case "list":
         return "grid-cols-1 gap-4 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-4";
+        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
       case "grid-1":
         return "grid-cols-1 max-w-lg mx-auto gap-4";
       default:
-        return "grid-cols-1 sm:grid-cols-2 gap-4";
+        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
     }
   };
 
