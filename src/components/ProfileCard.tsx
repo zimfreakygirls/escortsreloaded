@@ -50,6 +50,12 @@ export function ProfileCard({
         />
       </div>
 
+      {phone && !isListView && (
+        <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-purple-600 py-1 px-3 rounded-full text-white text-xs font-medium shadow-lg backdrop-blur-sm z-10 opacity-90 hover:opacity-100 transition-all">
+          <span>☎ {phone}</span>
+        </div>
+      )}
+
       <div className={`${
         isListView 
           ? "p-4 flex-grow"
@@ -60,7 +66,7 @@ export function ProfileCard({
           {city && country && (
             <p className="text-sm text-gray-300">{city}, {country}</p>
           )}
-          {phone && (
+          {phone && isListView && (
             <p className="text-sm text-gray-300">
               <span className="text-primary">☎</span> {phone}
             </p>

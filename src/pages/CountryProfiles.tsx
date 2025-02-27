@@ -7,11 +7,13 @@ import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function CountryProfiles() {
   const { country } = useParams();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(4);
+  const [viewMode, setViewMode] = useState("grid-2");
   const { toast } = useToast();
   
   useEffect(() => {
@@ -46,21 +48,83 @@ export default function CountryProfiles() {
     setVisibleProfiles(prev => prev + 4);
   };
 
+  const getGridClass = () => {
+    switch (viewMode) {
+      case "list":
+        return "grid-cols-1 gap-4 max-w-3xl mx-auto";
+      case "grid-2":
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+      case "grid-1":
+        return "grid-cols-1 max-w-lg mx-auto gap-6";
+      default:
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
       
-      <main className="container pt-24 pb-12">
-        <h1 className="text-3xl font-bold mb-8 capitalize">{country} Profiles</h1>
+      <main className="container pt-24 pb-12 px-4">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold capitalize">{country} Profiles</h1>
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(value) => {
+              if (value) {
+                setViewMode(value);
+              }
+            }}
+            className="bg-secondary rounded-lg p-1"
+          >
+            <ToggleGroupItem 
+              value="grid-1" 
+              aria-label="Single Column"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="grid-2" 
+              aria-label="Grid View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="13" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="13" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="list" 
+              aria-label="List View"
+              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="10" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+                <rect x="4" y="16" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={`grid ${getGridClass()}`}>
           {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`}>
+            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
               <ProfileCard 
                 name={profile.name}
                 age={profile.age}
                 location={profile.location}
                 imageUrl={profile.images[0] || '/placeholder.svg'}
+                viewMode={viewMode}
+                city={profile.city}
+                country={profile.country}
+                phone={profile.phone}
               />
             </Link>
           ))}
@@ -68,8 +132,12 @@ export default function CountryProfiles() {
         
         {visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">
-            <Button size="lg" className="gap-2" onClick={handleLoadMore}>
-              <Plus className="w-5 h-5" />
+            <Button 
+              size="lg" 
+              onClick={handleLoadMore}
+              className="px-8 py-6 bg-gradient-to-r from-primary/90 to-purple-500 hover:from-primary hover:to-purple-600 transition-all duration-300 text-base shadow-lg hover:shadow-xl"
+            >
+              <Plus className="w-5 h-5 mr-2" />
               Load More
             </Button>
           </div>
