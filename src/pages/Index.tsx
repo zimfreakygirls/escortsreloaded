@@ -47,13 +47,13 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 gap-4";
+        return "grid-cols-1 gap-4 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-2 gap-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
       case "grid-1":
-        return "grid-cols-1 gap-4";
+        return "grid-cols-1 max-w-lg mx-auto gap-6";
       default:
-        return "grid-cols-2 gap-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
     }
   };
 
@@ -111,7 +111,7 @@ export default function Index() {
 
         <div className={`grid ${getGridClass()}`}>
           {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full">
+            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
               <ProfileCard 
                 name={profile.name}
                 age={profile.age}
@@ -119,6 +119,8 @@ export default function Index() {
                 imageUrl={profile.images[0] || '/placeholder.svg'}
                 viewMode={viewMode}
                 city={profile.city}
+                country={profile.country}
+                phone={profile.phone}
               />
             </Link>
           ))}

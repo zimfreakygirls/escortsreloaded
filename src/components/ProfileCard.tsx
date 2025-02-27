@@ -12,6 +12,8 @@ interface ProfileCardProps {
   eyeColor?: string;
   meetingWith?: string;
   city?: string;
+  country?: string;
+  phone?: string;
 }
 
 export function ProfileCard({ 
@@ -26,7 +28,9 @@ export function ProfileCard({
   hairColor,
   eyeColor,
   meetingWith,
-  city
+  city,
+  country,
+  phone
 }: ProfileCardProps) {
   const isListView = viewMode === "list";
 
@@ -34,9 +38,9 @@ export function ProfileCard({
     <div className={`profile-card group relative ${
       isListView 
         ? "flex items-center gap-6 bg-card rounded-xl overflow-hidden"
-        : "rounded-xl overflow-hidden bg-card"
+        : "rounded-xl overflow-hidden bg-card max-w-md mx-auto h-full"
     }`}>
-      <div className={isListView ? "w-40 h-40 flex-shrink-0" : "aspect-[3/4]"}>
+      <div className={isListView ? "w-40 h-40 flex-shrink-0" : "aspect-[4/5]"}>
         <img
           src={imageUrl}
           alt={name}
@@ -51,9 +55,16 @@ export function ProfileCard({
           ? "p-4 flex-grow"
           : "absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
       }`}>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
-          <p className="text-sm text-gray-300">{city || location}</p>
+          {city && country && (
+            <p className="text-sm text-gray-300">{city}, {country}</p>
+          )}
+          {phone && (
+            <p className="text-sm text-gray-300">
+              <span className="text-primary">☎</span> {phone}
+            </p>
+          )}
           
           {isListView && (
             <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-400">
