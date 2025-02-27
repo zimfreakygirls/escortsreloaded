@@ -14,6 +14,8 @@ interface ProfileCardProps {
   city?: string;
   country?: string;
   phone?: string;
+  isVerified?: boolean;
+  isPremium?: boolean;
 }
 
 export function ProfileCard({ 
@@ -30,7 +32,9 @@ export function ProfileCard({
   meetingWith,
   city,
   country,
-  phone
+  phone,
+  isVerified,
+  isPremium
 }: ProfileCardProps) {
   const isListView = viewMode === "list";
 
@@ -50,11 +54,25 @@ export function ProfileCard({
         />
       </div>
 
-      {phone && !isListView && (
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-purple-600 py-1 px-3 rounded-full text-white text-xs font-medium shadow-lg backdrop-blur-sm z-10 opacity-90 hover:opacity-100 transition-all">
-          <span>☎ {phone}</span>
-        </div>
-      )}
+      {/* Badges */}
+      <div className="absolute top-3 left-3 flex flex-col gap-2">
+        {isVerified && (
+          <div className="bg-blue-500/90 backdrop-blur-sm py-1 px-2 rounded-md text-white text-xs font-medium shadow-lg flex items-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+              <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Verified</span>
+          </div>
+        )}
+        {isPremium && (
+          <div className="bg-gradient-to-r from-amber-500 to-amber-600 backdrop-blur-sm py-1 px-2 rounded-md text-white text-xs font-medium shadow-lg flex items-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+              <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Premium</span>
+          </div>
+        )}
+      </div>
 
       <div className={`${
         isListView 

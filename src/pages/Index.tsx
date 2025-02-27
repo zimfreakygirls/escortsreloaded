@@ -49,11 +49,11 @@ export default function Index() {
       case "list":
         return "grid-cols-1 gap-4 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+        return "grid-cols-1 sm:grid-cols-2 gap-4";
       case "grid-1":
-        return "grid-cols-1 max-w-lg mx-auto gap-6";
+        return "grid-cols-1 max-w-lg mx-auto gap-4";
       default:
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+        return "grid-cols-1 sm:grid-cols-2 gap-4";
     }
   };
 
@@ -121,6 +121,8 @@ export default function Index() {
                 city={profile.city}
                 country={profile.country}
                 phone={profile.phone}
+                isVerified={profile.is_verified}
+                isPremium={profile.is_premium}
               />
             </Link>
           ))}
