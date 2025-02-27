@@ -9,6 +9,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Settings {
+  id: string;
+  profiles_per_page: number;
+  created_at?: string;
+}
+
 export default function Index() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(6);
@@ -58,9 +64,10 @@ export default function Index() {
         throw error;
       }
 
-      if (data && data.profiles_per_page) {
-        setVisibleProfiles(data.profiles_per_page);
-        setDisplayLimit(data.profiles_per_page);
+      if (data) {
+        const settingsData = data as Settings;
+        setVisibleProfiles(settingsData.profiles_per_page);
+        setDisplayLimit(settingsData.profiles_per_page);
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);

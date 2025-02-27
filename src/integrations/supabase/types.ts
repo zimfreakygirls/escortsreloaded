@@ -87,6 +87,24 @@ export type Database = {
         }
         Relationships: []
       }
+      settings: {
+        Row: {
+          created_at: string
+          id: string
+          profiles_per_page: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          profiles_per_page?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profiles_per_page?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

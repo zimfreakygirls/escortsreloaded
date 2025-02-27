@@ -28,11 +28,14 @@ interface Profile {
   phone?: string;
   video_url?: string;
   images: string[];
+  is_verified?: boolean;
+  is_premium?: boolean;
 }
 
 interface Settings {
   id: string;
   profiles_per_page: number;
+  created_at?: string;
 }
 
 export default function Dashboard() {
@@ -86,7 +89,7 @@ export default function Dashboard() {
       }
 
       if (data) {
-        setSettings(data);
+        setSettings(data as Settings);
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
