@@ -54,6 +54,7 @@ const currencies = [
   { value: "AUD", label: "Australian Dollar (A$)", symbol: "A$" },
   { value: "CAD", label: "Canadian Dollar (C$)", symbol: "C$" },
   { value: "CHF", label: "Swiss Franc (CHF)", symbol: "CHF" },
+  { value: "ZMW", label: "Zambian Kwacha (K)", symbol: "K" },
 ];
 
 export default function Dashboard() {
