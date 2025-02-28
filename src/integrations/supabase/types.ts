@@ -90,16 +90,19 @@ export type Database = {
       settings: {
         Row: {
           created_at: string
+          currency: string
           id: string
           profiles_per_page: number
         }
         Insert: {
           created_at?: string
+          currency?: string
           id: string
           profiles_per_page?: number
         }
         Update: {
           created_at?: string
+          currency?: string
           id?: string
           profiles_per_page?: number
         }
