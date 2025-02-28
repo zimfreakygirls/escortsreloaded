@@ -5,8 +5,6 @@ import { Input } from "../ui/input";
 import { Loader2, Plus } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
 
 interface ProfileFormProps {
   onSuccess: () => void;
@@ -23,8 +21,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     price_per_hour: "",
     phone: "",
     video_url: "",
-    is_verified: false,
-    is_premium: false,
   });
   const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
   const { toast } = useToast();
@@ -32,10 +28,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCheckboxChange = (name: string, checked: boolean) => {
-    setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +40,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     const uploadedUrls: string[] = [];
 
     try {
+      // Check if bucket exists and create it if it doesn't
       const { data: bucketData, error: bucketError } = await supabase.storage
         .getBucket('profile-images');
 
@@ -107,8 +100,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         phone: formData.phone || null,
         video_url: formData.video_url || null,
         images: imageUrls,
-        is_verified: formData.is_verified,
-        is_premium: formData.is_premium,
       }).select();
 
       if (error) {
@@ -129,8 +120,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         price_per_hour: "",
         phone: "",
         video_url: "",
-        is_verified: false,
-        is_premium: false,
       });
       setSelectedImages(null);
       onSuccess();
@@ -211,34 +200,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
           onChange={handleImageChange}
           required
         />
-      </div>
-
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-8">
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="is_verified" 
-            checked={formData.is_verified}
-            onCheckedChange={(checked) => 
-              handleCheckboxChange("is_verified", checked as boolean)
-            }
-          />
-          <Label htmlFor="is_verified" className="text-sm font-medium">
-            Verified Profile
-          </Label>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="is_premium" 
-            checked={formData.is_premium}
-            onCheckedChange={(checked) => 
-              handleCheckboxChange("is_premium", checked as boolean)
-            }
-          />
-          <Label htmlFor="is_premium" className="text-sm font-medium">
-            Premium Profile
-          </Label>
-        </div>
       </div>
 
       <Button type="submit" disabled={loading}>
