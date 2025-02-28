@@ -14,27 +14,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
   username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function Signup() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
       username: "",
+      email: "",
       password: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
@@ -60,58 +64,67 @@ export default function Signup() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center auth-container">
-      <div className="w-full max-w-md space-y-8 p-8 bg-black/40 backdrop-blur rounded-xl">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">
+      <div className="w-full max-w-md space-y-8 p-8 bg-[#292741]/90 backdrop-blur-lg rounded-xl shadow-2xl border border-[#9b87f5]/20">
         <div className="flex flex-col items-center">
           <img 
             src="/lovable-uploads/34bc3f4f-6fe8-459a-81f6-cf6920d53cd4.png" 
             alt="Logo" 
-            className="w-24 h-24 object-contain"
+            className="w-20 h-20 object-contain mb-2"
           />
-          <h2 className="mt-6 text-3xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
             Create Account
           </h2>
+          <p className="mt-2 text-center text-gray-400">
+            Join our community and find your perfect match
+          </p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-5">
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="Email"
-                        className="bg-white/10 border-primary/20 focus-visible:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        placeholder="Username"
-                        className="bg-white/10 border-primary/20 focus-visible:ring-primary"
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Username"
+                          className="bg-[#1e1c2e] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white pl-4 h-12"
+                        />
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="Email"
+                          className="bg-[#1e1c2e] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white pl-4 h-12"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
               />
@@ -122,14 +135,16 @@ export default function Signup() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="password"
-                        placeholder="Password"
-                        className="bg-white/10 border-primary/20 focus-visible:ring-primary"
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Password"
+                          className="bg-[#1e1c2e] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white pl-4 h-12"
+                        />
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
               />
@@ -137,18 +152,30 @@ export default function Signup() {
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-600 transition-all duration-300"
-              size="lg"
-              disabled={form.formState.isSubmitting}
+              className="w-full h-12 bg-gradient-to-r from-[#9b87f5] to-purple-500 hover:from-[#8b77e5] hover:to-purple-600 transition-all duration-300 text-white font-medium"
+              disabled={isLoading}
             >
-              {form.formState.isSubmitting ? "Creating account..." : "Sign up"}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
         </Form>
 
+        <div className="relative flex items-center justify-center mt-6">
+          <div className="border-t border-gray-700 w-full"></div>
+          <div className="bg-[#292741] px-4 text-sm text-gray-400 relative z-10">or</div>
+          <div className="border-t border-gray-700 w-full"></div>
+        </div>
+
         <p className="text-center text-sm text-gray-400">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:text-primary/80 transition-colors">
+          <Link to="/login" className="text-[#9b87f5] hover:text-[#8b77e5] transition-colors">
             Log in
           </Link>
         </p>
