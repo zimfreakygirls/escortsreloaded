@@ -1,4 +1,3 @@
-
 import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,7 +11,7 @@ interface Country {
   active: boolean;
 }
 
-export const Header = () => {
+export function Header() {
   const navigate = useNavigate();
   const [countries, setCountries] = useState<Country[]>([]);
 
@@ -36,34 +35,42 @@ export const Header = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <div className="container flex h-14 items-center justify-between px-4 gap-4">
-        <Link to="/" className="flex items-center gap-1.5 shrink-0">
-          <Heart className="w-5 h-5 text-primary" fill="currentColor" />
-          <span className="text-lg font-semibold">OneNight</span>
+    <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
+      <div className="container flex justify-between items-center h-16 px-4">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="font-bold text-xl">Escort</div>
         </Link>
-        
-        <nav className="flex items-center gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Globe className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {countries.map((country) => (
-                <DropdownMenuItem 
-                  key={country.id} 
-                  onClick={() => navigate(`/country/${country.name.toLowerCase()}`)}
-                >
-                  {country.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
+            Home
+          </Link>
+          <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
+            Premium
+          </Link>
+          
+          {countries.map((country) => (
+            <Link
+              key={country.id}
+              to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              {country.name}
+            </Link>
+          ))}
+          
+          <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
+            Videos
+          </Link>
+          <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
+            Chat
+          </Link>
+          <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+            Contact
+          </Link>
         </nav>
-        
-        <div className="flex items-center gap-1">
+
+        <div className="flex items-center gap-2">
           <Link to="/chat">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <MessageSquare className="w-4 h-4" />

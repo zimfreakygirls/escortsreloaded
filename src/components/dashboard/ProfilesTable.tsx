@@ -1,6 +1,6 @@
 
 import { Button } from "../ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, CheckCircle, Star } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,6 +11,7 @@ import {
 } from "../ui/table";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "../ui/badge";
 
 interface Profile {
   id: string;
@@ -84,6 +85,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
             <TableHead className="text-gray-300">City</TableHead>
             <TableHead className="text-gray-300">Country</TableHead>
             <TableHead className="text-gray-300">Price/Hour</TableHead>
+            <TableHead className="text-gray-300">Status</TableHead>
             <TableHead className="text-gray-300">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -96,6 +98,22 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
               <TableCell className="text-gray-300">{profile.city}</TableCell>
               <TableCell className="text-gray-300">{profile.country}</TableCell>
               <TableCell className="text-gray-300">{currencySymbol}{profile.price_per_hour}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1">
+                  {profile.is_verified && (
+                    <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500 flex items-center gap-1 w-fit">
+                      <CheckCircle className="h-3 w-3" />
+                      Verified
+                    </Badge>
+                  )}
+                  {profile.is_premium && (
+                    <Badge variant="outline" className="bg-amber-500/20 text-amber-400 border-amber-500 flex items-center gap-1 w-fit">
+                      <Star className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>
                 <Button
                   variant="destructive"

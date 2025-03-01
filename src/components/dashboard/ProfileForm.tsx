@@ -5,6 +5,10 @@ import { Input } from "../ui/input";
 import { Loader2, Plus } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "../ui/checkbox";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "../ui/form";
+import { Form } from "../ui/form";
+import { useForm } from "react-hook-form";
 
 interface ProfileFormProps {
   onSuccess: () => void;
@@ -12,23 +16,23 @@ interface ProfileFormProps {
 
 export function ProfileForm({ onSuccess }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    location: "",
-    city: "",
-    country: "",
-    price_per_hour: "",
-    phone: "",
-    video_url: "",
-  });
   const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
   const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      age: "",
+      location: "",
+      city: "",
+      country: "",
+      price_per_hour: "",
+      phone: "",
+      video_url: "",
+      is_premium: false,
+      is_verified: false,
+    }
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -79,8 +83,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: any) => {
     setLoading(true);
 
     try {
@@ -89,21 +92,23 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
       }
 
       // Make sure country is properly capitalized for consistent filtering
-      const countryName = formData.country.trim();
+      const countryName = data.country.trim();
       const formattedCountry = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase();
 
       const imageUrls = await uploadImages(selectedImages);
 
-      const { data, error } = await supabase.from('profiles').insert({
-        name: formData.name,
-        age: parseInt(formData.age),
-        location: formData.location,
-        city: formData.city,
+      const { data: profileData, error } = await supabase.from('profiles').insert({
+        name: data.name,
+        age: parseInt(data.age),
+        location: data.location,
+        city: data.city,
         country: formattedCountry, // Use formatted country name for consistency
-        price_per_hour: parseInt(formData.price_per_hour),
-        phone: formData.phone || null,
-        video_url: formData.video_url || null,
+        price_per_hour: parseInt(data.price_per_hour),
+        phone: data.phone || null,
+        video_url: data.video_url || null,
         images: imageUrls,
+        is_premium: data.is_premium || false,
+        is_verified: data.is_verified || false,
       }).select();
 
       if (error) {
@@ -130,16 +135,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         description: "Profile created successfully",
       });
 
-      setFormData({
-        name: "",
-        age: "",
-        location: "",
-        city: "",
-        country: "",
-        price_per_hour: "",
-        phone: "",
-        video_url: "",
-      });
+      form.reset();
       setSelectedImages(null);
       onSuccess();
     } catch (error: any) {
@@ -154,86 +150,143 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Input
-          name="name"
-          placeholder="Name"
-          value={formData.name}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="age"
-          type="number"
-          placeholder="Age"
-          value={formData.age}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="location"
-          placeholder="Location"
-          value={formData.location}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="city"
-          placeholder="City"
-          value={formData.city}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="country"
-          placeholder="Country"
-          value={formData.country}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="price_per_hour"
-          type="number"
-          placeholder="Price per hour"
-          value={formData.price_per_hour}
-          onChange={handleInputChange}
-          required
-        />
-        <Input
-          name="phone"
-          placeholder="Phone number"
-          value={formData.phone}
-          onChange={handleInputChange}
-        />
-        <Input
-          name="video_url"
-          placeholder="Video URL"
-          value={formData.video_url}
-          onChange={handleInputChange}
-        />
-        <Input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageChange}
-          required
-        />
-      </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+            <Input
+              {...form.register("name", { required: true })}
+              placeholder="Name"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Age</label>
+            <Input
+              {...form.register("age", { required: true })}
+              type="number"
+              placeholder="Age"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Location</label>
+            <Input
+              {...form.register("location", { required: true })}
+              placeholder="Location"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">City</label>
+            <Input
+              {...form.register("city", { required: true })}
+              placeholder="City"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Country</label>
+            <Input
+              {...form.register("country", { required: true })}
+              placeholder="Country"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Price per hour</label>
+            <Input
+              {...form.register("price_per_hour", { required: true })}
+              type="number"
+              placeholder="Price per hour"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Phone number</label>
+            <Input
+              {...form.register("phone")}
+              placeholder="Phone number"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Video URL</label>
+            <Input
+              {...form.register("video_url")}
+              placeholder="Video URL"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Images</label>
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              required
+            />
+          </div>
+        </div>
 
-      <Button type="submit" disabled={loading}>
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating...
-          </>
-        ) : (
-          <>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Profile
-          </>
-        )}
-      </Button>
-    </form>
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="is_premium"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-800 p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-white">Premium Profile</FormLabel>
+                  <FormDescription className="text-gray-400">
+                    Mark this profile as premium to feature it in premium listings.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="is_verified"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-800 p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-white">Verified Profile</FormLabel>
+                  <FormDescription className="text-gray-400">
+                    Mark this profile as verified to indicate authenticity.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Button type="submit" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Profile
+            </>
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 }
