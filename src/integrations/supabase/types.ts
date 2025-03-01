@@ -53,8 +53,6 @@ export type Database = {
           created_at: string | null
           id: string
           images: string[] | null
-          is_premium: boolean | null
-          is_verified: boolean | null
           location: string
           name: string
           phone: string | null
@@ -68,8 +66,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           images?: string[] | null
-          is_premium?: boolean | null
-          is_verified?: boolean | null
           location: string
           name: string
           phone?: string | null
@@ -83,8 +79,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           images?: string[] | null
-          is_premium?: boolean | null
-          is_verified?: boolean | null
           location?: string
           name?: string
           phone?: string | null

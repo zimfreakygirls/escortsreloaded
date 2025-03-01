@@ -12,7 +12,7 @@ interface Country {
   active: boolean;
 }
 
-export function Header() {
+export const Header = () => {
   const navigate = useNavigate();
   const [countries, setCountries] = useState<Country[]>([]);
 
@@ -36,53 +36,34 @@ export function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
-      <div className="container flex justify-between items-center h-16 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="font-bold text-xl">Escort</div>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      <div className="container flex h-14 items-center justify-between px-4 gap-4">
+        <Link to="/" className="flex items-center gap-1.5 shrink-0">
+          <Heart className="w-5 h-5 text-primary" fill="currentColor" />
+          <span className="text-lg font-semibold">OneNight</span>
         </Link>
-
-        <nav className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
-            Home
-          </Link>
-          <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
-            Premium
-          </Link>
-          
+        
+        <nav className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-                <Globe className="h-4 w-4" />
-                Countries
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Globe className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto">
+            <DropdownMenuContent align="end">
               {countries.map((country) => (
-                <DropdownMenuItem key={country.id} asChild>
-                  <Link
-                    to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                    className="w-full cursor-pointer"
-                  >
-                    {country.name}
-                  </Link>
+                <DropdownMenuItem 
+                  key={country.id} 
+                  onClick={() => navigate(`/country/${country.name.toLowerCase()}`)}
+                >
+                  {country.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
-            Videos
-          </Link>
-          <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
-            Chat
-          </Link>
-          <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
-            Contact
-          </Link>
         </nav>
-
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-1">
           <Link to="/chat">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <MessageSquare className="w-4 h-4" />
