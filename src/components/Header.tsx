@@ -1,3 +1,4 @@
+
 import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -49,15 +50,26 @@ export function Header() {
             Premium
           </Link>
           
-          {countries.map((country) => (
-            <Link
-              key={country.id}
-              to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              {country.name}
-            </Link>
-          ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+                <Globe className="h-4 w-4" />
+                Countries
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto">
+              {countries.map((country) => (
+                <DropdownMenuItem key={country.id} asChild>
+                  <Link
+                    to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
+                    className="w-full cursor-pointer"
+                  >
+                    {country.name}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
             Videos
