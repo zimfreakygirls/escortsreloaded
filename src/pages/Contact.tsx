@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 
 export default function Contact() {
@@ -30,6 +31,17 @@ export default function Contact() {
                   <span>24/7 Support Available</span>
                 </div>
               </div>
+            </div>
+            
+            {/* Disclaimer */}
+            <div className="bg-secondary/30 rounded-lg p-6 border border-border">
+              <h2 className="text-lg font-semibold mb-3">Disclaimer</h2>
+              <p className="text-sm text-muted-foreground">
+                This website only allows adult individuals to advertise their time and companionship to other adult individuals. 
+                We do not provide a booking service nor arrange meetings. Any price indicated relates to time only and nothing else. 
+                Any service offered or whatever else that may occur is the choice of consenting adults and a private matter between them. 
+                In some countries, individuals do not legally have the choice to decide this; it is your responsibility to comply with local laws.
+              </p>
             </div>
           </div>
         </div>
