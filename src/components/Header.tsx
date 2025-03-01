@@ -22,6 +22,7 @@ export const Header = () => {
         const { data, error } = await supabase
           .from('countries')
           .select('*')
+          .eq('active', true)
           .order('name', { ascending: true });
           
         if (error) throw error;
@@ -50,7 +51,7 @@ export const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {countries.filter(c => c.active).map((country) => (
+              {countries.map((country) => (
                 <DropdownMenuItem 
                   key={country.id} 
                   onClick={() => navigate(`/country/${country.name.toLowerCase()}`)}

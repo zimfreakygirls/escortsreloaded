@@ -32,18 +32,26 @@ export default function CountryProfiles() {
 
   const fetchProfiles = async () => {
     try {
+      // Format the country parameter to match the capitalization format we're using
+      const formattedCountry = country ? 
+        country.charAt(0).toUpperCase() + country.slice(1).toLowerCase() : '';
+      
+      console.log("Fetching profiles for country:", formattedCountry);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('country', country)
+        .ilike('country', formattedCountry) // Using ilike for case-insensitive matching
         .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
+      console.log("Found profiles:", data?.length || 0);
       setProfiles(data || []);
     } catch (error: any) {
+      console.error("Error fetching profiles:", error);
       toast({
         title: "Error",
         description: "Failed to fetch profiles",

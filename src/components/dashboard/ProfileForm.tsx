@@ -88,6 +88,10 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         throw new Error("Please select at least one image");
       }
 
+      // Make sure country is properly capitalized for consistent filtering
+      const countryName = formData.country.trim();
+      const formattedCountry = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase();
+
       const imageUrls = await uploadImages(selectedImages);
 
       const { data, error } = await supabase.from('profiles').insert({
@@ -95,7 +99,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         age: parseInt(formData.age),
         location: formData.location,
         city: formData.city,
-        country: formData.country,
+        country: formattedCountry, // Use formatted country name for consistency
         price_per_hour: parseInt(formData.price_per_hour),
         phone: formData.phone || null,
         video_url: formData.video_url || null,
@@ -104,6 +108,21 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
 
       if (error) {
         throw error;
+      }
+
+      // Check if country exists in the countries table
+      const { data: countryExists, error: countryCheckError } = await supabase
+        .from('countries')
+        .select('id')
+        .eq('name', formattedCountry)
+        .single();
+
+      // If country doesn't exist, add it to the countries table
+      if (countryCheckError && countryCheckError.code === 'PGRST116') {
+        await supabase.from('countries').insert({
+          name: formattedCountry,
+          active: true
+        });
       }
 
       toast({
