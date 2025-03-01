@@ -2,6 +2,13 @@
 import { Header } from "@/components/Header";
 import { useEffect, useRef } from "react";
 
+// Add WidgetBot to the window object type
+declare global {
+  interface Window {
+    WidgetBot?: any;
+  }
+}
+
 export default function Chat() {
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -30,7 +37,9 @@ export default function Chat() {
     
     return () => {
       // Clean up the script when component unmounts
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 

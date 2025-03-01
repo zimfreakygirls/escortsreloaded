@@ -1,9 +1,10 @@
+
 import Index from "@/pages/Index";
 import ProfileDetail from "@/pages/ProfileDetail";
 import Videos from "@/pages/Videos";
 import Chat from "@/pages/Chat";
 import Contact from "@/pages/Contact";
-import Country from "@/pages/Country";
+import CountryProfiles from "@/pages/CountryProfiles";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -41,8 +42,8 @@ export default function App() {
             element: <Contact />,
           },
           {
-            path: "/country/:name",
-            element: <Country />,
+            path: "/country/:country",
+            element: <CountryProfiles />,
           },
           {
             path: "/login",

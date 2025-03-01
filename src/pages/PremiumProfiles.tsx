@@ -16,8 +16,22 @@ interface Settings {
   created_at?: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  city: string;
+  country: string;
+  price_per_hour: number;
+  phone?: string;
+  images: string[];
+  is_premium?: boolean;
+  is_verified?: boolean;
+}
+
 export default function PremiumProfiles() {
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
