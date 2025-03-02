@@ -1,5 +1,5 @@
 
-import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Flag } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -53,7 +53,7 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-                <Globe className="h-4 w-4" />
+                <Flag className="h-4 w-4" />
                 Countries
               </Button>
             </DropdownMenuTrigger>
