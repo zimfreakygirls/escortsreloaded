@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -14,23 +15,47 @@ interface Settings {
   created_at?: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  city: string;
+  country: string;
+  price_per_hour: number;
+  phone?: string;
+  images: string[];
+  is_verified?: boolean;
+  is_premium?: boolean;
+}
+
 export default function Index() {
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProfiles();
     fetchSettings();
-    checkLoginStatus();
+    checkSession();
+    
+    // Listen for authentication state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    
+    // Clean up subscription on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
-  const checkLoginStatus = async () => {
+  const checkSession = async () => {
     const { data } = await supabase.auth.getSession();
-    setIsLoggedIn(!!data.session);
+    setSession(data.session);
   };
 
   const fetchProfiles = async () => {
@@ -63,6 +88,7 @@ export default function Index() {
         .single();
 
       if (error) {
+        // If settings don't exist yet, we'll use the default value
         if (error.code === 'PGRST116') {
           return;
         }
@@ -76,6 +102,7 @@ export default function Index() {
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
+      // Continue with default values
     }
   };
 
@@ -159,9 +186,9 @@ export default function Index() {
                 viewMode={viewMode}
                 city={profile.city}
                 country={profile.country}
-                phone={isLoggedIn && profile.phone ? profile.phone : undefined}
+                phone={!profile.is_premium ? profile.phone : (session ? profile.phone : undefined)}
                 isVerified={profile.is_verified}
-                showLoginPrompt={!isLoggedIn && !!profile.phone}
+                isPremium={profile.is_premium}
               />
             </Link>
           ))}

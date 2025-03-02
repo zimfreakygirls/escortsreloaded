@@ -1,23 +1,23 @@
 
-import { useState } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Trash2, ExternalLink, Check, X } from "lucide-react";
+import { Button } from "../ui/button";
+import { Trash2, BadgeCheck, Crown } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Switch } from "@/components/ui/switch";
+import { Badge } from "../ui/badge";
 
 interface Profile {
   id: string;
   name: string;
   age: number;
+  location: string;
   city: string;
   country: string;
   price_per_hour: number;
@@ -29,17 +29,28 @@ interface Profile {
 interface ProfilesTableProps {
   profiles: Profile[];
   onDelete: () => void;
-  currencySymbol: string;
+  currencySymbol?: string;
 }
 
-export function ProfilesTable({ profiles, onDelete, currencySymbol }: ProfilesTableProps) {
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [updating, setUpdating] = useState<string | null>(null);
+export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: ProfilesTableProps) {
   const { toast } = useToast();
 
-  const handleDelete = async (id: string) => {
+  const deleteProfile = async (id: string) => {
     try {
-      setDeletingId(id);
+      const profile = profiles.find(p => p.id === id);
+      
+      if (profile) {
+        // Delete images from storage
+        for (const imageUrl of profile.images) {
+          const fileName = imageUrl.split('/').pop();
+          if (fileName) {
+            await supabase.storage
+              .from('profile-images')
+              .remove([fileName]);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -51,152 +62,135 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol }: ProfilesTa
         title: "Success",
         description: "Profile deleted successfully",
       });
-      
+
       onDelete();
     } catch (error: any) {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
-        description: `Failed to delete profile: ${error.message}`,
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setDeletingId(null);
     }
   };
 
-  const toggleVerified = async (id: string, currentStatus: boolean) => {
+  const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
     try {
-      setUpdating(id);
       const { error } = await supabase
         .from('profiles')
         .update({ is_verified: !currentStatus })
-        .eq('id', id);
+        .eq('id', profileId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Profile ${!currentStatus ? 'verified' : 'unverified'} successfully`,
+        description: `Profile ${!currentStatus ? "verified" : "unverified"} successfully`,
       });
-      
-      onDelete(); // Refresh the list
+
+      onDelete(); // Refresh the profiles list
     } catch (error: any) {
+      console.error('Verification error:', error);
       toast({
         title: "Error",
-        description: `Failed to update profile: ${error.message}`,
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setUpdating(null);
     }
   };
 
-  const togglePremium = async (id: string, currentStatus: boolean) => {
+  const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
     try {
-      setUpdating(id);
       const { error } = await supabase
         .from('profiles')
         .update({ is_premium: !currentStatus })
-        .eq('id', id);
+        .eq('id', profileId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Profile ${!currentStatus ? 'set as premium' : 'removed from premium'} successfully`,
+        description: `Profile ${!currentStatus ? "set as premium" : "removed from premium"} successfully`,
       });
-      
-      onDelete(); // Refresh the list
+
+      onDelete(); // Refresh the profiles list
     } catch (error: any) {
+      console.error('Premium status error:', error);
       toast({
         title: "Error",
-        description: `Failed to update profile: ${error.message}`,
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setUpdating(null);
     }
   };
 
   return (
-    <div className="rounded-md border border-gray-800">
+    <div className="rounded-md border border-gray-800 overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-[#1e1c2e]">
           <TableRow className="hover:bg-transparent border-gray-800">
-            <TableHead className="text-white">Name</TableHead>
-            <TableHead className="text-white">Location</TableHead>
-            <TableHead className="text-white">Price</TableHead>
-            <TableHead className="text-white">Verified</TableHead>
-            <TableHead className="text-white">Premium</TableHead>
-            <TableHead className="text-right text-white">Actions</TableHead>
+            <TableHead className="text-gray-300">Name</TableHead>
+            <TableHead className="text-gray-300">Age</TableHead>
+            <TableHead className="text-gray-300">Location</TableHead>
+            <TableHead className="text-gray-300">City</TableHead>
+            <TableHead className="text-gray-300">Country</TableHead>
+            <TableHead className="text-gray-300">Price/Hour</TableHead>
+            <TableHead className="text-gray-300">Status</TableHead>
+            <TableHead className="text-gray-300">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {profiles.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                No profiles found
+          {profiles.map((profile) => (
+            <TableRow key={profile.id} className="border-gray-800 hover:bg-[#1e1c2e]/30">
+              <TableCell className="font-medium text-white">{profile.name}</TableCell>
+              <TableCell className="text-gray-300">{profile.age}</TableCell>
+              <TableCell className="text-gray-300">{profile.location}</TableCell>
+              <TableCell className="text-gray-300">{profile.city}</TableCell>
+              <TableCell className="text-gray-300">{profile.country}</TableCell>
+              <TableCell className="text-gray-300">{currencySymbol}{profile.price_per_hour}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
+                    className={`flex items-center gap-1 w-fit ${
+                      profile.is_verified 
+                        ? "bg-blue-500/20 text-blue-400 border-blue-500 hover:bg-blue-500/30 hover:text-blue-300" 
+                        : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
+                    }`}
+                  >
+                    <BadgeCheck className="h-4 w-4" />
+                    {profile.is_verified ? "Verified" : "Verify"}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
+                    className={`flex items-center gap-1 w-fit ${
+                      profile.is_premium 
+                        ? "bg-amber-500/20 text-amber-400 border-amber-500 hover:bg-amber-500/30 hover:text-amber-300" 
+                        : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
+                    }`}
+                  >
+                    <Crown className="h-4 w-4" />
+                    {profile.is_premium ? "Premium" : "Make Premium"}
+                  </Button>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteProfile(profile.id)}
+                  className="bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
-          ) : (
-            profiles.map((profile) => (
-              <TableRow key={profile.id} className="border-gray-800 hover:bg-gray-800/40">
-                <TableCell className="font-medium text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden">
-                      <img
-                        src={profile.images[0] || '/placeholder.svg'}
-                        alt={profile.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      {profile.name}, {profile.age}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-300">{profile.city}, {profile.country}</TableCell>
-                <TableCell className="text-gray-300">{currencySymbol}{profile.price_per_hour}</TableCell>
-                <TableCell>
-                  <Switch 
-                    checked={profile.is_verified || false}
-                    onCheckedChange={() => toggleVerified(profile.id, profile.is_verified || false)}
-                    disabled={updating === profile.id}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Switch 
-                    checked={profile.is_premium || false}
-                    onCheckedChange={() => togglePremium(profile.id, profile.is_premium || false)}
-                    disabled={updating === profile.id}
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-blue-400 hover:text-blue-500 hover:bg-blue-900/20"
-                      asChild
-                    >
-                      <a href={`/profile/${profile.id}`} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deletingId === profile.id}
-                      onClick={() => handleDelete(profile.id)}
-                      className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-900/20"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>
