@@ -16,6 +16,7 @@ interface ProfileCardProps {
   phone?: string;
   isVerified?: boolean;
   isPremium?: boolean;
+  showLoginPrompt?: boolean;
 }
 
 export function ProfileCard({ 
@@ -34,7 +35,8 @@ export function ProfileCard({
   country,
   phone,
   isVerified,
-  isPremium
+  isPremium,
+  showLoginPrompt = false
 }: ProfileCardProps) {
   const isListView = viewMode === "list";
 
@@ -87,6 +89,17 @@ export function ProfileCard({
           {phone && isListView && (
             <p className="text-sm text-gray-300">
               <span className="text-primary">☎</span> {phone}
+            </p>
+          )}
+          
+          {showLoginPrompt && isListView && (
+            <p className="text-sm text-amber-400 font-medium mt-1">
+              <a href="/login" className="inline-flex items-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+                  <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V5C20 3.89543 19.1046 3 18 3H6C4.89543 3 4 3.89543 4 5V19C4 20.1046 4.89543 21 6 21ZM16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7C14.2091 7 16 8.79086 16 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Login to see contact info
+              </a>
             </p>
           )}
           

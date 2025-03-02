@@ -9,14 +9,30 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Profile {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  city: string;
+  country: string;
+  price_per_hour: number;
+  phone?: string;
+  video_url?: string;
+  images: string[];
+  is_verified?: boolean;
+  is_premium?: boolean;
+}
+
 interface Settings {
   id: string;
   profiles_per_page: number;
+  currency: string;
   created_at?: string;
 }
 
-export default function Index() {
-  const [profiles, setProfiles] = useState<any[]>([]);
+export default function PremiumProfiles() {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
@@ -39,6 +55,7 @@ export default function Index() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
+        .eq('is_premium', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -49,7 +66,7 @@ export default function Index() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to fetch profiles",
+        description: "Failed to fetch premium profiles",
         variant: "destructive",
       });
     }
@@ -105,7 +122,7 @@ export default function Index() {
       
       <main className="container pt-24 pb-12 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Discover Profiles</h1>
+          <h1 className="text-2xl font-bold">Premium Profiles</h1>
           <ToggleGroup 
             type="single" 
             value={viewMode} 
@@ -151,25 +168,32 @@ export default function Index() {
           </ToggleGroup>
         </div>
 
-        <div className={`grid ${getGridClass()}`}>
-          {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
-              <ProfileCard 
-                name={profile.name}
-                age={profile.age}
-                location={profile.location}
-                imageUrl={profile.images[0] || '/placeholder.svg'}
-                viewMode={viewMode}
-                city={profile.city}
-                country={profile.country}
-                phone={isLoggedIn ? profile.phone : undefined}
-                isVerified={profile.is_verified}
-                isPremium={profile.is_premium}
-                showLoginPrompt={!isLoggedIn && !!profile.phone}
-              />
-            </Link>
-          ))}
-        </div>
+        {profiles.length === 0 ? (
+          <div className="text-center p-8">
+            <h2 className="text-xl font-semibold">No premium profiles available</h2>
+            <p className="text-muted-foreground mt-2">Check back later for premium profiles</p>
+          </div>
+        ) : (
+          <div className={`grid ${getGridClass()}`}>
+            {profiles.slice(0, visibleProfiles).map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
+                <ProfileCard 
+                  name={profile.name}
+                  age={profile.age}
+                  location={profile.location}
+                  imageUrl={profile.images[0] || '/placeholder.svg'}
+                  viewMode={viewMode}
+                  city={profile.city}
+                  country={profile.country}
+                  phone={isLoggedIn ? profile.phone : undefined}
+                  isVerified={profile.is_verified}
+                  isPremium={profile.is_premium}
+                  showLoginPrompt={!isLoggedIn && !!profile.phone}
+                />
+              </Link>
+            ))}
+          </div>
+        )}
         
         {visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">

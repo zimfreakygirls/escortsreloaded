@@ -5,6 +5,8 @@ import { Input } from "../ui/input";
 import { Loader2, Plus } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 interface ProfileFormProps {
   onSuccess: () => void;
@@ -22,6 +24,8 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     phone: "",
     video_url: "",
   });
+  const [isVerified, setIsVerified] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
   const { toast } = useToast();
 
@@ -104,6 +108,8 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         phone: formData.phone || null,
         video_url: formData.video_url || null,
         images: imageUrls,
+        is_verified: isVerified,
+        is_premium: isPremium,
       }).select();
 
       if (error) {
@@ -141,6 +147,8 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         video_url: "",
       });
       setSelectedImages(null);
+      setIsVerified(false);
+      setIsPremium(false);
       onSuccess();
     } catch (error: any) {
       toast({
@@ -212,6 +220,22 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
           value={formData.video_url}
           onChange={handleInputChange}
         />
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="verified"
+            checked={isVerified}
+            onCheckedChange={setIsVerified}
+          />
+          <Label htmlFor="verified">Verified Profile</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="premium"
+            checked={isPremium}
+            onCheckedChange={setIsPremium}
+          />
+          <Label htmlFor="premium">Premium Profile</Label>
+        </div>
         <Input
           type="file"
           accept="image/*"

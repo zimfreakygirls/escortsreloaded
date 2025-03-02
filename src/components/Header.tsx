@@ -1,5 +1,5 @@
 
-import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Globe, Crown } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -44,6 +44,11 @@ export const Header = () => {
         </Link>
         
         <nav className="flex items-center gap-1">
+          <Link to="/premium">
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-amber-400">
+              <Crown className="w-4 h-4" />
+            </Button>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">

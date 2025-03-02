@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import CountryProfiles from "./pages/CountryProfiles";
 import Chat from "./pages/Chat";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
+import PremiumProfiles from "./pages/PremiumProfiles";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,7 @@ const App = () => (
           <Route path="/chat" element={<Chat />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/premium" element={<PremiumProfiles />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
