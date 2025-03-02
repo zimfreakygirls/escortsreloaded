@@ -66,14 +66,6 @@ export function ProfileCard({
             <span>Verified</span>
           </div>
         )}
-        {isPremium && (
-          <div className="bg-gradient-to-r from-amber-500 to-amber-600 backdrop-blur-sm py-1 px-2 rounded-md text-white text-xs font-medium shadow-lg flex items-center">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
-              <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>Premium</span>
-          </div>
-        )}
       </div>
 
       <div className={`${

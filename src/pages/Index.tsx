@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -64,7 +63,6 @@ export default function Index() {
         .single();
 
       if (error) {
-        // If settings don't exist yet, we'll use the default value
         if (error.code === 'PGRST116') {
           return;
         }
@@ -78,7 +76,6 @@ export default function Index() {
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
-      // Continue with default values
     }
   };
 
@@ -162,9 +159,8 @@ export default function Index() {
                 viewMode={viewMode}
                 city={profile.city}
                 country={profile.country}
-                phone={isLoggedIn ? profile.phone : undefined}
+                phone={isLoggedIn && profile.phone ? profile.phone : undefined}
                 isVerified={profile.is_verified}
-                isPremium={profile.is_premium}
                 showLoginPrompt={!isLoggedIn && !!profile.phone}
               />
             </Link>
