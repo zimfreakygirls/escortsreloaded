@@ -1,20 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Lock } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface Settings {
-  id: string;
-  profiles_per_page: number;
-  created_at?: string;
-}
 
 interface Profile {
   id: string;
@@ -25,9 +17,17 @@ interface Profile {
   country: string;
   price_per_hour: number;
   phone?: string;
+  video_url?: string;
   images: string[];
-  is_premium?: boolean;
   is_verified?: boolean;
+  is_premium?: boolean;
+}
+
+interface Settings {
+  id: string;
+  profiles_per_page: number;
+  currency: string;
+  created_at?: string;
 }
 
 export default function PremiumProfiles() {
@@ -35,28 +35,18 @@ export default function PremiumProfiles() {
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
-  const [session, setSession] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProfiles();
     fetchSettings();
-    checkSession();
-    
-    // Listen for authentication state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    
-    // Clean up subscription on unmount
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    checkLoginStatus();
   }, []);
 
-  const checkSession = async () => {
+  const checkLoginStatus = async () => {
     const { data } = await supabase.auth.getSession();
-    setSession(data.session);
+    setIsLoggedIn(!!data.session);
   };
 
   const fetchProfiles = async () => {
@@ -90,7 +80,6 @@ export default function PremiumProfiles() {
         .single();
 
       if (error) {
-        // If settings don't exist yet, we'll use the default value
         if (error.code === 'PGRST116') {
           return;
         }
@@ -104,7 +93,6 @@ export default function PremiumProfiles() {
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
-      // Continue with default values
     }
   };
 
@@ -117,31 +105,13 @@ export default function PremiumProfiles() {
       case "list":
         return "grid-cols-1 gap-4 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
       case "grid-1":
         return "grid-cols-1 max-w-lg mx-auto gap-4";
       default:
-        return "grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
     }
   };
-
-  if (profiles.length === 0) {
-    return (
-      <div className="min-h-screen relative">
-        <Header />
-        <main className="container pt-24 pb-12 px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">Premium Profiles</h1>
-          </div>
-          
-          <div className="text-center py-12">
-            <h2 className="text-xl mb-4">No premium profiles available yet</h2>
-            <p className="text-muted-foreground">Check back later for premium profiles.</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen relative">
@@ -195,48 +165,31 @@ export default function PremiumProfiles() {
           </ToggleGroup>
         </div>
 
-        {!session && (
-          <Card className="mb-8 bg-amber-500/10 border-amber-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center text-amber-400">
-                <Lock className="mr-2 h-5 w-5" />
-                Premium Content
-              </CardTitle>
-              <CardDescription>
-                Some information in premium profiles is only visible to logged in users.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <div className="flex gap-4">
-                <Button asChild variant="outline">
-                  <Link to="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
+        {profiles.length === 0 ? (
+          <div className="text-center p-8">
+            <h2 className="text-xl font-semibold">No premium profiles available</h2>
+            <p className="text-muted-foreground mt-2">Check back later for premium profiles</p>
+          </div>
+        ) : (
+          <div className={`grid ${getGridClass()}`}>
+            {profiles.slice(0, visibleProfiles).map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
+                <ProfileCard 
+                  name={profile.name}
+                  age={profile.age}
+                  location={profile.location}
+                  imageUrl={profile.images[0] || '/placeholder.svg'}
+                  viewMode={viewMode}
+                  city={profile.city}
+                  country={profile.country}
+                  phone={isLoggedIn ? profile.phone : undefined}
+                  isVerified={profile.is_verified}
+                  showLoginPrompt={!isLoggedIn && !!profile.phone}
+                />
+              </Link>
+            ))}
+          </div>
         )}
-
-        <div className={`grid ${getGridClass()}`}>
-          {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
-              <ProfileCard 
-                name={profile.name}
-                age={profile.age}
-                location={profile.location}
-                imageUrl={profile.images[0] || '/placeholder.svg'}
-                viewMode={viewMode}
-                city={profile.city}
-                country={profile.country}
-                phone={session ? profile.phone : undefined}
-                isVerified={profile.is_verified}
-                isPremium={profile.is_premium}
-              />
-            </Link>
-          ))}
-        </div>
         
         {visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">
