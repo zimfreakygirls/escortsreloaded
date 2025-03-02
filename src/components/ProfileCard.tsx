@@ -84,7 +84,7 @@ export function ProfileCard({
               <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> {city}, {country}
             </p>
           )}
-          {phone && isListView && (
+          {phone && !isPremium && (
             <p className="text-sm text-gray-300">
               <span className="text-primary">☎</span> {phone}
             </p>

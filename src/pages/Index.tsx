@@ -15,17 +15,48 @@ interface Settings {
   created_at?: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  city: string;
+  country: string;
+  price_per_hour: number;
+  phone?: string;
+  images: string[];
+  is_verified?: boolean;
+  is_premium?: boolean;
+}
+
 export default function Index() {
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
+  const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProfiles();
     fetchSettings();
+    checkSession();
+    
+    // Listen for authentication state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    
+    // Clean up subscription on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
+
+  const checkSession = async () => {
+    const { data } = await supabase.auth.getSession();
+    setSession(data.session);
+  };
 
   const fetchProfiles = async () => {
     try {
@@ -155,7 +186,7 @@ export default function Index() {
                 viewMode={viewMode}
                 city={profile.city}
                 country={profile.country}
-                phone={profile.phone}
+                phone={!profile.is_premium ? profile.phone : (session ? profile.phone : undefined)}
                 isVerified={profile.is_verified}
                 isPremium={profile.is_premium}
               />
