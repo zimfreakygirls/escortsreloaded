@@ -1,5 +1,5 @@
 
-import { Heart, User, MessageSquare, Mail, Video, Flag } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Flag, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -53,7 +53,7 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-                <Flag className="h-4 w-4" />
+                <Globe className="h-4 w-4" />
                 Countries
               </Button>
             </DropdownMenuTrigger>
@@ -87,6 +87,29 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 text-primary">
+                <Globe className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-background border border-border">
+              {countries.length > 0 ? (
+                countries.map((country) => (
+                  <DropdownMenuItem key={country.id} asChild>
+                    <Link
+                      to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
+                      className="w-full cursor-pointer"
+                    >
+                      {country.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>No countries available</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link to="/chat">
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <MessageSquare className="w-4 h-4" />
