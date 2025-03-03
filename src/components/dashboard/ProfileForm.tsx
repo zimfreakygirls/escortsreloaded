@@ -154,6 +154,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               {...form.register("name", { required: true })}
               placeholder="Name"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -163,6 +164,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               type="number"
               placeholder="Age"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -171,6 +173,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               {...form.register("location", { required: true })}
               placeholder="Location"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -179,6 +182,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               {...form.register("city", { required: true })}
               placeholder="City"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -187,6 +191,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               {...form.register("country", { required: true })}
               placeholder="Country"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -196,6 +201,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               type="number"
               placeholder="Price per hour"
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -203,6 +209,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
             <Input
               {...form.register("phone")}
               placeholder="Phone number"
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -210,6 +217,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
             <Input
               {...form.register("video_url")}
               placeholder="Video URL"
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
           <div>
@@ -220,6 +228,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               multiple
               onChange={handleImageChange}
               required
+              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
             />
           </div>
         </div>
@@ -234,7 +243,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    className={field.value ? "bg-blue-500 text-white border-blue-600" : ""}
+                    className={field.value ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600" : ""}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -256,7 +265,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    className={field.value ? "bg-amber-500 text-white border-amber-600" : ""}
+                    className={field.value ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600" : ""}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">

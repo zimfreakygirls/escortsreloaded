@@ -40,8 +40,8 @@ export function Header() {
       <div className="container flex justify-between items-center h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
           <div className="flex items-center">
-            <Heart className="h-5 w-5 text-[#ff719A]" />
-            <span className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent ml-1">OneNight</span>
+            <img src="/lovable-uploads/0aa7311a-71fc-4de3-b931-de22dfc1c9a5.png" alt="Escorts Reloaded" className="h-8" />
+            <span className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent ml-1">EscortsReloaded</span>
           </div>
         </Link>
 
@@ -96,13 +96,13 @@ export function Header() {
                 <Globe className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
+            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#ff719A]/30 shadow-xl rounded-xl">
               {countries.length > 0 ? (
                 countries.map((country) => (
                   <DropdownMenuItem key={country.id} asChild>
                     <Link
                       to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                      className="w-full cursor-pointer hover:bg-[#9b87f5]/20 rounded-lg transition-colors"
+                      className="w-full cursor-pointer hover:bg-[#ff719A]/20 rounded-lg transition-colors p-2"
                     >
                       {country.name}
                     </Link>

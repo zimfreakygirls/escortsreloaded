@@ -232,7 +232,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
                       className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                         profile.is_verified 
-                          ? "bg-blue-500 text-white border-blue-600 hover:bg-blue-600" 
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600 hover:bg-blue-600" 
                           : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                       }`}
                     >
@@ -246,7 +246,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
                       className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                         profile.is_premium 
-                          ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600" 
+                          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 hover:bg-amber-600" 
                           : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                       }`}
                     >
@@ -386,7 +386,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
               </Button>
               <Button 
                 onClick={saveProfile}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90"
               >
                 <Check className="w-4 h-4 mr-2" />
                 Save Changes
