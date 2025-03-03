@@ -149,15 +149,15 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
               <TableCell className="text-gray-300">{profile.country}</TableCell>
               <TableCell className="text-gray-300">{currencySymbol}{profile.price_per_hour}</TableCell>
               <TableCell>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
-                    className={`flex items-center gap-1 rounded-full px-3 ${
+                    className={`flex items-center gap-1 w-fit ${
                       profile.is_verified 
-                        ? "bg-blue-500 text-white hover:bg-blue-600" 
-                        : "bg-gray-700 text-white hover:bg-gray-600"
+                        ? "bg-blue-500/20 text-blue-400 border-blue-500 hover:bg-blue-500/30 hover:text-blue-300" 
+                        : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                     }`}
                   >
                     <BadgeCheck className="h-4 w-4" />
@@ -168,10 +168,10 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                     variant="outline"
                     size="sm"
                     onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
-                    className={`flex items-center gap-1 rounded-full px-3 ${
+                    className={`flex items-center gap-1 w-fit ${
                       profile.is_premium 
-                        ? "bg-amber-500 text-white hover:bg-amber-600" 
-                        : "bg-gray-700 text-white hover:bg-gray-600"
+                        ? "bg-amber-500/20 text-amber-400 border-amber-500 hover:bg-amber-500/30 hover:text-amber-300" 
+                        : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                     }`}
                   >
                     <Crown className="h-4 w-4" />

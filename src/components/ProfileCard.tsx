@@ -56,25 +56,21 @@ export function ProfileCard({
         />
       </div>
 
-      {/* Verification Badge - New rounded blue style */}
-      {isVerified && (
-        <div className="absolute top-3 left-3">
-          <div className="bg-blue-500 rounded-full text-white text-xs font-medium py-1 px-3 shadow-lg flex items-center">
+      {/* Badges */}
+      <div className="absolute top-3 left-3 flex flex-col gap-2">
+        {isVerified && (
+          <div className="bg-blue-500/90 backdrop-blur-sm py-1 px-2 rounded-md text-white text-xs font-medium shadow-lg flex items-center">
             <BadgeCheck className="w-4 h-4 mr-1" />
             <span>Verified</span>
           </div>
-        </div>
-      )}
-
-      {/* Premium Badge - Only shown if profile is premium */}
-      {isPremium && (
-        <div className="absolute top-3 right-3">
-          <div className="bg-amber-500 rounded-full text-white text-xs font-medium py-1 px-3 shadow-lg flex items-center">
+        )}
+        {isPremium && (
+          <div className="bg-gradient-to-r from-amber-500 to-amber-600 backdrop-blur-sm py-1 px-2 rounded-md text-white text-xs font-medium shadow-lg flex items-center">
             <Crown className="w-4 h-4 mr-1" />
             <span>Premium</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className={`${
         isListView 
@@ -88,9 +84,7 @@ export function ProfileCard({
               <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> {city}, {country}
             </p>
           )}
-          
-          {/* Show phone for verified profiles or non-premium profiles */}
-          {phone && (isVerified || !isPremium) && (
+          {phone && !isPremium && (
             <p className="text-sm text-gray-300">
               <span className="text-primary">☎</span> {phone}
             </p>

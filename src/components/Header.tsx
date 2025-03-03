@@ -1,5 +1,5 @@
 
-import { Heart, User, MessageSquare, Mail, Video, Globe } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Flag } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -39,7 +39,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
       <div className="container flex justify-between items-center h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="font-bold text-xl text-primary">💖 OneNight</div>
+          <div className="font-bold text-xl text-primary">Escort</div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -52,9 +52,9 @@ export function Header() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 px-3 py-2 rounded-full border border-gray-700">
-                <Globe className="h-4 w-4" />
-                <span className="ml-1">Countries</span>
+              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+                <Flag className="h-4 w-4" />
+                Countries
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-background border border-border">
