@@ -186,7 +186,7 @@ export default function Index() {
                 viewMode={viewMode}
                 city={profile.city}
                 country={profile.country}
-                phone={!profile.is_premium ? profile.phone : (session ? profile.phone : undefined)}
+                phone={profile.phone}
                 isVerified={profile.is_verified}
                 isPremium={profile.is_premium}
               />
