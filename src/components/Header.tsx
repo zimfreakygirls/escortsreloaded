@@ -39,7 +39,10 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
       <div className="container flex justify-between items-center h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent">Escorts Reloaded</div>
+          <div className="flex items-center">
+            <Heart className="h-5 w-5 text-[#ff719A]" />
+            <span className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent ml-1">OneNight</span>
+          </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">

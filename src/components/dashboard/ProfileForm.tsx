@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -44,7 +43,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     const uploadedUrls: string[] = [];
 
     try {
-      // Check if bucket exists and create it if it doesn't
       const { data: bucketData, error: bucketError } = await supabase.storage
         .getBucket('profile-images');
 
@@ -91,7 +89,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         throw new Error("Please select at least one image");
       }
 
-      // Make sure country is properly capitalized for consistent filtering
       const countryName = data.country.trim();
       const formattedCountry = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase();
 
@@ -102,7 +99,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         age: parseInt(data.age),
         location: data.location,
         city: data.city,
-        country: formattedCountry, // Use formatted country name for consistency
+        country: formattedCountry,
         price_per_hour: parseInt(data.price_per_hour),
         phone: data.phone || null,
         video_url: data.video_url || null,
@@ -115,14 +112,12 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         throw error;
       }
 
-      // Check if country exists in the countries table
       const { data: countryExists, error: countryCheckError } = await supabase
         .from('countries')
         .select('id')
         .eq('name', formattedCountry)
         .single();
 
-      // If country doesn't exist, add it to the countries table
       if (countryCheckError && countryCheckError.code === 'PGRST116') {
         await supabase.from('countries').insert({
           name: formattedCountry,
@@ -232,27 +227,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         <div className="space-y-4">
           <FormField
             control={form.control}
-            name="is_premium"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-800 p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel className="text-white">Premium Profile</FormLabel>
-                  <FormDescription className="text-gray-400">
-                    Mark this profile as premium to feature it in premium listings.
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="is_verified"
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-800 p-4">
@@ -260,6 +234,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
+                    className={field.value ? "bg-blue-500 text-white border-blue-600" : ""}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -271,9 +246,31 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="is_premium"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-800 p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className={field.value ? "bg-amber-500 text-white border-amber-600" : ""}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-white">Premium Profile</FormLabel>
+                  <FormDescription className="text-gray-400">
+                    Mark this profile as premium to feature it in premium listings.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
         </div>
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90">
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

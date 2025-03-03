@@ -1,7 +1,7 @@
 
 import { Header } from "@/components/Header";
 import { useParams } from "react-router-dom";
-import { MapPin, Clock, Phone, Play, Lock } from "lucide-react";
+import { MapPin, Clock, Phone, Play, Lock, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -86,6 +86,9 @@ export default function ProfileDetail() {
     );
   }
 
+  // Show phone for verified profiles or to logged in users
+  const showPhone = profile.phone && (profile.is_verified || session);
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -94,7 +97,7 @@ export default function ProfileDetail() {
           {/* Status badges */}
           <div className="flex gap-2 mb-4">
             {profile.is_premium && (
-              <Badge className="bg-amber-500 text-white">
+              <Badge className="bg-amber-500 text-white rounded-full px-3 py-1 flex items-center">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
                   <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -102,7 +105,7 @@ export default function ProfileDetail() {
               </Badge>
             )}
             {profile.is_verified && (
-              <Badge className="bg-blue-500 text-white">
+              <Badge className="bg-blue-500 text-white rounded-full px-3 py-1 flex items-center">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
                   <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -173,19 +176,22 @@ export default function ProfileDetail() {
                 <span>${profile.price_per_hour}/hr</span>
               </div>
               
-              {profile.phone ? (
-                session ? (
-                  <div className="flex items-center gap-2 text-base sm:text-lg">
-                    <Phone className="h-5 w-5 text-primary" />
-                    <span>{profile.phone}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
-                    <Lock className="h-5 w-5 text-primary" />
-                    <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
-                  </div>
-                )
-              ) : null}
+              {showPhone ? (
+                <div className="flex items-center gap-2 text-base sm:text-lg">
+                  <Phone className="h-5 w-5 text-primary" />
+                  <span>{profile.phone}</span>
+                </div>
+              ) : session ? (
+                <div className="flex items-center gap-2 text-base sm:text-lg">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                  <span className="text-gray-400">No phone number provided</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
+                  <Lock className="h-5 w-5 text-primary" />
+                  <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
