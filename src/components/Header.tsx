@@ -39,7 +39,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
       <div className="container flex justify-between items-center h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="font-bold text-xl text-primary">Escort</div>
+          <div className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent">Escorts Reloaded</div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -57,13 +57,13 @@ export function Header() {
                 Countries
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-background border border-border">
+            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
               {countries.length > 0 ? (
                 countries.map((country) => (
                   <DropdownMenuItem key={country.id} asChild>
                     <Link
                       to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                      className="w-full cursor-pointer"
+                      className="w-full cursor-pointer hover:bg-[#9b87f5]/20 rounded-lg transition-colors"
                     >
                       {country.name}
                     </Link>
@@ -93,13 +93,13 @@ export function Header() {
                 <Globe className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-background border border-border">
+            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
               {countries.length > 0 ? (
                 countries.map((country) => (
                   <DropdownMenuItem key={country.id} asChild>
                     <Link
                       to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                      className="w-full cursor-pointer"
+                      className="w-full cursor-pointer hover:bg-[#9b87f5]/20 rounded-lg transition-colors"
                     >
                       {country.name}
                     </Link>

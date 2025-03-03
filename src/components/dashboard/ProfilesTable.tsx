@@ -149,14 +149,14 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
               <TableCell className="text-gray-300">{profile.country}</TableCell>
               <TableCell className="text-gray-300">{currencySymbol}{profile.price_per_hour}</TableCell>
               <TableCell>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
-                    className={`flex items-center gap-1 w-fit ${
+                    className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                       profile.is_verified 
-                        ? "bg-blue-500/20 text-blue-400 border-blue-500 hover:bg-blue-500/30 hover:text-blue-300" 
+                        ? "bg-blue-500/20 text-blue-400 border-blue-600 hover:bg-blue-500/30 hover:text-blue-300" 
                         : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                     }`}
                   >
@@ -168,9 +168,9 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                     variant="outline"
                     size="sm"
                     onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
-                    className={`flex items-center gap-1 w-fit ${
+                    className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                       profile.is_premium 
-                        ? "bg-amber-500/20 text-amber-400 border-amber-500 hover:bg-amber-500/30 hover:text-amber-300" 
+                        ? "bg-amber-500/20 text-amber-400 border-amber-600 hover:bg-amber-500/30 hover:text-amber-300" 
                         : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
                     }`}
                   >
