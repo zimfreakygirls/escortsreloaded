@@ -1,6 +1,5 @@
-
 import { Header } from "@/components/Header";
-import { ProfileCard } from "@/components/ProfileCard";
+import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
@@ -32,7 +31,6 @@ export default function CountryProfiles() {
 
   const fetchProfiles = async () => {
     try {
-      // Format the country parameter to match the capitalization format we're using
       const formattedCountry = country ? 
         country.charAt(0).toUpperCase() + country.slice(1).toLowerCase() : '';
       
@@ -41,7 +39,7 @@ export default function CountryProfiles() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .ilike('country', formattedCountry) // Using ilike for case-insensitive matching
+        .ilike('country', formattedCountry)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -69,7 +67,6 @@ export default function CountryProfiles() {
         .single();
 
       if (error) {
-        // If settings don't exist yet, we'll use the default value
         if (error.code === 'PGRST116') {
           return;
         }
@@ -83,7 +80,6 @@ export default function CountryProfiles() {
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
-      // Continue with default values
     }
   };
 

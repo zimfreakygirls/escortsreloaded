@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
-import { ProfileCard } from "@/components/ProfileCard";
+import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -88,7 +87,6 @@ export default function Index() {
         .single();
 
       if (error) {
-        // If settings don't exist yet, we'll use the default value
         if (error.code === 'PGRST116') {
           return;
         }
@@ -102,7 +100,6 @@ export default function Index() {
       }
     } catch (error: any) {
       console.error("Failed to fetch settings:", error);
-      // Continue with default values
     }
   };
 

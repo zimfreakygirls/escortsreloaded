@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
-import { ProfileCard } from "@/components/ProfileCard";
+import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
