@@ -86,8 +86,8 @@ export default function ProfileDetail() {
     );
   }
 
-  // Show phone for verified profiles or to logged in users
-  const showPhone = profile.phone && (profile.is_verified || session);
+  // Only hide phone for premium profiles if not logged in
+  const showPhone = profile.phone && (profile.is_verified || !profile.is_premium || session);
 
   return (
     <div className="min-h-screen">
@@ -181,15 +181,15 @@ export default function ProfileDetail() {
                   <Phone className="h-5 w-5 text-primary" />
                   <span>{profile.phone}</span>
                 </div>
-              ) : session ? (
-                <div className="flex items-center gap-2 text-base sm:text-lg">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-400">No phone number provided</span>
-                </div>
-              ) : (
+              ) : profile.is_premium && !session ? (
                 <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
                   <Lock className="h-5 w-5 text-primary" />
                   <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-base sm:text-lg">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                  <span className="text-gray-400">No phone number provided</span>
                 </div>
               )}
             </div>

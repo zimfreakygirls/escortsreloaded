@@ -15,6 +15,7 @@ interface Country {
 export function Header() {
   const navigate = useNavigate();
   const [countries, setCountries] = useState<Country[]>([]);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -33,6 +34,23 @@ export function Header() {
     };
 
     fetchCountries();
+    
+    // Check current session
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    
+    // Clean up subscription
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -41,7 +59,6 @@ export function Header() {
         <Link to="/" className="flex items-center gap-2">
           <div className="flex items-center">
             <img src="/lovable-uploads/0aa7311a-71fc-4de3-b931-de22dfc1c9a5.png" alt="Escorts Reloaded" className="h-8" />
-            <span className="font-bold text-xl bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent ml-1">EscortsReloaded</span>
           </div>
         </Link>
 
@@ -49,9 +66,11 @@ export function Header() {
           <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
             Home
           </Link>
-          <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
-            Premium
-          </Link>
+          {session && (
+            <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
+              Premium
+            </Link>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -128,15 +147,28 @@ export function Header() {
               <Mail className="w-4 h-4" />
             </Button>
           </Link>
-          <Link to="/login" className="inline-flex">
-            <Button className="hidden sm:inline-flex items-center h-9 px-3">
+          {session ? (
+            <Button 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/");
+              }}
+              className="inline-flex items-center h-9 px-3"
+            >
               <User className="w-4 h-4 mr-2" />
-              Login
+              Logout
             </Button>
-            <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
-              <User className="w-4 h-4" />
-            </Button>
-          </Link>
+          ) : (
+            <Link to="/login" className="inline-flex">
+              <Button className="hidden sm:inline-flex items-center h-9 px-3">
+                <User className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
+                <User className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

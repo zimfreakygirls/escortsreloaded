@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -37,15 +36,22 @@ export default function PremiumProfiles() {
   const [displayLimit, setDisplayLimit] = useState(6);
   const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchProfiles();
-    fetchSettings();
     checkSession();
+    fetchSettings();
     
     // Listen for authentication state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      
+      // If no session, redirect to login
+      if (!session) {
+        redirectToLogin();
+      } else {
+        fetchProfiles();
+      }
     });
     
     // Clean up subscription on unmount
@@ -57,6 +63,22 @@ export default function PremiumProfiles() {
   const checkSession = async () => {
     const { data } = await supabase.auth.getSession();
     setSession(data.session);
+    
+    // If no session, redirect to login
+    if (!data.session) {
+      redirectToLogin();
+    } else {
+      fetchProfiles();
+    }
+  };
+  
+  const redirectToLogin = () => {
+    toast({
+      title: "Login Required",
+      description: "You must be logged in to view premium profiles",
+      variant: "destructive",
+    });
+    navigate("/login");
   };
 
   const fetchProfiles = async () => {
@@ -124,6 +146,10 @@ export default function PremiumProfiles() {
         return "grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
     }
   };
+
+  if (!session) {
+    return null;
+  }
 
   if (profiles.length === 0) {
     return (
@@ -195,30 +221,6 @@ export default function PremiumProfiles() {
           </ToggleGroup>
         </div>
 
-        {!session && (
-          <Card className="mb-8 bg-amber-500/10 border-amber-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center text-amber-400">
-                <Lock className="mr-2 h-5 w-5" />
-                Premium Content
-              </CardTitle>
-              <CardDescription>
-                Some information in premium profiles is only visible to logged in users.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <div className="flex gap-4">
-                <Button asChild variant="outline">
-                  <Link to="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        )}
-
         <div className={`grid ${getGridClass()}`}>
           {profiles.slice(0, visibleProfiles).map((profile) => (
             <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
@@ -230,7 +232,7 @@ export default function PremiumProfiles() {
                 viewMode={viewMode}
                 city={profile.city}
                 country={profile.country}
-                phone={session ? profile.phone : undefined}
+                phone={profile.phone}
                 isVerified={profile.is_verified}
                 isPremium={profile.is_premium}
               />
