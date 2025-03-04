@@ -1,0 +1,42 @@
+
+import { MapPin, Clock, Phone, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
+
+interface ProfileContactInfoProps {
+  profile: any;
+  showPhone: boolean;
+  session: any;
+}
+
+export function ProfileContactInfo({ profile, showPhone, session }: ProfileContactInfoProps) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="flex items-center gap-2 text-base sm:text-lg">
+        <MapPin className="h-5 w-5 text-primary" />
+        <span>{profile.location}, {profile.city}</span>
+      </div>
+      
+      <div className="flex items-center gap-2 text-base sm:text-lg">
+        <Clock className="h-5 w-5 text-primary" />
+        <span>${profile.price_per_hour}/hr</span>
+      </div>
+      
+      {showPhone ? (
+        <div className="flex items-center gap-2 text-base sm:text-lg">
+          <Phone className="h-5 w-5 text-primary" />
+          <span>{profile.phone}</span>
+        </div>
+      ) : profile.is_premium && !session ? (
+        <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
+          <Lock className="h-5 w-5 text-primary" />
+          <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-base sm:text-lg">
+          <Phone className="h-5 w-5 text-gray-400" />
+          <span className="text-gray-400">No phone number provided</span>
+        </div>
+      )}
+    </div>
+  );
+}
