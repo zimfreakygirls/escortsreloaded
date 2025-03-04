@@ -7,7 +7,7 @@ interface ProfileCardImageProps {
 
 export function ProfileCardImage({ imageUrl, name, isListView }: ProfileCardImageProps) {
   return (
-    <div className={isListView ? "w-40 h-40 flex-shrink-0" : "aspect-[4/5]"}>
+    <div className={isListView ? "w-40 h-40 flex-shrink-0" : "aspect-[4/5] relative"}>
       <img
         src={imageUrl}
         alt={name}

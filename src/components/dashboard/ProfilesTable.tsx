@@ -151,29 +151,31 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     const { name, value, type } = e.target;
     
     if (type === 'number') {
-      setEditForm({
-        ...editForm,
+      setEditForm(prev => ({
+        ...prev,
         [name]: value === '' ? '' : Number(value)
-      });
+      }));
     } else {
-      setEditForm({
-        ...editForm,
+      setEditForm(prev => ({
+        ...prev,
         [name]: value
-      });
+      }));
     }
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
-    setEditForm({
-      ...editForm,
+    setEditForm(prev => ({
+      ...prev,
       [name]: checked
-    });
+    }));
   };
 
   const saveProfile = async () => {
     if (!editingProfile) return;
     
     try {
+      console.log('Saving profile with data:', editForm);
+      
       const { error } = await supabase
         .from('profiles')
         .update({

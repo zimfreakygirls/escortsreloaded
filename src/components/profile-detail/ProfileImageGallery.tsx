@@ -11,6 +11,53 @@ interface ProfileImageGalleryProps {
 export function ProfileImageGallery({ profile }: ProfileImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // Function to detect if a URL is from Telegram
+  const isTelegramVideo = (url: string) => {
+    return url && (url.includes('t.me') || url.includes('telegram.me'));
+  };
+
+  // Function to render the appropriate video embed based on URL
+  const renderVideoContent = () => {
+    if (!profile.video_url) return null;
+    
+    if (isTelegramVideo(profile.video_url)) {
+      // For Telegram videos, we use an iframe that embeds the Telegram post
+      // Extract post parts from the URL if possible
+      let embedUrl = profile.video_url;
+      
+      // If it's a direct t.me link, convert it to embed format
+      if (embedUrl.includes('t.me/')) {
+        // Replace t.me with telegram.me for embedding
+        embedUrl = embedUrl.replace('t.me/', 'telegram.me/');
+        
+        // Ensure it has /embed at the end if it's a specific post
+        if (!embedUrl.endsWith('/embed') && embedUrl.split('/').length > 4) {
+          embedUrl = `${embedUrl}/embed`;
+        }
+      }
+      
+      return (
+        <iframe 
+          src={embedUrl}
+          frameBorder="0" 
+          width="100%" 
+          height="480"
+          allowFullScreen
+          title="Telegram Video"
+          className="rounded-md"
+        ></iframe>
+      );
+    } else {
+      // For regular videos (e.g., mp4)
+      return (
+        <video controls className="w-full rounded-md">
+          <source src={profile.video_url} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+  };
+
   return (
     <>
       <div className="relative">
@@ -30,11 +77,8 @@ export function ProfileImageGallery({ profile }: ProfileImageGalleryProps) {
                   <Play className="h-5 w-5" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                <video controls className="w-full">
-                  <source src={profile.video_url} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+              <DialogContent className="max-w-4xl bg-[#1e1c2e] border-gray-800">
+                {renderVideoContent()}
               </DialogContent>
             </Dialog>
           </div>
