@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -19,6 +19,9 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Generate an email from the username to use with Supabase Auth
+      const email = `${username.toLowerCase()}@escortsreloaded.com`;
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -48,7 +51,7 @@ export default function Login() {
       <div className="w-full max-w-md space-y-8 p-8 bg-[#292741]/90 backdrop-blur-lg rounded-xl shadow-2xl border border-[#9b87f5]/20">
         <div className="flex flex-col items-center">
           <img 
-            src="/lovable-uploads/34bc3f4f-6fe8-459a-81f6-cf6920d53cd4.png" 
+            src="/lovable-uploads/0aa7311a-71fc-4de3-b931-de22dfc1c9a5.png" 
             alt="Logo" 
             className="w-20 h-20 object-contain mb-2"
           />
@@ -64,11 +67,11 @@ export default function Login() {
           <div className="space-y-4">
             <div className="space-y-1">
               <Input
-                type="email"
-                placeholder="Email address"
+                type="text"
+                placeholder="Username"
                 className="bg-[#1e1c2e] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white h-12"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>

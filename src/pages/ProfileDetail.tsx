@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { useParams } from "react-router-dom";
 import { MapPin, Clock, Phone, Play, Lock, Edit } from "lucide-react";
@@ -86,8 +85,10 @@ export default function ProfileDetail() {
     );
   }
 
-  // Only hide phone for premium profiles if not logged in
-  const showPhone = profile.phone && (profile.is_verified || !profile.is_premium || session);
+  // Only show phone if:
+  // 1. It exists AND
+  // 2. User is logged in (if profile is premium) OR profile is not premium
+  const showPhone = profile.phone && ((!profile.is_premium && profile.is_verified) || (session && profile.is_verified));
 
   return (
     <div className="min-h-screen">

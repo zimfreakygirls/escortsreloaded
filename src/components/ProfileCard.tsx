@@ -1,5 +1,7 @@
 
 import { Flag, BadgeCheck, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileCardProps {
   name: string;
@@ -39,6 +41,31 @@ export function ProfileCard({
   isPremium
 }: ProfileCardProps) {
   const isListView = viewMode === "list";
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    // Check current session
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    
+    // Clean up subscription
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Show phone only if:
+  // 1. It exists AND
+  // 2. User is logged in (if profile is premium) OR profile is not premium
+  const showPhone = phone && ((!isPremium && isVerified) || (session && isVerified));
 
   return (
     <div className={`profile-card group relative ${
@@ -84,9 +111,14 @@ export function ProfileCard({
               <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> {city}, {country}
             </p>
           )}
-          {phone && isVerified && (
+          {showPhone && (
             <p className="text-sm text-gray-300">
               <span className="text-primary">☎</span> {phone}
+            </p>
+          )}
+          {isPremium && !session && phone && (
+            <p className="text-sm text-gray-300">
+              <span className="text-primary">☎</span> <span className="text-amber-400">Login to view contact</span>
             </p>
           )}
           

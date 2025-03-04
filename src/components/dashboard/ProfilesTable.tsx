@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Trash2, BadgeCheck, Crown, Edit, Check, X } from "lucide-react";
@@ -15,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Checkbox } from "../ui/checkbox";
 
 interface Profile {
   id: string;
@@ -95,7 +95,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: `Profile ${!currentStatus ? "verified" : "unverified"} successfully`,
       });
 
-      onDelete(); // Refresh the profiles list
+      onDelete();
     } catch (error: any) {
       console.error('Verification error:', error);
       toast({
@@ -120,7 +120,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: `Profile ${!currentStatus ? "set as premium" : "removed from premium"} successfully`,
       });
 
-      onDelete(); // Refresh the profiles list
+      onDelete();
     } catch (error: any) {
       console.error('Premium status error:', error);
       toast({
@@ -142,13 +142,14 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       price_per_hour: profile.price_per_hour,
       phone: profile.phone || '',
       video_url: profile.video_url || '',
+      is_verified: profile.is_verified || false,
+      is_premium: profile.is_premium || false,
     });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     
-    // Handle numeric fields properly
     if (type === 'number') {
       setEditForm({
         ...editForm,
@@ -160,6 +161,13 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         [name]: value
       });
     }
+  };
+
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setEditForm({
+      ...editForm,
+      [name]: checked
+    });
   };
 
   const saveProfile = async () => {
@@ -177,6 +185,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
           price_per_hour: editForm.price_per_hour,
           phone: editForm.phone || null,
           video_url: editForm.video_url || null,
+          is_verified: editForm.is_verified,
+          is_premium: editForm.is_premium,
         })
         .eq('id', editingProfile.id);
 
@@ -188,7 +198,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       });
 
       setEditingProfile(null);
-      onDelete(); // Refresh the profiles list
+      onDelete();
     } catch (error: any) {
       console.error('Update error:', error);
       toast({
@@ -371,6 +381,32 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                     onChange={handleInputChange}
                     className="bg-[#1e1c2e] border-gray-700"
                   />
+                </div>
+
+                <div className="col-span-2 space-y-3 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="is_verified" 
+                      checked={!!editForm.is_verified} 
+                      onCheckedChange={(checked) => handleCheckboxChange('is_verified', !!checked)}
+                      className={!!editForm.is_verified ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600" : ""}
+                    />
+                    <label htmlFor="is_verified" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Verified Profile
+                    </label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="is_premium" 
+                      checked={!!editForm.is_premium} 
+                      onCheckedChange={(checked) => handleCheckboxChange('is_premium', !!checked)}
+                      className={!!editForm.is_premium ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600" : ""}
+                    />
+                    <label htmlFor="is_premium" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Premium Profile
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>

@@ -74,12 +74,11 @@ export default function Signup() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">
       <div className="w-full max-w-md space-y-8 p-8 bg-[#292741]/90 backdrop-blur-lg rounded-xl shadow-2xl border border-[#9b87f5]/20">
         <div className="flex flex-col items-center">
-          <div className="flex items-center mb-2">
-            <div className="text-4xl font-bold flex items-center">
-              <span className="text-pink-500">❤</span>
-              <span className="bg-gradient-to-r from-[#ff719A] to-[#f97316] bg-clip-text text-transparent">OneNight</span>
-            </div>
-          </div>
+          <img 
+            src="/lovable-uploads/0aa7311a-71fc-4de3-b931-de22dfc1c9a5.png" 
+            alt="Logo" 
+            className="w-20 h-20 object-contain mb-2"
+          />
           <h2 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
             Create Account
           </h2>
