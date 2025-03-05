@@ -78,30 +78,35 @@ export function Header() {
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {/* Only show text links on desktop when not logged in */}
-          {!session && (
-            <>
-              <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
-                Home
-              </Link>
-              <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
-                Videos
-              </Link>
-              <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
-                Chat
-              </Link>
-              <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
-                Contact
-              </Link>
-            </>
-          )}
+        <nav className="hidden md:flex items-center gap-4">
+          <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Heart className="w-4 h-4" />
+            </Button>
+          </Link>
+          
+          <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Video className="w-4 h-4" />
+            </Button>
+          </Link>
+          
+          <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          </Link>
+          
+          <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Mail className="w-4 h-4" />
+            </Button>
+          </Link>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Globe className="h-4 w-4" />
-                {!session && "Countries"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
@@ -122,11 +127,12 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {/* Only show admin dashboard link if user is admin */}
+          {/* Only show admin dashboard icon if user is admin */}
           {isAdmin && (
-            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-              <Shield className="h-4 w-4" />
-              {!session && "Dashboard"}
+            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Shield className="w-4 h-4" />
+              </Button>
             </Link>
           )}
         </nav>
@@ -199,15 +205,7 @@ export function Header() {
                   <User className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/admin-login" className="inline-flex">
-                <Button variant="outline" className="hidden sm:inline-flex items-center h-9 px-3">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Admin
-                </Button>
-                <Button variant="outline" size="icon" className="sm:hidden inline-flex h-9 w-9">
-                  <Shield className="w-4 h-4" />
-                </Button>
-              </Link>
+              {/* Removed admin login button from navbar */}
             </>
           )}
         </div>

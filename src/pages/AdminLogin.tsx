@@ -35,37 +35,46 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Generate an email from the username to use with Supabase Auth
-      const email = `${username.toLowerCase()}@escortsreloaded.com`;
+      // Check for hardcoded admin credentials
+      if (username === "admin" && password === "admin") {
+        // Generate an email from the username to use with Supabase Auth
+        const email = `admin@escortsreloaded.com`;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password: "admin",
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Check if the user is an admin
-      const isAdmin = await checkIsAdmin(data.user.id);
-      
-      if (!isAdmin) {
-        // Sign out if not an admin
-        await supabase.auth.signOut();
+        // Check if the user is an admin
+        const isAdmin = await checkIsAdmin(data.user.id);
+        
+        if (!isAdmin) {
+          // Sign out if not an admin
+          await supabase.auth.signOut();
+          toast({
+            title: "Access Denied",
+            description: "You do not have administrative privileges.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         toast({
-          title: "Access Denied",
-          description: "You do not have administrative privileges.",
+          title: "Success!",
+          description: "You have been logged in as administrator.",
+        });
+
+        navigate("/dashboard");
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid admin credentials.",
           variant: "destructive",
         });
-        setLoading(false);
-        return;
       }
-
-      toast({
-        title: "Success!",
-        description: "You have been logged in as administrator.",
-      });
-
-      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
