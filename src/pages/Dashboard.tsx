@@ -11,11 +11,13 @@ import {
 import { CountryManager } from "@/components/CountryManager";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
 import { ProfilesTable } from "@/components/dashboard/ProfilesTable";
-import { BadgeCheck, Settings } from "lucide-react";
+import { BadgeCheck, Settings, Phone } from "lucide-react";
 import { SettingsManager } from "@/components/dashboard/SettingsManager";
+import { ContactManager } from "@/components/dashboard/ContactManager";
 import { fetchSettings, getCurrencySymbol } from "@/services/settings";
 import { fetchProfiles, type Profile } from "@/services/profiles";
 import type { Settings as SettingsType } from "@/services/settings";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -54,53 +56,85 @@ export default function Dashboard() {
             </h1>
           </div>
 
-          <SettingsManager 
-            settings={settings} 
-            onSettingsChange={setSettings} 
-          />
-
-          <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-            <CardHeader className="border-b border-gray-800 pb-6">
-              <CardTitle className="text-xl font-medium">Manage Countries</CardTitle>
-              <CardDescription className="text-gray-400">
-                Add or remove countries from the navigation menu
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <CountryManager />
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-            <CardHeader className="border-b border-gray-800 pb-6">
-              <CardTitle className="text-xl font-medium flex items-center">
-                <BadgeCheck className="w-5 h-5 text-[#9b87f5] mr-2" />
-                Add New Profile
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Fill in the details below to create a new profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ProfileForm onSuccess={loadData} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-            <CardHeader className="border-b border-gray-800 pb-6">
-              <CardTitle className="text-xl font-medium">Manage Profiles</CardTitle>
-              <CardDescription className="text-gray-400">
-                View and manage all profiles
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ProfilesTable 
-                profiles={profiles} 
-                onDelete={loadData} 
-                currencySymbol={getCurrencySymbol(settings.currency)}
+          <Tabs defaultValue="settings" className="w-full">
+            <TabsList className="mb-6 bg-[#292741] border-b border-gray-800">
+              <TabsTrigger value="settings">General Settings</TabsTrigger>
+              <TabsTrigger value="countries">Countries</TabsTrigger>
+              <TabsTrigger value="profiles">Profiles</TabsTrigger>
+              <TabsTrigger value="contact">Contact Info</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="settings" className="space-y-6">
+              <SettingsManager 
+                settings={settings} 
+                onSettingsChange={setSettings} 
               />
-            </CardContent>
-          </Card>
+            </TabsContent>
+            
+            <TabsContent value="countries" className="space-y-6">
+              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
+                <CardHeader className="border-b border-gray-800 pb-6">
+                  <CardTitle className="text-xl font-medium">Manage Countries</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Add or remove countries from the navigation menu
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <CountryManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="profiles" className="space-y-6">
+              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
+                <CardHeader className="border-b border-gray-800 pb-6">
+                  <CardTitle className="text-xl font-medium flex items-center">
+                    <BadgeCheck className="w-5 h-5 text-[#9b87f5] mr-2" />
+                    Add New Profile
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Fill in the details below to create a new profile
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ProfileForm onSuccess={loadData} />
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
+                <CardHeader className="border-b border-gray-800 pb-6">
+                  <CardTitle className="text-xl font-medium">Manage Profiles</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    View and manage all profiles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ProfilesTable 
+                    profiles={profiles} 
+                    onDelete={loadData} 
+                    currencySymbol={getCurrencySymbol(settings.currency)}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="contact" className="space-y-6">
+              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
+                <CardHeader className="border-b border-gray-800 pb-6">
+                  <CardTitle className="text-xl font-medium flex items-center">
+                    <Phone className="w-5 h-5 text-[#9b87f5] mr-2" />
+                    Contact Page Information
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Update the contact details and disclaimer displayed on the contact page
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ContactManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

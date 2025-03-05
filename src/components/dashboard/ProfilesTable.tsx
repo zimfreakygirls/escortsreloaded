@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Trash2, BadgeCheck, Crown, Edit, Check, X } from "lucide-react";
@@ -11,7 +12,6 @@ import {
 } from "../ui/table";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Checkbox } from "../ui/checkbox";
@@ -200,7 +200,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       });
 
       setEditingProfile(null);
-      onDelete();
+      onDelete(); // This refreshes the profiles list
     } catch (error: any) {
       console.error('Update error:', error);
       toast({
@@ -376,13 +376,17 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                 </div>
                 
                 <div className="space-y-2 col-span-2">
-                  <label className="text-sm text-gray-300">Video URL</label>
+                  <label className="text-sm text-gray-300">Video URL (Telegram or direct video)</label>
                   <Input 
                     name="video_url"
                     value={editForm.video_url || ''}
                     onChange={handleInputChange}
                     className="bg-[#1e1c2e] border-gray-700"
+                    placeholder="https://t.me/username/123 or video URL"
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    For Telegram videos, use format: https://t.me/username/123
+                  </p>
                 </div>
 
                 <div className="col-span-2 space-y-3 pt-2">
