@@ -24,6 +24,33 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_info: {
+        Row: {
+          created_at: string | null
+          disclaimer: string
+          email: string
+          hours: string
+          id: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string | null
+          disclaimer: string
+          email: string
+          hours: string
+          id: string
+          phone: string
+        }
+        Update: {
+          created_at?: string | null
+          disclaimer?: string
+          email?: string
+          hours?: string
+          id?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       countries: {
         Row: {
           active: boolean | null

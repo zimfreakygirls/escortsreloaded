@@ -25,6 +25,7 @@ export default function Contact() {
   useEffect(() => {
     const fetchContactInfo = async () => {
       try {
+        // @ts-ignore - The contact_info table exists but isn't in the TypeScript types yet
         const { data, error } = await supabase
           .from('contact_info')
           .select('*')
@@ -37,7 +38,7 @@ export default function Contact() {
         }
 
         if (data) {
-          setContactInfo(data);
+          setContactInfo(data as ContactInfo);
         }
       } catch (error) {
         console.error("Failed to fetch contact info:", error);

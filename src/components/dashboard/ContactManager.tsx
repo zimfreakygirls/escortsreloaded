@@ -33,6 +33,7 @@ export function ContactManager() {
     const fetchContactInfo = async () => {
       try {
         setLoading(true);
+        // @ts-ignore - The contact_info table exists but isn't in the TypeScript types yet
         const { data, error } = await supabase
           .from('contact_info')
           .select('*')
@@ -55,7 +56,7 @@ export function ContactManager() {
         }
 
         if (data) {
-          setForm(data);
+          setForm(data as ContactInfo);
         }
       } catch (error) {
         console.error("Failed to fetch contact info:", error);
@@ -74,6 +75,7 @@ export function ContactManager() {
 
   const createDefaultContactInfo = async () => {
     try {
+      // @ts-ignore - The contact_info table exists but isn't in the TypeScript types yet
       const { error } = await supabase
         .from('contact_info')
         .insert([defaultContactInfo]);
@@ -104,6 +106,7 @@ export function ContactManager() {
     try {
       setSaving(true);
       
+      // @ts-ignore - The contact_info table exists but isn't in the TypeScript types yet
       const { error } = await supabase
         .from('contact_info')
         .upsert([form], {
