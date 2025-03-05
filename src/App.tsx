@@ -6,6 +6,7 @@ import Chat from "@/pages/Chat";
 import Contact from "@/pages/Contact";
 import CountryProfiles from "@/pages/CountryProfiles";
 import Login from "@/pages/Login";
+import AdminLogin from "@/pages/AdminLogin";
 import Signup from "@/pages/Signup";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -48,6 +49,10 @@ export default function App() {
           {
             path: "/login",
             element: <Login />,
+          },
+          {
+            path: "/admin-login",
+            element: <AdminLogin />,
           },
           {
             path: "/signup",

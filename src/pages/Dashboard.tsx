@@ -1,6 +1,7 @@
 
 import { Header } from "@/components/Header";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -11,13 +12,16 @@ import {
 import { CountryManager } from "@/components/CountryManager";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
 import { ProfilesTable } from "@/components/dashboard/ProfilesTable";
-import { BadgeCheck, Settings, Phone } from "lucide-react";
+import { BadgeCheck, Settings, Phone, Video, Loader2 } from "lucide-react";
 import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { ContactManager } from "@/components/dashboard/ContactManager";
+import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { fetchSettings, getCurrencySymbol } from "@/services/settings";
 import { fetchProfiles, type Profile } from "@/services/profiles";
 import type { Settings as SettingsType } from "@/services/settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { checkIsAdmin } from "@/utils/adminUtils";
 
 export default function Dashboard() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -26,6 +30,34 @@ export default function Dashboard() {
     profiles_per_page: 6,
     currency: 'USD'
   });
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      setLoading(true);
+      const { data } = await supabase.auth.getSession();
+      
+      if (!data.session) {
+        navigate("/admin-login");
+        return;
+      }
+      
+      const adminStatus = await checkIsAdmin(data.session.user.id);
+      setIsAdmin(adminStatus);
+      
+      if (!adminStatus) {
+        navigate("/");
+        return;
+      }
+      
+      loadData();
+      setLoading(false);
+    };
+    
+    checkAccess();
+  }, [navigate]);
 
   const loadData = async () => {
     try {
@@ -39,9 +71,17 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a] flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[#9b87f5]" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null; // This shouldn't render because navigate should redirect
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">
@@ -61,6 +101,7 @@ export default function Dashboard() {
               <TabsTrigger value="settings">General Settings</TabsTrigger>
               <TabsTrigger value="countries">Countries</TabsTrigger>
               <TabsTrigger value="profiles">Profiles</TabsTrigger>
+              <TabsTrigger value="videos">Videos</TabsTrigger>
               <TabsTrigger value="contact">Contact Info</TabsTrigger>
             </TabsList>
             
@@ -116,6 +157,10 @@ export default function Dashboard() {
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="videos" className="space-y-6">
+              <VideoUploader />
             </TabsContent>
             
             <TabsContent value="contact" className="space-y-6">

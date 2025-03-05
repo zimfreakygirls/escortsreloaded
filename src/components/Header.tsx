@@ -1,9 +1,11 @@
-import { Heart, User, MessageSquare, Mail, Video, Flag, Globe } from "lucide-react";
+
+import { Heart, User, MessageSquare, Mail, Video, Flag, Globe, LogOut, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { checkIsAdmin } from "@/utils/adminUtils";
 
 interface Country {
   id: string;
@@ -15,6 +17,7 @@ export function Header() {
   const navigate = useNavigate();
   const [countries, setCountries] = useState<Country[]>([]);
   const [session, setSession] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -38,12 +41,26 @@ export function Header() {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      
+      // Check admin status
+      if (data.session?.user?.id) {
+        const adminStatus = await checkIsAdmin(data.session.user.id);
+        setIsAdmin(adminStatus);
+      }
     };
     checkSession();
 
     // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
+      
+      // Check admin status
+      if (session?.user?.id) {
+        const adminStatus = await checkIsAdmin(session.user.id);
+        setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
+      }
     });
     
     // Clean up subscription
@@ -62,20 +79,29 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
-            Home
-          </Link>
-          {session && (
-            <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
-              Premium
-            </Link>
+          {/* Only show text links on desktop when not logged in */}
+          {!session && (
+            <>
+              <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
+                Home
+              </Link>
+              <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
+                Videos
+              </Link>
+              <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
+                Chat
+              </Link>
+              <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+                Contact
+              </Link>
+            </>
           )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
                 <Globe className="h-4 w-4" />
-                Countries
+                {!session && "Countries"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
@@ -96,19 +122,11 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/videos" className="text-sm font-medium hover:text-primary transition-colors">
-            Videos
-          </Link>
-          <Link to="/chat" className="text-sm font-medium hover:text-primary transition-colors">
-            Chat
-          </Link>
-          <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
-            Contact
-          </Link>
-          
-          {session && (
-            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-              Dashboard
+          {/* Only show admin dashboard link if user is admin */}
+          {isAdmin && (
+            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <Shield className="h-4 w-4" />
+              {!session && "Dashboard"}
             </Link>
           )}
         </nav>
@@ -152,6 +170,13 @@ export function Header() {
               <Mail className="w-4 h-4" />
             </Button>
           </Link>
+          {isAdmin && (
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Shield className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
           {session ? (
             <Button 
               onClick={async () => {
@@ -160,19 +185,30 @@ export function Header() {
               }}
               className="inline-flex items-center h-9 px-3"
             >
-              <User className="w-4 h-4 mr-2" />
+              <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
           ) : (
-            <Link to="/login" className="inline-flex">
-              <Button className="hidden sm:inline-flex items-center h-9 px-3">
-                <User className="w-4 h-4 mr-2" />
-                Login
-              </Button>
-              <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
-                <User className="w-4 h-4" />
-              </Button>
-            </Link>
+            <>
+              <Link to="/login" className="inline-flex">
+                <Button className="hidden sm:inline-flex items-center h-9 px-3">
+                  <User className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+                <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
+                  <User className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link to="/admin-login" className="inline-flex">
+                <Button variant="outline" className="hidden sm:inline-flex items-center h-9 px-3">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+                <Button variant="outline" size="icon" className="sm:hidden inline-flex h-9 w-9">
+                  <Shield className="w-4 h-4" />
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </div>
