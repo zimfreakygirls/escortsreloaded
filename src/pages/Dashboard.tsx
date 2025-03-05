@@ -1,187 +1,149 @@
 
-import { Header } from "@/components/Header";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { CountryManager } from "@/components/CountryManager";
-import { ProfileForm } from "@/components/dashboard/ProfileForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfilesTable } from "@/components/dashboard/ProfilesTable";
-import { BadgeCheck, Settings, Phone, Video, Loader2 } from "lucide-react";
+import { CountryManager } from "@/components/CountryManager";
 import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { ContactManager } from "@/components/dashboard/ContactManager";
 import { VideoUploader } from "@/components/dashboard/VideoUploader";
-import { fetchSettings, getCurrencySymbol } from "@/services/settings";
-import { fetchProfiles, type Profile } from "@/services/profiles";
-import type { Settings as SettingsType } from "@/services/settings";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
+import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog } from "lucide-react";
 
 export default function Dashboard() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [settings, setSettings] = useState<SettingsType>({
-    id: 'global_settings',
-    profiles_per_page: 6,
-    currency: 'USD'
-  });
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+  const [session, setSession] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAccess = async () => {
+    const checkSession = async () => {
       setLoading(true);
       const { data } = await supabase.auth.getSession();
-      
+      setSession(data.session);
+
       if (!data.session) {
         navigate("/admin-login");
         return;
       }
-      
+
       const adminStatus = await checkIsAdmin(data.session.user.id);
+      setIsAdmin(adminStatus);
+
+      if (!adminStatus) {
+        navigate("/");
+      }
+      
+      setLoading(false);
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      
+      if (!session) {
+        navigate("/admin-login");
+        return;
+      }
+
+      const adminStatus = await checkIsAdmin(session.user.id);
       setIsAdmin(adminStatus);
       
       if (!adminStatus) {
         navigate("/");
-        return;
       }
-      
-      loadData();
-      setLoading(false);
-    };
-    
-    checkAccess();
-  }, [navigate]);
+    });
 
-  const loadData = async () => {
-    try {
-      const profilesData = await fetchProfiles();
-      setProfiles(profilesData);
-      
-      const settingsData = await fetchSettings();
-      setSettings(settingsData);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-    }
-  };
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a] flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-[#9b87f5]" />
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin h-12 w-12 border-t-2 border-[#9b87f5] rounded-full"></div>
       </div>
     );
   }
 
   if (!isAdmin) {
-    return null; // This shouldn't render because navigate should redirect
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
+          <p className="text-gray-400">You do not have permission to access this area.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">
-      <Header />
-      
-      <main className="container px-4 py-24">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-white flex items-center">
-              <Settings className="mr-2 h-7 w-7 text-[#9b87f5]" />
-              Admin Dashboard
-            </h1>
-          </div>
-
-          <Tabs defaultValue="settings" className="w-full">
-            <TabsList className="mb-6 bg-[#292741] border-b border-gray-800">
-              <TabsTrigger value="settings">General Settings</TabsTrigger>
-              <TabsTrigger value="countries">Countries</TabsTrigger>
-              <TabsTrigger value="profiles">Profiles</TabsTrigger>
-              <TabsTrigger value="videos">Videos</TabsTrigger>
-              <TabsTrigger value="contact">Contact Info</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="settings" className="space-y-6">
-              <SettingsManager 
-                settings={settings} 
-                onSettingsChange={setSettings} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="countries" className="space-y-6">
-              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-                <CardHeader className="border-b border-gray-800 pb-6">
-                  <CardTitle className="text-xl font-medium">Manage Countries</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Add or remove countries from the navigation menu
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <CountryManager />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="profiles" className="space-y-6">
-              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-                <CardHeader className="border-b border-gray-800 pb-6">
-                  <CardTitle className="text-xl font-medium flex items-center">
-                    <BadgeCheck className="w-5 h-5 text-[#9b87f5] mr-2" />
-                    Add New Profile
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Fill in the details below to create a new profile
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ProfileForm onSuccess={loadData} />
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-                <CardHeader className="border-b border-gray-800 pb-6">
-                  <CardTitle className="text-xl font-medium">Manage Profiles</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    View and manage all profiles
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ProfilesTable 
-                    profiles={profiles} 
-                    onDelete={loadData} 
-                    currencySymbol={getCurrencySymbol(settings.currency)}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="videos" className="space-y-6">
-              <VideoUploader />
-            </TabsContent>
-            
-            <TabsContent value="contact" className="space-y-6">
-              <Card className="border-0 shadow-xl bg-[#292741] backdrop-blur-sm text-white">
-                <CardHeader className="border-b border-gray-800 pb-6">
-                  <CardTitle className="text-xl font-medium flex items-center">
-                    <Phone className="w-5 h-5 text-[#9b87f5] mr-2" />
-                    Contact Page Information
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Update the contact details and disclaimer displayed on the contact page
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ContactManager />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+    <div className="container mx-auto py-24 px-4">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-400 mt-2">Manage your website content and settings</p>
         </div>
-      </main>
+      </div>
+      
+      <Tabs defaultValue="profiles" className="space-y-6">
+        <TabsList className="bg-[#1e1c2e] border border-[#9b87f5]/20 p-1 gap-1">
+          <TabsTrigger value="profiles" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <Users className="h-4 w-4 mr-2" />
+            <span>Profiles</span>
+          </TabsTrigger>
+          <TabsTrigger value="countries" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <Globe className="h-4 w-4 mr-2" />
+            <span>Countries</span>
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <Video className="h-4 w-4 mr-2" />
+            <span>Videos</span>
+          </TabsTrigger>
+          <TabsTrigger value="contacts" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            <span>Contacts</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <Settings className="h-4 w-4 mr-2" />
+            <span>Settings</span>
+          </TabsTrigger>
+          <TabsTrigger value="admin" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <UserCog className="h-4 w-4 mr-2" />
+            <span>Admin</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profiles" className="space-y-4">
+          <ProfilesTable />
+        </TabsContent>
+        
+        <TabsContent value="countries" className="space-y-4">
+          <CountryManager />
+        </TabsContent>
+        
+        <TabsContent value="videos" className="space-y-4">
+          <VideoUploader />
+        </TabsContent>
+        
+        <TabsContent value="contacts" className="space-y-4">
+          <ContactManager />
+        </TabsContent>
+        
+        <TabsContent value="settings" className="space-y-4">
+          <SettingsManager />
+        </TabsContent>
+        
+        <TabsContent value="admin" className="space-y-4">
+          <AdminSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

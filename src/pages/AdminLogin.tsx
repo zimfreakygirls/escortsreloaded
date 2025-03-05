@@ -35,11 +35,14 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Check for hardcoded admin credentials
       if (username === "admin" && password === "admin") {
         // Generate an email from the username to use with Supabase Auth
         const email = `admin@escortsreloaded.com`;
 
+        // Sign out any existing session first
+        await supabase.auth.signOut();
+
+        // Sign in with admin credentials
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password: "admin",

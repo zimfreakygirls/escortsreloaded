@@ -1,5 +1,5 @@
 
-import { Heart, User, MessageSquare, Mail, Video, Flag, Globe, LogOut, Shield } from "lucide-react";
+import { Heart, User, MessageSquare, Mail, Video, Globe, LogOut, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -78,6 +78,7 @@ export function Header() {
           </div>
         </Link>
 
+        {/* Main navigation icons - visible on medium screens and up */}
         <nav className="hidden md:flex items-center gap-4">
           <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
             <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -137,7 +138,9 @@ export function Header() {
           )}
         </nav>
 
+        {/* Right side section - authentication/profile */}
         <div className="flex items-center gap-2">
+          {/* Remove duplicate country dropdown and only show it on mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9 text-primary md:hidden">
@@ -161,28 +164,35 @@ export function Header() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/chat">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <MessageSquare className="w-4 h-4" />
-            </Button>
-          </Link>
-          <Link to="/videos">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Video className="w-4 h-4" />
-            </Button>
-          </Link>
-          <Link to="/contact">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Mail className="w-4 h-4" />
-            </Button>
-          </Link>
+          
+          {/* Only show these mobile navigation icons on small screens */}
+          <div className="md:hidden flex items-center gap-2">
+            <Link to="/chat">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link to="/videos">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Video className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Mail className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Only show admin dashboard icon if user is admin and on mobile */}
           {isAdmin && (
-            <Link to="/dashboard">
+            <Link to="/dashboard" className="md:hidden">
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Shield className="w-4 h-4" />
               </Button>
             </Link>
           )}
+          
           {session ? (
             <Button 
               onClick={async () => {
@@ -195,18 +205,15 @@ export function Header() {
               Logout
             </Button>
           ) : (
-            <>
-              <Link to="/login" className="inline-flex">
-                <Button className="hidden sm:inline-flex items-center h-9 px-3">
-                  <User className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
-                <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
-                  <User className="w-4 h-4" />
-                </Button>
-              </Link>
-              {/* Removed admin login button from navbar */}
-            </>
+            <Link to="/login" className="inline-flex">
+              <Button className="hidden sm:inline-flex items-center h-9 px-3">
+                <User className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
+                <User className="w-4 h-4" />
+              </Button>
+            </Link>
           )}
         </div>
       </div>
