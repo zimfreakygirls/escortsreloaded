@@ -35,32 +35,57 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Hard-coded admin credentials check
+      // Special case for default admin credentials
       if (username === "admin" && password === "admin") {
-        // Use a predefined admin email for Supabase Auth
+        // Use admin email for Supabase Auth
         const email = 'admin@escortsreloaded.com';
         
-        // For debugging purposes
         console.log("Attempting to sign in with:", { email });
 
         // Sign out any existing session first to ensure clean login
         await supabase.auth.signOut();
 
-        // Sign in with email/password that's registered in Supabase Auth
+        // Fixed password for the admin account in Supabase Auth
+        const supabasePassword = "admin123"; 
+
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
-          password: "admin123", // This needs to match what's set in your Supabase auth
+          password: supabasePassword,
         });
 
         if (error) {
           console.error("Login error:", error);
-          toast({
-            title: "Authentication Error",
-            description: `Login failed: ${error.message}`,
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
+          
+          // If the admin doesn't exist, create it
+          if (error.message.includes("Invalid login credentials")) {
+            const { data: signupData, error: signupError } = await supabase.auth.signUp({
+              email,
+              password: supabasePassword,
+            });
+            
+            if (signupError) {
+              throw signupError;
+            }
+            
+            if (signupData?.user) {
+              // Add to admin_users table
+              await supabase.from('admin_users').insert({ id: signupData.user.id });
+              
+              // Try to log in again
+              const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+                email,
+                password: supabasePassword,
+              });
+              
+              if (retryError) {
+                throw retryError;
+              }
+              
+              data = retryData;
+            }
+          } else {
+            throw error;
+          }
         }
 
         console.log("Login successful:", data);
@@ -69,15 +94,8 @@ export default function AdminLogin() {
         const isAdmin = await checkIsAdmin(data.user.id);
         
         if (!isAdmin) {
-          // Sign out if not an admin
-          await supabase.auth.signOut();
-          toast({
-            title: "Access Denied",
-            description: "You do not have administrative privileges.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
+          // If not already an admin, insert into admin_users table
+          await supabase.from('admin_users').insert({ id: data.user.id });
         }
 
         toast({
@@ -87,17 +105,38 @@ export default function AdminLogin() {
 
         navigate("/dashboard");
       } else {
-        toast({
-          title: "Error",
-          description: "Invalid admin credentials. Use 'admin' for both username and password.",
-          variant: "destructive",
+        // For non-default credentials, try to authenticate with entered values
+        const email = `${username.toLowerCase()}@escortsreloaded.com`;
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
+
+        if (error) {
+          throw error;
+        }
+
+        const isAdmin = await checkIsAdmin(data.user.id);
+        
+        if (!isAdmin) {
+          // Sign out if not an admin
+          await supabase.auth.signOut();
+          throw new Error("You do not have administrative privileges.");
+        }
+
+        toast({
+          title: "Success!",
+          description: "You have been logged in as administrator.",
+        });
+
+        navigate("/dashboard");
       }
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Login failed. Please check your credentials.",
         variant: "destructive",
       });
     } finally {

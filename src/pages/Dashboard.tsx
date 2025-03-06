@@ -9,6 +9,7 @@ import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { ContactManager } from "@/components/dashboard/ContactManager";
 import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
+import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
 import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog } from "lucide-react";
 
@@ -148,8 +149,9 @@ export default function Dashboard() {
           />
         </TabsContent>
         
-        <TabsContent value="admin" className="space-y-4">
+        <TabsContent value="admin" className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <AdminSettings />
+          <AdminSignupSettings />
         </TabsContent>
       </Tabs>
     </div>
