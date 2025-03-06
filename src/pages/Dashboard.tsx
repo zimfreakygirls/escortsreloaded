@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -136,7 +137,15 @@ export default function Dashboard() {
         </TabsContent>
         
         <TabsContent value="settings" className="space-y-4">
-          <SettingsManager settings={{}} onSettingsChange={() => {}} />
+          <SettingsManager 
+            settings={{
+              id: "default",
+              profiles_per_page: 6,
+              currency: "USD",
+              created_at: new Date()
+            }} 
+            onSettingsChange={() => {}}
+          />
         </TabsContent>
         
         <TabsContent value="admin" className="space-y-4">
