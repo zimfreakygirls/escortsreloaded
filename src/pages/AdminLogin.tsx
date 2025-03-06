@@ -37,7 +37,7 @@ export default function AdminLogin() {
     try {
       if (username === "admin" && password === "admin") {
         // Generate an email from the username to use with Supabase Auth
-        const email = `admin@escortsreloaded.com`;
+        const email = 'admin@escortsreloaded.com';
 
         // Sign out any existing session first
         await supabase.auth.signOut();
@@ -45,10 +45,13 @@ export default function AdminLogin() {
         // Sign in with admin credentials
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
-          password: "admin",
+          password: "admin123", // This needs to match what's in your Supabase auth
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Login error:", error);
+          throw error;
+        }
 
         // Check if the user is an admin
         const isAdmin = await checkIsAdmin(data.user.id);
