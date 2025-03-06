@@ -8,6 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Shield } from "lucide-react";
 
+interface AdminSettings {
+  signup_enabled: boolean;
+  signup_code: string;
+}
+
 export function AdminSignupSettings() {
   const [signupEnabled, setSignupEnabled] = useState(false);
   const [signupCode, setSignupCode] = useState("");
@@ -20,16 +25,14 @@ export function AdminSignupSettings() {
       try {
         const { data, error } = await supabase
           .from('admin_settings')
-          .select('*')
+          .select('signup_enabled, signup_code')
           .single();
         
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
+        if (error) throw error;
         
         if (data) {
-          setSignupEnabled(data.signup_enabled || false);
-          setSignupCode(data.signup_code || "");
+          setSignupEnabled(data.signup_enabled);
+          setSignupCode(data.signup_code);
         }
       } catch (error: any) {
         console.error("Error fetching admin settings:", error);
@@ -49,13 +52,14 @@ export function AdminSignupSettings() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('admin_settings')
-        .upsert({
-          id: 'default',
+        .update({
           signup_enabled: signupEnabled,
           signup_code: signupCode,
-        }, { onConflict: 'id' });
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', 'default');
       
       if (error) throw error;
       

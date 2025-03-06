@@ -46,7 +46,7 @@ export default function AdminSignup() {
     setLoading(true);
     
     try {
-      // Check if the signup code is valid (should be controlled in settings)
+      // Check if the signup code is valid
       const { data: settings, error: settingsError } = await supabase
         .from('admin_settings')
         .select('signup_code, signup_enabled')
@@ -56,11 +56,11 @@ export default function AdminSignup() {
         throw new Error("Could not verify signup code. Please try again later.");
       }
       
-      if (!settings.signup_enabled) {
+      if (!settings?.signup_enabled) {
         throw new Error("Admin signup is currently disabled.");
       }
       
-      if (settings.signup_code !== values.signupCode) {
+      if (settings?.signup_code !== values.signupCode) {
         throw new Error("Invalid signup code.");
       }
       

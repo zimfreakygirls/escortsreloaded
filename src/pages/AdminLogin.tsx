@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -48,24 +47,21 @@ export default function AdminLogin() {
         // Fixed password for the admin account in Supabase Auth
         const supabasePassword = "admin123"; 
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        let authData;
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password: supabasePassword,
         });
 
-        if (error) {
-          console.error("Login error:", error);
-          
-          // If the admin doesn't exist, create it
-          if (error.message.includes("Invalid login credentials")) {
+        if (loginError) {
+          if (loginError.message.includes("Invalid login credentials")) {
+            // Try to create the admin account
             const { data: signupData, error: signupError } = await supabase.auth.signUp({
               email,
               password: supabasePassword,
             });
             
-            if (signupError) {
-              throw signupError;
-            }
+            if (signupError) throw signupError;
             
             if (signupData?.user) {
               // Add to admin_users table
@@ -77,33 +73,33 @@ export default function AdminLogin() {
                 password: supabasePassword,
               });
               
-              if (retryError) {
-                throw retryError;
-              }
+              if (retryError) throw retryError;
               
-              data = retryData;
+              authData = retryData;
             }
           } else {
-            throw error;
+            throw loginError;
           }
+        } else {
+          authData = loginData;
         }
 
-        console.log("Login successful:", data);
+        if (authData?.user) {
+          // Check if the user is an admin
+          const isAdmin = await checkIsAdmin(authData.user.id);
+          
+          if (!isAdmin) {
+            // If not already an admin, insert into admin_users table
+            await supabase.from('admin_users').insert({ id: authData.user.id });
+          }
 
-        // Check if the user is an admin
-        const isAdmin = await checkIsAdmin(data.user.id);
-        
-        if (!isAdmin) {
-          // If not already an admin, insert into admin_users table
-          await supabase.from('admin_users').insert({ id: data.user.id });
+          toast({
+            title: "Success!",
+            description: "You have been logged in as administrator.",
+          });
+
+          navigate("/dashboard");
         }
-
-        toast({
-          title: "Success!",
-          description: "You have been logged in as administrator.",
-        });
-
-        navigate("/dashboard");
       } else {
         // For non-default credentials, try to authenticate with entered values
         const email = `${username.toLowerCase()}@escortsreloaded.com`;
