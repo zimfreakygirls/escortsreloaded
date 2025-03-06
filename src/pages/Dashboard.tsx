@@ -142,7 +142,7 @@ export default function Dashboard() {
               id: "default",
               profiles_per_page: 6,
               currency: "USD",
-              created_at: new Date()
+              created_at: new Date().toISOString()
             }} 
             onSettingsChange={() => {}}
           />

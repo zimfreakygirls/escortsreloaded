@@ -41,7 +41,7 @@ export default function AdminLogin() {
         const email = 'admin@escortsreloaded.com';
         
         // For debugging purposes
-        console.log("Attempting to sign in with:", { email, password: "admin123" });
+        console.log("Attempting to sign in with:", { email });
 
         // Sign out any existing session first to ensure clean login
         await supabase.auth.signOut();
@@ -54,7 +54,13 @@ export default function AdminLogin() {
 
         if (error) {
           console.error("Login error:", error);
-          throw error;
+          toast({
+            title: "Authentication Error",
+            description: `Login failed: ${error.message}`,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
         }
 
         console.log("Login successful:", data);
@@ -83,11 +89,12 @@ export default function AdminLogin() {
       } else {
         toast({
           title: "Error",
-          description: "Invalid admin credentials.",
+          description: "Invalid admin credentials. Use 'admin' for both username and password.",
           variant: "destructive",
         });
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Error",
         description: error.message,
