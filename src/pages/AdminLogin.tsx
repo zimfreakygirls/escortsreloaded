@@ -15,7 +15,6 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if already logged in as admin and redirect if true
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
@@ -34,17 +33,12 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Special case for default admin credentials
       if (username === "admin" && password === "admin") {
-        // Use admin email for Supabase Auth
         const email = 'admin@escortsreloaded.com';
         
         console.log("Attempting to sign in with:", { email });
 
-        // Sign out any existing session first to ensure clean login
         await supabase.auth.signOut();
-
-        // Fixed password for the admin account in Supabase Auth
         const supabasePassword = "admin123"; 
 
         let authData;
@@ -55,7 +49,6 @@ export default function AdminLogin() {
 
         if (loginError) {
           if (loginError.message.includes("Invalid login credentials")) {
-            // Try to create the admin account
             const { data: signupData, error: signupError } = await supabase.auth.signUp({
               email,
               password: supabasePassword,
@@ -64,10 +57,8 @@ export default function AdminLogin() {
             if (signupError) throw signupError;
             
             if (signupData?.user) {
-              // Add to admin_users table
               await supabase.from('admin_users').insert({ id: signupData.user.id });
               
-              // Try to log in again
               const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
                 email,
                 password: supabasePassword,
@@ -85,11 +76,9 @@ export default function AdminLogin() {
         }
 
         if (authData?.user) {
-          // Check if the user is an admin
           const isAdmin = await checkIsAdmin(authData.user.id);
           
           if (!isAdmin) {
-            // If not already an admin, insert into admin_users table
             await supabase.from('admin_users').insert({ id: authData.user.id });
           }
 
@@ -101,7 +90,6 @@ export default function AdminLogin() {
           navigate("/dashboard");
         }
       } else {
-        // For non-default credentials, try to authenticate with entered values
         const email = `${username.toLowerCase()}@escortsreloaded.com`;
         
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -116,7 +104,6 @@ export default function AdminLogin() {
         const isAdmin = await checkIsAdmin(data.user.id);
         
         if (!isAdmin) {
-          // Sign out if not an admin
           await supabase.auth.signOut();
           throw new Error("You do not have administrative privileges.");
         }
