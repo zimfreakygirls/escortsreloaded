@@ -42,3 +42,19 @@ export const fetchProfiles = async (): Promise<Profile[]> => {
     throw error;
   }
 };
+
+export const ensureProfileImagesBucket = async () => {
+  try {
+    const { data, error } = await supabase.storage.getBucket('profile-images');
+    
+    if (error && error.message.includes('does not exist')) {
+      await supabase.storage.createBucket('profile-images', {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+      });
+      console.log('Created profile-images bucket');
+    }
+  } catch (error) {
+    console.error('Error ensuring profile-images bucket:', error);
+  }
+};

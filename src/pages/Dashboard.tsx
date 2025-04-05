@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -11,9 +10,11 @@ import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
-import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut } from "lucide-react";
+import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { ProfileForm } from "@/components/dashboard/ProfileForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function Dashboard() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [activeSettings, setActiveSettings] = useState<any>(null);
   const { toast } = useToast();
+  const [showProfileForm, setShowProfileForm] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -109,7 +111,6 @@ export default function Dashboard() {
   }, [session]);
 
   const handleDeleteProfile = async () => {
-    // Refresh profiles after deletion
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -125,6 +126,15 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error refreshing profiles:', error);
     }
+  };
+
+  const handleProfileCreated = () => {
+    setShowProfileForm(false);
+    handleDeleteProfile();
+    toast({
+      title: "Success",
+      description: "Profile created successfully",
+    });
   };
 
   const handleSettingsChange = async (newSettings: any) => {
@@ -203,6 +213,17 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="profiles" className="space-y-4">
+          <div className="flex justify-between items-center pb-4">
+            <h2 className="text-xl font-semibold">Manage Profiles</h2>
+            <Button 
+              onClick={() => setShowProfileForm(true)}
+              className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90"
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              <span>Add New Profile</span>
+            </Button>
+          </div>
+          
           <ProfilesTable 
             profiles={profiles} 
             onDelete={handleDeleteProfile} 
@@ -210,6 +231,15 @@ export default function Dashboard() {
                            activeSettings?.currency === 'EUR' ? '€' : 
                            activeSettings?.currency === 'GBP' ? '£' : '$'}
           />
+          
+          <Dialog open={showProfileForm} onOpenChange={setShowProfileForm}>
+            <DialogContent className="bg-[#292741] border-gray-800 text-white max-w-4xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Create New Profile</DialogTitle>
+              </DialogHeader>
+              <ProfileForm onSuccess={handleProfileCreated} />
+            </DialogContent>
+          </Dialog>
         </TabsContent>
         
         <TabsContent value="countries" className="space-y-4">
