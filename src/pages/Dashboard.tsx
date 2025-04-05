@@ -11,13 +11,18 @@ import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
-import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog } from "lucide-react";
+import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [activeSettings, setActiveSettings] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -63,6 +68,74 @@ export default function Dashboard() {
     };
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*');
+        
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+      }
+    };
+
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select('*')
+          .eq('id', 'default')
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        setActiveSettings(data || {
+          id: "default",
+          profiles_per_page: 6,
+          currency: "USD",
+          created_at: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    if (session) {
+      fetchProfiles();
+      fetchSettings();
+    }
+  }, [session]);
+
+  const handleDeleteProfile = async () => {
+    // Refresh profiles after deletion
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) throw error;
+      setProfiles(data || []);
+      
+      toast({
+        title: "Profiles Updated",
+        description: "The profiles list has been refreshed.",
+      });
+    } catch (error) {
+      console.error('Error refreshing profiles:', error);
+    }
+  };
+
+  const handleSettingsChange = async (newSettings: any) => {
+    setActiveSettings(newSettings);
+  };
+  
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/admin-login");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -91,6 +164,14 @@ export default function Dashboard() {
           </h1>
           <p className="text-gray-400 mt-2">Manage your website content and settings</p>
         </div>
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/30"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Logout</span>
+        </Button>
       </div>
       
       <Tabs defaultValue="profiles" className="space-y-6">
@@ -122,7 +203,13 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="profiles" className="space-y-4">
-          <ProfilesTable profiles={[]} onDelete={() => {}} />
+          <ProfilesTable 
+            profiles={profiles} 
+            onDelete={handleDeleteProfile} 
+            currencySymbol={activeSettings?.currency === 'USD' ? '$' : 
+                           activeSettings?.currency === 'EUR' ? '€' : 
+                           activeSettings?.currency === 'GBP' ? '£' : '$'}
+          />
         </TabsContent>
         
         <TabsContent value="countries" className="space-y-4">
@@ -139,13 +226,8 @@ export default function Dashboard() {
         
         <TabsContent value="settings" className="space-y-4">
           <SettingsManager 
-            settings={{
-              id: "default",
-              profiles_per_page: 6,
-              currency: "USD",
-              created_at: new Date().toISOString()
-            }} 
-            onSettingsChange={() => {}}
+            settings={activeSettings}
+            onSettingsChange={handleSettingsChange}
           />
         </TabsContent>
         
