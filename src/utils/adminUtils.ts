@@ -6,11 +6,25 @@ export const checkIsAdmin = async (userId: string): Promise<boolean> => {
   if (!userId) return false;
   
   try {
+    // First check if the user has the admin email
     const { data: adminUser } = await supabase.auth.getUser(userId);
-    console.log("Checking admin status for user:", adminUser?.user);
+    if (adminUser?.user?.email === 'admin@escortsreloaded.com') {
+      return true;
+    }
     
-    // Check for admin email - this is the email we use when logging in with admin/admin
-    return adminUser?.user?.email === 'admin@escortsreloaded.com';
+    // Also check if the user is in the admin_users table
+    const { data: adminRecord, error } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      console.error("Error checking admin_users table:", error);
+      return false;
+    }
+    
+    return !!adminRecord;
   } catch (error) {
     console.error("Failed to check admin status:", error);
     return false;

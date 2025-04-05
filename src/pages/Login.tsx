@@ -2,10 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { checkIsAdmin } from "@/utils/adminUtils";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -13,6 +14,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const isAdmin = await checkIsAdmin(data.session.user.id);
+        if (isAdmin) {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +46,20 @@ export default function Login() {
 
       if (error) throw error;
 
+      // Check if user is an admin and redirect accordingly
+      const isAdmin = await checkIsAdmin(data.user.id);
+      
       toast({
         title: "Success!",
         description: "You have been logged in successfully.",
       });
 
-      navigate("/");
+      if (isAdmin) {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
+      
     } catch (error: any) {
       toast({
         title: "Error",
