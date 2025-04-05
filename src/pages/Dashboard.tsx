@@ -10,7 +10,7 @@ import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
-import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List, BarChart } from "lucide-react";
+import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List, BarChart, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { AnimationWrapper } from "@/components/ui/animation-wrapper";
 import { gsap } from "gsap";
+import { UsersTable } from "@/components/dashboard/UsersTable";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -218,6 +219,10 @@ export default function Dashboard() {
             <Users className="h-4 w-4 mr-2" />
             <span>Profiles</span>
           </TabsTrigger>
+          <TabsTrigger value="users" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <UserX className="h-4 w-4 mr-2" />
+            <span>Users</span>
+          </TabsTrigger>
           <TabsTrigger value="countries" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <Globe className="h-4 w-4 mr-2" />
             <span>Countries</span>
@@ -272,6 +277,13 @@ export default function Dashboard() {
               <ProfileForm onSuccess={handleProfileCreated} />
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
+          <div className="flex justify-between items-center pb-4">
+            <h2 className="text-xl font-semibold">Manage Users</h2>
+          </div>
+          <UsersTable />
         </TabsContent>
         
         <TabsContent value="countries" className="space-y-4">
