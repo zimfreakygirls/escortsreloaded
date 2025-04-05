@@ -10,11 +10,14 @@ import { VideoUploader } from "@/components/dashboard/VideoUploader";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
-import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List } from "lucide-react";
+import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { AnimationWrapper } from "@/components/ui/animation-wrapper";
+import { gsap } from "gsap";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,6 +30,25 @@ export default function Dashboard() {
   const [showProfileForm, setShowProfileForm] = useState(false);
 
   useEffect(() => {
+    gsap.fromTo(
+      ".dashboard-content",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+    );
+
+    gsap.fromTo(
+      ".tabs-trigger",
+      { opacity: 0, y: -10 },
+      { 
+        opacity: 1, 
+        y: 0, 
+        duration: 0.5, 
+        stagger: 0.1, 
+        ease: "back.out(1.7)",
+        delay: 0.3
+      }
+    );
+
     const checkSession = async () => {
       setLoading(true);
       const { data } = await supabase.auth.getSession();
@@ -167,50 +189,60 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-24 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-400 mt-2">Manage your website content and settings</p>
+      <AnimationWrapper animation="fade" duration={0.7}>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-400 mt-2">Manage your website content and settings</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/30"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleLogout}
-          className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/30"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
-        </Button>
-      </div>
+      </AnimationWrapper>
       
-      <Tabs defaultValue="profiles" className="space-y-6">
+      <Tabs defaultValue="dashboard" className="space-y-6 dashboard-content">
         <TabsList className="bg-[#1e1c2e] border border-[#9b87f5]/20 p-1 gap-1">
-          <TabsTrigger value="profiles" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="dashboard" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+            <BarChart className="h-4 w-4 mr-2" />
+            <span>Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="profiles" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <Users className="h-4 w-4 mr-2" />
             <span>Profiles</span>
           </TabsTrigger>
-          <TabsTrigger value="countries" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="countries" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <Globe className="h-4 w-4 mr-2" />
             <span>Countries</span>
           </TabsTrigger>
-          <TabsTrigger value="videos" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="videos" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <Video className="h-4 w-4 mr-2" />
             <span>Videos</span>
           </TabsTrigger>
-          <TabsTrigger value="contacts" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="contacts" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <MessageSquare className="h-4 w-4 mr-2" />
             <span>Contacts</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="settings" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <Settings className="h-4 w-4 mr-2" />
             <span>Settings</span>
           </TabsTrigger>
-          <TabsTrigger value="admin" className="data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
+          <TabsTrigger value="admin" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
             <UserCog className="h-4 w-4 mr-2" />
             <span>Admin</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-4">
+          <DashboardStats />
+        </TabsContent>
 
         <TabsContent value="profiles" className="space-y-4">
           <div className="flex justify-between items-center pb-4">
