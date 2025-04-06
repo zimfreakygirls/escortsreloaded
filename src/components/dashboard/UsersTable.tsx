@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "../ui/button";
-import { Ban, CheckCircle, User } from "lucide-react";
+import { User } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,9 +11,8 @@ import {
 } from "../ui/table";
 import { useToast } from "../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Switch } from "../ui/switch";
 import { AnimationWrapper } from "../ui/animation-wrapper";
-import { Badge } from "../ui/badge";
+import { UserTableRow } from "./UserTableRow";
 
 interface UserData {
   id: string;
@@ -25,7 +23,7 @@ interface UserData {
   approved: boolean;
 }
 
-// Define interfaces for our user status data
+// Define interface for our user status data
 interface UserStatus {
   id: string;
   user_id: string;
@@ -42,9 +40,6 @@ export function UsersTable() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      // Instead of using admin.listUsers(), we'll get users from the auth.users view
-      // This requires setting up a view in Supabase that's accessible with the anon key
       
       // Get user_status data from our custom table
       const { data: userStatusRaw, error: statusError } = await supabase
@@ -67,7 +62,6 @@ export function UsersTable() {
       }
       
       // For now, we'll use a temporary solution with some mock users
-      // In a real app, you would implement a backend function to list users
       const mockUsers = [
         {
           id: "1",
@@ -125,59 +119,15 @@ export function UsersTable() {
     fetchUsers();
   }, []);
 
-  const toggleUserStatus = async (userId: string, field: 'banned' | 'approved', value: boolean) => {
-    try {
-      // Check if user already has an entry in user_status
-      const { data: existingStatus } = await supabase
-        .from('user_status')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      let result;
-      
-      if (existingStatus) {
-        // Update existing record
-        result = await supabase
-          .from('user_status')
-          .update({ [field]: value })
-          .eq('user_id', userId);
-      } else {
-        // Create new record
-        const insertData = { 
-          user_id: userId, 
-          [field]: value,
-          ...(field === 'banned' ? { approved: false } : { banned: false })
-        };
-        
-        result = await supabase
-          .from('user_status')
-          .insert([insertData]); // Wrap in array to match expected type
-      }
-      
-      if (result.error) throw result.error;
-      
-      // Update local state
-      setUsers(prev => 
-        prev.map(user => 
-          user.id === userId 
-            ? { ...user, [field]: value } 
-            : user
-        )
-      );
-      
-      toast({
-        title: "Success",
-        description: `User ${field === 'banned' ? (value ? 'banned' : 'unbanned') : (value ? 'approved' : 'unapproved')} successfully`,
-      });
-    } catch (error: any) {
-      console.error(`Error toggling user ${field}:`, error);
-      toast({
-        title: "Error",
-        description: error.message || `Failed to update user status`,
-        variant: "destructive",
-      });
-    }
+  const handleStatusChange = (userId: string, field: 'banned' | 'approved', value: boolean) => {
+    // Update local state
+    setUsers(prev => 
+      prev.map(user => 
+        user.id === userId 
+          ? { ...user, [field]: value } 
+          : user
+      )
+    );
   };
 
   const formatDate = (dateString: string | null) => {
@@ -215,62 +165,12 @@ export function UsersTable() {
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id} className="border-gray-800 hover:bg-[#1e1c2e]/30">
-                  <TableCell className="font-medium text-white">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      {user.email}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-300">{formatDate(user.created_at)}</TableCell>
-                  <TableCell className="text-gray-300">{formatDate(user.last_sign_in_at)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {user.banned && (
-                        <Badge variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300">
-                          Banned
-                        </Badge>
-                      )}
-                      {user.approved && (
-                        <Badge variant="outline" className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 border-green-700">
-                          Approved
-                        </Badge>
-                      )}
-                      {!user.banned && !user.approved && (
-                        <Badge variant="outline" className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 border-gray-700">
-                          Pending
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          id={`approve-${user.id}`}
-                          checked={user.approved}
-                          onCheckedChange={(checked) => toggleUserStatus(user.id, 'approved', checked)}
-                          className={user.approved ? "bg-green-500" : ""}
-                        />
-                        <label htmlFor={`approve-${user.id}`} className="text-sm font-medium">
-                          {user.approved ? "Approved" : "Approve"}
-                        </label>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          id={`ban-${user.id}`}
-                          checked={user.banned}
-                          onCheckedChange={(checked) => toggleUserStatus(user.id, 'banned', checked)}
-                          className={user.banned ? "bg-red-500" : ""}
-                        />
-                        <label htmlFor={`ban-${user.id}`} className="text-sm font-medium">
-                          {user.banned ? "Banned" : "Ban"}
-                        </label>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <UserTableRow 
+                  key={user.id}
+                  user={user}
+                  formatDate={formatDate}
+                  onStatusChange={handleStatusChange}
+                />
               ))
             )}
           </TableBody>
