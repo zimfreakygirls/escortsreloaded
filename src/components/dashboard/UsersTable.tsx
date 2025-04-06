@@ -49,7 +49,7 @@ export function UsersTable() {
       if (authError) throw authError;
       
       // Get user_status data from our custom table - use any to bypass type checking
-      const { data: userStatus, error: statusError } = await supabase
+      const { data: userStatusRaw, error: statusError } = await supabase
         .from('user_status' as any)
         .select('*');
         
@@ -57,8 +57,10 @@ export function UsersTable() {
       
       // Create a map of user statuses
       const statusMap: Record<string, { banned: boolean, approved: boolean }> = {};
-      if (userStatus) {
-        (userStatus as UserStatus[]).forEach(status => {
+      if (userStatusRaw) {
+        // First cast to unknown, then to our expected type to avoid direct type assertion errors
+        const userStatus = (userStatusRaw as unknown) as UserStatus[];
+        userStatus.forEach(status => {
           statusMap[status.user_id] = {
             banned: status.banned || false,
             approved: status.approved || false
@@ -105,13 +107,13 @@ export function UsersTable() {
       let result;
       
       if (existingStatus) {
-        // Update existing record with type assertion
+        // Update existing record with proper type assertions
         result = await supabase
           .from('user_status' as any)
           .update({ [field]: value } as any)
           .eq('user_id', userId);
       } else {
-        // Create new record with type assertion
+        // Create new record with proper type assertions
         const insertData = { 
           user_id: userId, 
           [field]: value,
@@ -120,7 +122,7 @@ export function UsersTable() {
         
         result = await supabase
           .from('user_status' as any)
-          .insert(insertData as any);
+          .insert([insertData] as any); // Wrap in array to match expected type
       }
       
       if (result.error) throw result.error;
