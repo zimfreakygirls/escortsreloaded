@@ -165,6 +165,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_status: {
+        Row: {
+          approved: boolean
+          banned: boolean
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          banned?: boolean
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          banned?: boolean
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -25,6 +25,15 @@ interface UserData {
   approved: boolean;
 }
 
+// Define interfaces for our user status data
+interface UserStatus {
+  id: string;
+  user_id: string;
+  banned: boolean;
+  approved: boolean;
+  created_at: string;
+}
+
 export function UsersTable() {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserData[]>([]);
@@ -39,21 +48,23 @@ export function UsersTable() {
       
       if (authError) throw authError;
       
-      // Get user_status data from our custom table
+      // Get user_status data from our custom table - use any to bypass type checking
       const { data: userStatus, error: statusError } = await supabase
-        .from('user_status')
+        .from('user_status' as any)
         .select('*');
         
       if (statusError) throw statusError;
       
       // Create a map of user statuses
       const statusMap: Record<string, { banned: boolean, approved: boolean }> = {};
-      userStatus?.forEach(status => {
-        statusMap[status.user_id] = {
-          banned: status.banned || false,
-          approved: status.approved || false
-        };
-      });
+      if (userStatus) {
+        (userStatus as UserStatus[]).forEach(status => {
+          statusMap[status.user_id] = {
+            banned: status.banned || false,
+            approved: status.approved || false
+          };
+        });
+      }
       
       // Combine the data
       const combinedUsers = authUsers.users.map(user => ({
@@ -86,7 +97,7 @@ export function UsersTable() {
     try {
       // Check if user already has an entry in user_status
       const { data: existingStatus } = await supabase
-        .from('user_status')
+        .from('user_status' as any)
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -94,21 +105,22 @@ export function UsersTable() {
       let result;
       
       if (existingStatus) {
-        // Update existing record
+        // Update existing record with type assertion
         result = await supabase
-          .from('user_status')
-          .update({ [field]: value })
+          .from('user_status' as any)
+          .update({ [field]: value } as any)
           .eq('user_id', userId);
       } else {
-        // Create new record
+        // Create new record with type assertion
+        const insertData = { 
+          user_id: userId, 
+          [field]: value,
+          ...(field === 'banned' ? { approved: false } : { banned: false })
+        };
+        
         result = await supabase
-          .from('user_status')
-          .insert({ 
-            user_id: userId, 
-            [field]: value,
-            // Set default for the other field
-            ...(field === 'banned' ? { approved: false } : { banned: false })
-          });
+          .from('user_status' as any)
+          .insert(insertData as any);
       }
       
       if (result.error) throw result.error;
