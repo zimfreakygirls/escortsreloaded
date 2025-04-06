@@ -31,91 +31,43 @@ export function UsersTable() {
     try {
       setLoading(true);
       
-      // Get actual users from the auth.users table via a function or API
-      const { data: authUsers, error: usersError } = await supabase.auth.admin.listUsers();
+      // Focus exclusively on the user_status table which is accessible with anon key
+      const { data: userStatusData, error: statusError } = await supabase
+        .from('user_status')
+        .select('*');
+        
+      if (statusError) {
+        throw statusError;
+      }
       
-      if (usersError) {
-        // If we can't access auth.users (common with anon key), inform the user
-        console.error("Cannot access user list with current permissions:", usersError);
-        toast({
-          title: "Limited Access",
-          description: "Only showing users with status information. Full user list requires admin access.",
-          variant: "default",
-        });
-        
-        // Fetch user status records only, as this is accessible with anon key
-        const { data: userStatusData, error: statusError } = await supabase
-          .from('user_status')
-          .select('*');
-          
-        if (statusError) throw statusError;
-        
-        // Create user records from status data
-        if (userStatusData && userStatusData.length > 0) {
-          const usersFromStatus = userStatusData.map(status => ({
-            id: status.user_id,
-            email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
-            created_at: status.created_at || new Date().toISOString(),
-            last_sign_in_at: null,
-            banned: status.banned,
-            approved: status.approved
-          }));
-          
-          setUsers(usersFromStatus);
-        } else {
-          // Show at least admin user for demo
-          setUsers([{
-            id: "1",
-            email: "admin@escortsreloaded.com",
-            created_at: new Date().toISOString(),
-            last_sign_in_at: new Date().toISOString(),
-            banned: false,
-            approved: true
-          }]);
-          
-          toast({
-            title: "Note",
-            description: "No user records found. This may require admin API access or users to be created.",
-            variant: "default",
-          });
-        }
-      } else if (authUsers) {
-        // Successfully got auth users (unlikely with anon key)
-        const usersList = authUsers.users.map(user => {
-          return {
-            id: user.id,
-            email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
-            created_at: user.created_at,
-            last_sign_in_at: user.last_sign_in_at,
-            banned: false,
-            approved: false
-          };
-        });
-        
-        // Now fetch user status to merge with auth users
-        const { data: userStatusData } = await supabase
-          .from('user_status')
-          .select('*');
-          
-        // Create a map of user statuses
-        const statusMap: Record<string, { banned: boolean, approved: boolean }> = {};
-        if (userStatusData) {
-          userStatusData.forEach(status => {
-            statusMap[status.user_id] = {
-              banned: status.banned || false,
-              approved: status.approved || false
-            };
-          });
-        }
-        
-        // Merge status data with users
-        const mergedUsers = usersList.map(user => ({
-          ...user,
-          banned: statusMap[user.id]?.banned || false,
-          approved: statusMap[user.id]?.approved || false
+      // Create user records from status data
+      if (userStatusData && userStatusData.length > 0) {
+        const usersFromStatus = userStatusData.map(status => ({
+          id: status.user_id,
+          email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
+          created_at: status.created_at || new Date().toISOString(),
+          last_sign_in_at: null,
+          banned: status.banned,
+          approved: status.approved
         }));
         
-        setUsers(mergedUsers);
+        setUsers(usersFromStatus);
+      } else {
+        // If no status records, create at least one demo user for testing
+        setUsers([{
+          id: "1",
+          email: "admin@escortsreloaded.com",
+          created_at: new Date().toISOString(),
+          last_sign_in_at: new Date().toISOString(),
+          banned: false,
+          approved: true
+        }]);
+        
+        toast({
+          title: "Note",
+          description: "No user records found. Create users or add entries to the user_status table.",
+          variant: "default",
+        });
       }
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -124,6 +76,16 @@ export function UsersTable() {
         description: error.message || "Failed to load users",
         variant: "destructive",
       });
+      
+      // Fallback to show at least one user for demo purposes
+      setUsers([{
+        id: "1",
+        email: "admin@escortsreloaded.com",
+        created_at: new Date().toISOString(),
+        last_sign_in_at: new Date().toISOString(),
+        banned: false,
+        approved: true
+      }]);
     } finally {
       setLoading(false);
     }
@@ -135,6 +97,36 @@ export function UsersTable() {
 
   const handleStatusChange = async (userId: string, field: 'banned' | 'approved', value: boolean) => {
     try {
+      // Check if user already has an entry in user_status
+      const { data: existingStatus } = await supabase
+        .from('user_status')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      let result;
+      
+      if (existingStatus) {
+        // Update existing record
+        result = await supabase
+          .from('user_status')
+          .update({ [field]: value })
+          .eq('user_id', userId);
+      } else {
+        // Create new record
+        const insertData = { 
+          user_id: userId, 
+          [field]: value,
+          ...(field === 'banned' ? { approved: false } : {})
+        };
+        
+        result = await supabase
+          .from('user_status')
+          .insert([insertData]); 
+      }
+      
+      if (result.error) throw result.error;
+      
       // Update local state
       setUsers(prev => 
         prev.map(user => 
@@ -143,6 +135,11 @@ export function UsersTable() {
             : user
         )
       );
+      
+      toast({
+        title: "Success",
+        description: `User ${field === 'banned' ? (value ? 'banned' : 'unbanned') : (value ? 'approved' : 'unapproved')} successfully`,
+      });
     } catch (error: any) {
       console.error(`Error updating user status:`, error);
       toast({
