@@ -31,43 +31,85 @@ export function UsersTable() {
     try {
       setLoading(true);
       
-      // Focus exclusively on the user_status table which is accessible with anon key
-      const { data: userStatusData, error: statusError } = await supabase
-        .from('user_status')
-        .select('*');
-        
-      if (statusError) {
-        throw statusError;
-      }
+      // First attempt to get actual auth users via admin API
+      // Note: This will likely fail with anon key but we try anyway
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
-      // Create user records from status data
-      if (userStatusData && userStatusData.length > 0) {
-        const usersFromStatus = userStatusData.map(status => ({
-          id: status.user_id,
-          email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
-          created_at: status.created_at || new Date().toISOString(),
-          last_sign_in_at: null,
-          banned: status.banned,
-          approved: status.approved
-        }));
-        
-        setUsers(usersFromStatus);
-      } else {
-        // If no status records, create at least one demo user for testing
-        setUsers([{
-          id: "1",
-          email: "admin@escortsreloaded.com",
-          created_at: new Date().toISOString(),
-          last_sign_in_at: new Date().toISOString(),
-          banned: false,
-          approved: true
-        }]);
-        
-        toast({
-          title: "Note",
-          description: "No user records found. Create users or add entries to the user_status table.",
-          variant: "default",
+      if (!authError && authUsers?.users && authUsers.users.length > 0) {
+        // If admin API works, map the user data
+        const mappedUsers = authUsers.users.map(user => {
+          return {
+            id: user.id,
+            email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
+            created_at: user.created_at || new Date().toISOString(),
+            last_sign_in_at: user.last_sign_in_at,
+            banned: false, // Will be updated from user_status
+            approved: false // Will be updated from user_status
+          };
         });
+        
+        // Get status data to merge with auth data
+        const { data: userStatusData } = await supabase
+          .from('user_status')
+          .select('*');
+          
+        if (userStatusData && userStatusData.length > 0) {
+          // Create a lookup map for quick access
+          const statusMap = new Map();
+          userStatusData.forEach(status => {
+            statusMap.set(status.user_id, status);
+          });
+          
+          // Update user data with status information
+          mappedUsers.forEach(user => {
+            const status = statusMap.get(user.id);
+            if (status) {
+              user.banned = status.banned;
+              user.approved = status.approved;
+            }
+          });
+        }
+        
+        setUsers(mappedUsers);
+      } else {
+        // Fallback to user_status table which is accessible with anon key
+        const { data: userStatusData, error: statusError } = await supabase
+          .from('user_status')
+          .select('*');
+          
+        if (statusError) {
+          throw statusError;
+        }
+        
+        // Create user records from status data
+        if (userStatusData && userStatusData.length > 0) {
+          const usersFromStatus = userStatusData.map(status => ({
+            id: status.user_id,
+            email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
+            created_at: status.created_at || new Date().toISOString(),
+            last_sign_in_at: null,
+            banned: status.banned,
+            approved: status.approved
+          }));
+          
+          setUsers(usersFromStatus);
+        } else {
+          // If no status records, create at least one demo user for testing
+          setUsers([{
+            id: "1",
+            email: "admin@escortsreloaded.com",
+            created_at: new Date().toISOString(),
+            last_sign_in_at: new Date().toISOString(),
+            banned: false,
+            approved: true
+          }]);
+          
+          toast({
+            title: "Note",
+            description: "No user records found. Create users or add entries to the user_status table.",
+            variant: "default",
+          });
+        }
       }
     } catch (error: any) {
       console.error('Error fetching users:', error);
