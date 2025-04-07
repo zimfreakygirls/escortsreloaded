@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut, Shield, Settings } from "lucide-react";
+import { User, LogOut, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -39,12 +39,6 @@ export function UserDropdownMenu({ session, isAdmin, onLogout }: UserDropdownMen
                 </Link>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem asChild>
-              <Link to="/profile" className="cursor-pointer flex items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={onLogout}
