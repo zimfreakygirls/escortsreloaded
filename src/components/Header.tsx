@@ -1,8 +1,10 @@
-import { Heart, User, MessageSquare, Mail, Video, Globe, LogOut, Shield, Settings } from "lucide-react";
+
+import { Heart, User, MessageSquare, Mail, Video, Globe, LogOut, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { UserDropdownMenu } from "./UserDropdownMenu";
+import { CountryDropdownMenu } from "./CountryDropdownMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin } from "@/utils/adminUtils";
 
@@ -103,29 +105,7 @@ export function Header() {
             </Button>
           </Link>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Globe className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
-              {countries.length > 0 ? (
-                countries.map((country) => (
-                  <DropdownMenuItem key={country.id} asChild>
-                    <Link
-                      to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                      className="w-full cursor-pointer hover:bg-[#9b87f5]/20 rounded-lg transition-colors"
-                    >
-                      {country.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>No countries available</DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <CountryDropdownMenu countries={countries} />
           
           {/* Only show admin dashboard icon if user is admin */}
           {isAdmin && (
@@ -139,30 +119,8 @@ export function Header() {
 
         {/* Right side section - authentication/profile */}
         <div className="flex items-center gap-2">
-          {/* Remove duplicate country dropdown and only show it on mobile */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 text-primary md:hidden">
-                <Globe className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#ff719A]/30 shadow-xl rounded-xl">
-              {countries.length > 0 ? (
-                countries.map((country) => (
-                  <DropdownMenuItem key={country.id} asChild>
-                    <Link
-                      to={`/country/${encodeURIComponent(country.name.toLowerCase())}`}
-                      className="w-full cursor-pointer hover:bg-[#ff719A]/20 rounded-lg transition-colors p-2"
-                    >
-                      {country.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>No countries available</DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Mobile country dropdown */}
+          <CountryDropdownMenu countries={countries} isMobile={true} />
           
           {/* Only show these mobile navigation icons on small screens */}
           <div className="md:hidden flex items-center gap-2">
@@ -192,79 +150,15 @@ export function Header() {
             </Link>
           )}
           
-          {/* Replace direct login button with dropdown menu */}
-          {session ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <User className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
-                <div className="px-3 py-2 text-sm font-medium text-white">
-                  {session.user?.email || 'Account'}
-                </div>
-                <DropdownMenuSeparator />
-                {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer flex items-center">
-                      <Shield className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer flex items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    navigate("/");
-                  }}
-                  className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="sm:hidden inline-flex h-9 w-9">
-                  <User className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-[#292741] to-[#1e1c2e] border border-[#9b87f5]/30 shadow-xl rounded-xl">
-                <DropdownMenuItem asChild>
-                  <Link to="/login" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/signup" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Sign Up</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          
-          {/* Keep visible login button on larger screens */}
-          {!session && (
-            <Link to="/login" className="hidden sm:inline-flex">
-              <Button className="inline-flex items-center h-9 px-3">
-                <User className="w-4 h-4 mr-2" />
-                Login
-              </Button>
-            </Link>
-          )}
+          {/* User dropdown menu */}
+          <UserDropdownMenu 
+            session={session}
+            isAdmin={isAdmin}
+            onLogout={async () => {
+              await supabase.auth.signOut();
+              navigate("/");
+            }}
+          />
         </div>
       </div>
     </header>
