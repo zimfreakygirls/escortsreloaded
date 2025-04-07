@@ -32,7 +32,6 @@ export function UsersTable() {
       setLoading(true);
       
       // First attempt to get actual auth users via admin API
-      // Note: This will likely fail with anon key but we try anyway
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
@@ -137,59 +136,15 @@ export function UsersTable() {
     fetchUsers();
   }, []);
 
-  const handleStatusChange = async (userId: string, field: 'banned' | 'approved', value: boolean) => {
-    try {
-      // Check if user already has an entry in user_status
-      const { data: existingStatus } = await supabase
-        .from('user_status')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      let result;
-      
-      if (existingStatus) {
-        // Update existing record
-        result = await supabase
-          .from('user_status')
-          .update({ [field]: value })
-          .eq('user_id', userId);
-      } else {
-        // Create new record
-        const insertData = { 
-          user_id: userId, 
-          [field]: value,
-          ...(field === 'banned' ? { approved: false } : {})
-        };
-        
-        result = await supabase
-          .from('user_status')
-          .insert([insertData]); 
-      }
-      
-      if (result.error) throw result.error;
-      
-      // Update local state
-      setUsers(prev => 
-        prev.map(user => 
-          user.id === userId 
-            ? { ...user, [field]: value } 
-            : user
-        )
-      );
-      
-      toast({
-        title: "Success",
-        description: `User ${field === 'banned' ? (value ? 'banned' : 'unbanned') : (value ? 'approved' : 'unapproved')} successfully`,
-      });
-    } catch (error: any) {
-      console.error(`Error updating user status:`, error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update user status",
-        variant: "destructive",
-      });
-    }
+  const handleStatusChange = (userId: string, field: 'banned' | 'approved', value: boolean) => {
+    // Update local state
+    setUsers(prev => 
+      prev.map(user => 
+        user.id === userId 
+          ? { ...user, [field]: value } 
+          : user
+      )
+    );
   };
 
   const formatDate = (dateString: string | null) => {
