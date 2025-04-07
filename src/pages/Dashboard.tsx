@@ -1,24 +1,21 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfilesTable } from "@/components/dashboard/ProfilesTable";
-import { CountryManager } from "@/components/CountryManager";
-import { SettingsManager } from "@/components/dashboard/SettingsManager";
-import { ContactManager } from "@/components/dashboard/ContactManager";
-import { VideoUploader } from "@/components/dashboard/VideoUploader";
-import { AdminSettings } from "@/components/dashboard/AdminSettings";
-import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { checkIsAdmin } from "@/utils/adminUtils";
-import { Shield, Users, Globe, Video, Settings, MessageSquare, UserCog, LogOut, PlusCircle, List, BarChart, UserX } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { ProfileForm } from "@/components/dashboard/ProfileForm";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { AnimationWrapper } from "@/components/ui/animation-wrapper";
 import { gsap } from "gsap";
-import { UsersTable } from "@/components/dashboard/UsersTable";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
+import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
+import { 
+  DashboardTabContent, 
+  CountriesTabContent, 
+  VideosTabContent, 
+  ContactsTabContent, 
+  SettingsTabContent, 
+  AdminTabContent 
+} from "@/components/dashboard/TabsContent";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,8 +24,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [activeSettings, setActiveSettings] = useState<any>(null);
-  const { toast } = useToast();
-  const [showProfileForm, setShowProfileForm] = useState(false);
 
   useEffect(() => {
     gsap.fromTo(
@@ -133,31 +128,19 @@ export default function Dashboard() {
     }
   }, [session]);
 
-  const handleDeleteProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) throw error;
-      setProfiles(data || []);
-      
-      toast({
-        title: "Profiles Updated",
-        description: "The profiles list has been refreshed.",
-      });
-    } catch (error) {
-      console.error('Error refreshing profiles:', error);
-    }
-  };
-
   const handleProfileCreated = () => {
-    setShowProfileForm(false);
-    handleDeleteProfile();
-    toast({
-      title: "Success",
-      description: "Profile created successfully",
-    });
+    const fetchProfiles = async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*');
+        
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (error) {
+        console.error('Error refreshing profiles:', error);
+      }
+    };
+    
+    fetchProfiles();
   };
 
   const handleSettingsChange = async (newSettings: any) => {
@@ -190,126 +173,31 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-24 px-4">
-      <AnimationWrapper animation="fade" duration={0.7}>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-400 mt-2">Manage your website content and settings</p>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/30"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
-        </div>
-      </AnimationWrapper>
+      <DashboardHeader onLogout={handleLogout} />
       
-      <Tabs defaultValue="dashboard" className="space-y-6 dashboard-content">
-        <TabsList className="bg-[#1e1c2e] border border-[#9b87f5]/20 p-1 gap-1">
-          <TabsTrigger value="dashboard" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <BarChart className="h-4 w-4 mr-2" />
-            <span>Dashboard</span>
-          </TabsTrigger>
-          <TabsTrigger value="profiles" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <Users className="h-4 w-4 mr-2" />
-            <span>Profiles</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <UserX className="h-4 w-4 mr-2" />
-            <span>Users</span>
-          </TabsTrigger>
-          <TabsTrigger value="countries" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <Globe className="h-4 w-4 mr-2" />
-            <span>Countries</span>
-          </TabsTrigger>
-          <TabsTrigger value="videos" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <Video className="h-4 w-4 mr-2" />
-            <span>Videos</span>
-          </TabsTrigger>
-          <TabsTrigger value="contacts" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            <span>Contacts</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <Settings className="h-4 w-4 mr-2" />
-            <span>Settings</span>
-          </TabsTrigger>
-          <TabsTrigger value="admin" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-            <UserCog className="h-4 w-4 mr-2" />
-            <span>Admin</span>
-          </TabsTrigger>
-        </TabsList>
+      <DashboardTabs>
+        <DashboardTabContent />
 
-        <TabsContent value="dashboard" className="space-y-4">
-          <DashboardStats />
-        </TabsContent>
+        <ProfilesTabContent 
+          profiles={profiles} 
+          onProfileCreated={handleProfileCreated} 
+          currencySymbol={activeSettings?.currency === 'USD' ? '$' : 
+                          activeSettings?.currency === 'EUR' ? '€' : 
+                          activeSettings?.currency === 'GBP' ? '£' : '$'} 
+        />
 
-        <TabsContent value="profiles" className="space-y-4">
-          <div className="flex justify-between items-center pb-4">
-            <h2 className="text-xl font-semibold">Manage Profiles</h2>
-            <Button 
-              onClick={() => setShowProfileForm(true)}
-              className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90"
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              <span>Add New Profile</span>
-            </Button>
-          </div>
-          
-          <ProfilesTable 
-            profiles={profiles} 
-            onDelete={handleDeleteProfile} 
-            currencySymbol={activeSettings?.currency === 'USD' ? '$' : 
-                           activeSettings?.currency === 'EUR' ? '€' : 
-                           activeSettings?.currency === 'GBP' ? '£' : '$'}
-          />
-          
-          <Dialog open={showProfileForm} onOpenChange={setShowProfileForm}>
-            <DialogContent className="bg-[#292741] border-gray-800 text-white max-w-4xl">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">Create New Profile</DialogTitle>
-              </DialogHeader>
-              <ProfileForm onSuccess={handleProfileCreated} />
-            </DialogContent>
-          </Dialog>
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-4">
-          <div className="flex justify-between items-center pb-4">
-            <h2 className="text-xl font-semibold">Manage Users</h2>
-          </div>
-          <UsersTable />
-        </TabsContent>
+        <UsersTabContent />
+        <CountriesTabContent />
+        <VideosTabContent />
+        <ContactsTabContent />
         
-        <TabsContent value="countries" className="space-y-4">
-          <CountryManager />
-        </TabsContent>
+        <SettingsTabContent 
+          settings={activeSettings} 
+          onSettingsChange={handleSettingsChange} 
+        />
         
-        <TabsContent value="videos" className="space-y-4">
-          <VideoUploader />
-        </TabsContent>
-        
-        <TabsContent value="contacts" className="space-y-4">
-          <ContactManager />
-        </TabsContent>
-        
-        <TabsContent value="settings" className="space-y-4">
-          <SettingsManager 
-            settings={activeSettings}
-            onSettingsChange={handleSettingsChange}
-          />
-        </TabsContent>
-        
-        <TabsContent value="admin" className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AdminSettings />
-          <AdminSignupSettings />
-        </TabsContent>
-      </Tabs>
+        <AdminTabContent />
+      </DashboardTabs>
     </div>
   );
 }
