@@ -1,0 +1,10 @@
+
+# This file tells Netlify how to handle routing for single page applications
+[build]
+  # Your build command and publish directory should be detected automatically by Netlify
+
+# This redirect rule tells Netlify to serve index.html for any route
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
