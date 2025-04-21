@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { User, LogOut, Shield } from "lucide-react";
@@ -18,16 +17,6 @@ interface UserDropdownMenuProps {
 }
 
 export function UserDropdownMenu({ session, isAdmin, onLogout }: UserDropdownMenuProps) {
-  const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      await onLogout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
   return (
     <>
       {session ? (
@@ -52,7 +41,7 @@ export function UserDropdownMenu({ session, isAdmin, onLogout }: UserDropdownMen
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              onClick={handleLogout}
+              onClick={onLogout}
               className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/20"
             >
               <LogOut className="mr-2 h-4 w-4" />

@@ -8,14 +8,6 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ onLogout }: DashboardHeaderProps) {
-  const handleLogout = async () => {
-    try {
-      await onLogout();
-    } catch (error) {
-      console.error("Dashboard logout error:", error);
-    }
-  };
-
   return (
     <AnimationWrapper animation="fade" duration={0.7}>
       <div className="flex items-center justify-between mb-8">
@@ -27,7 +19,7 @@ export function DashboardHeader({ onLogout }: DashboardHeaderProps) {
         </div>
         <Button 
           variant="outline" 
-          onClick={handleLogout}
+          onClick={onLogout}
           className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/30"
         >
           <LogOut className="h-4 w-4" />
