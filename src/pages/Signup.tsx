@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,6 @@ export default function Signup() {
     },
   });
 
-  // Fetch settings including signup price and currency symbol
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -61,7 +59,6 @@ export default function Signup() {
           .single();
 
         if (error) {
-          // fallback to defaults
           setSignupPrice(49.99);
           setCurrencySymbol("$");
           return;
@@ -98,7 +95,6 @@ export default function Signup() {
       if (data?.user) {
         setUserId(data.user.id);
 
-        // Insert user_status entry
         const { error: statusError } = await supabase
           .from('user_status')
           .insert([
@@ -142,11 +138,9 @@ export default function Signup() {
 
     setUploadingProof(true);
     try {
-      // Fix file upload issue: Check if file with same name exists before upload and remove it if so.
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-proof-${Date.now()}.${fileExt}`;
 
-      // Remove old file if exists with same name (safe practice even though timestamped)
       const { data: existingFiles } = await supabase.storage
         .from('payment-proofs')
         .list('', {
@@ -161,21 +155,18 @@ export default function Signup() {
         }
       }
 
-      // Upload new file
       const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
         .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL for uploaded proof
       const { data: publicUrlData } = supabase.storage
         .from('payment-proofs')
         .getPublicUrl(fileName);
 
       if (!publicUrlData) throw new Error("Failed to get public URL for uploaded file");
 
-      // Insert payment verification record
       const { error: insertError } = await supabase
         .from("payment_verifications")
         .insert([
@@ -188,11 +179,14 @@ export default function Signup() {
       if (insertError) throw insertError;
 
       toast({
-        title: "Proof uploaded successfully!",
-        description: "The admin will review your payment proof and approve your account.",
+        title: "Proof uploaded!",
+        description: "The admin will review your payment proof soon.",
       });
 
-      setCurrentStep(SignupStep.CONFIRMATION);
+      await supabase.auth.signOut();
+      setUploadingProof(false);
+      window.location.href = '/login';
+      return;
     } catch (error: any) {
       toast({
         title: "Error uploading proof",
@@ -416,13 +410,6 @@ export default function Signup() {
                 Thank you for your registration! An administrator will review your payment and activate your account soon. You'll be able to log in once your account is approved.
               </p>
             </div>
-            
-            <Button 
-              className="w-full h-12 bg-gradient-to-r from-[#9b87f5] to-purple-500 hover:from-[#8b77e5] hover:to-purple-600 transition-all duration-300 text-white font-medium"
-              onClick={() => navigate('/login')}
-            >
-              Go to Login
-            </Button>
           </div>
         )}
 

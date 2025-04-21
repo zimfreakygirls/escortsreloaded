@@ -31,6 +31,7 @@ export function UserDropdownMenu({ session, isAdmin, onLogout }: UserDropdownMen
               {session.user?.email || 'Account'}
             </div>
             <DropdownMenuSeparator />
+            {/* Only show dashboard if isAdmin */}
             {isAdmin && (
               <DropdownMenuItem asChild>
                 <Link to="/dashboard" className="cursor-pointer flex items-center">
@@ -39,7 +40,7 @@ export function UserDropdownMenu({ session, isAdmin, onLogout }: UserDropdownMen
                 </Link>
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
+            {isAdmin && <DropdownMenuSeparator />}
             <DropdownMenuItem 
               onClick={onLogout}
               className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/20"
