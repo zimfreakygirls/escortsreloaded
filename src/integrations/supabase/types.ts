@@ -96,6 +96,30 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          proof_image_url: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          proof_image_url: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          proof_image_url?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number

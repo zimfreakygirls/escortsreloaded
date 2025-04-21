@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,7 +119,7 @@ export default function Signup() {
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-proof-${Date.now()}.${fileExt}`;
       
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
         .upload(fileName, selectedFile);
 
@@ -130,10 +129,10 @@ export default function Signup() {
       const { data: publicUrlData } = supabase.storage
         .from('payment-proofs')
         .getPublicUrl(fileName);
-        
-      // Update user_status with proof image URL
-      const { error: updateError } = await supabase
-        .from('payment_verifications')
+
+      // Insert payment verification record
+      const { error: insertError } = await supabase
+        .from("payment_verifications")
         .insert([
           { 
             user_id: userId, 
@@ -141,8 +140,7 @@ export default function Signup() {
             status: 'pending'
           }
         ]);
-
-      if (updateError) throw updateError;
+      if (insertError) throw insertError;
 
       toast({
         title: "Proof uploaded successfully!",
@@ -289,7 +287,7 @@ export default function Signup() {
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Account Number:</span>
-                  <span className="font-medium text-[#9b87f5]">+1 234-567-8900</span>
+                  <span className="font-medium">+1 234-567-8900</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Recipient Name:</span>

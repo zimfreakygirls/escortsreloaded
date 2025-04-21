@@ -22,8 +22,8 @@ interface PaymentVerification {
   proof_image_url: string;
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
-  email?: string; // From joined user data
-  username?: string; // From user metadata
+  email?: string;
+  username?: string;
 }
 
 export function PaymentVerificationsTabContent() {
@@ -35,34 +35,44 @@ export function PaymentVerificationsTabContent() {
   const fetchVerifications = async () => {
     setLoading(true);
     try {
-      // Get all payment verifications
       const { data: verificationData, error: verificationError } = await supabase
-        .from('payment_verifications')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("payment_verifications")
+        .select("*")
+        .order("created_at", { ascending: false });
       
       if (verificationError) throw verificationError;
-      
+
       if (!verificationData || verificationData.length === 0) {
         setVerifications([]);
         setLoading(false);
         return;
       }
-      
-      // Get user information for each verification
-      const verificationWithUserData = await Promise.all(
-        verificationData.map(async (verification) => {
-          // Get user email from auth
-          const { data: userData } = await supabase.auth.admin.getUserById(verification.user_id);
-          
+
+      // Fetch user info from Supabase Auth admin API for each verification
+      const verificationWithUserData: PaymentVerification[] = await Promise.all(
+        verificationData.map(async (verification: PaymentVerification) => {
+          let email = "Unknown";
+          let username = "Unknown";
+
+          // Attempt to fetch the auth user by ID
+          try {
+            const { data: userData } = await supabase.auth.admin.getUserById(verification.user_id);
+            if (userData?.user) {
+              email = userData.user.email || "Unknown";
+              username = userData.user.user_metadata?.username || "Unknown";
+            }
+          } catch (e) {
+            // Ignore error, fallback to defaults
+          }
+
           return {
             ...verification,
-            email: userData?.user?.email || 'Unknown',
-            username: userData?.user?.user_metadata?.username || 'Unknown'
+            email,
+            username,
           };
         })
       );
-      
+
       setVerifications(verificationWithUserData);
     } catch (error: any) {
       console.error('Error fetching verifications:', error);
@@ -78,19 +88,19 @@ export function PaymentVerificationsTabContent() {
 
   useEffect(() => {
     fetchVerifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleApproval = async (id: string, userId: string, approve: boolean) => {
     setProcessingId(id);
     try {
       const status = approve ? 'approved' : 'declined';
-      
-      // Update the verification status
+      // Update the payment_verifications table
       const { error: updateError } = await supabase
         .from('payment_verifications')
         .update({ status })
         .eq('id', id);
-        
+      
       if (updateError) throw updateError;
       
       // If approved, update the user_status table
@@ -99,10 +109,10 @@ export function PaymentVerificationsTabContent() {
           .from('user_status')
           .update({ approved: true })
           .eq('user_id', userId);
-          
         if (statusError) throw statusError;
       }
-      
+
+      // If declined, you can opt to ban or unban — not implemented here
       toast({
         title: approve ? "User Approved" : "User Declined",
         description: approve 
@@ -110,7 +120,6 @@ export function PaymentVerificationsTabContent() {
           : "User registration has been declined",
       });
       
-      // Refresh the list after approval/decline
       fetchVerifications();
     } catch (error: any) {
       console.error('Error updating verification:', error);
@@ -256,3 +265,4 @@ export function PaymentVerificationsTabContent() {
     </TabsContent>
   );
 }
+
