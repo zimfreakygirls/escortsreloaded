@@ -169,10 +169,11 @@ export default function Signup() {
       if (uploadError) throw uploadError;
 
       // Get public URL for uploaded proof
-      const { data: publicUrlData, error: publicUrlError } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from('payment-proofs')
         .getPublicUrl(fileName);
-      if (publicUrlError) throw publicUrlError;
+
+      if (!publicUrlData) throw new Error("Failed to get public URL for uploaded file");
 
       // Insert payment verification record
       const { error: insertError } = await supabase

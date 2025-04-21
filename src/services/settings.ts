@@ -6,6 +6,7 @@ export interface Settings {
   id: string;
   profiles_per_page: number;
   currency: string;
+  signup_price?: number;
   created_at?: string;
 }
 
@@ -34,7 +35,8 @@ export const fetchSettings = async (): Promise<Settings> => {
         return {
           id: 'global_settings',
           profiles_per_page: 6,
-          currency: 'USD'
+          currency: 'USD',
+          signup_price: 49.99
         };
       }
       throw error;
@@ -53,7 +55,8 @@ export const fetchSettings = async (): Promise<Settings> => {
     return {
       id: 'global_settings',
       profiles_per_page: 6,
-      currency: 'USD'
+      currency: 'USD',
+      signup_price: 49.99
     };
   }
 };
