@@ -1,49 +1,71 @@
 
 import { ReactNode } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Globe, Video, Settings, MessageSquare, UserCog, BarChart, UserX } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface DashboardTabProps {
+interface DashboardTabsProps {
   children: ReactNode;
 }
 
-export function DashboardTabs({ children }: DashboardTabProps) {
+export function DashboardTabs({ children }: DashboardTabsProps) {
   return (
-    <Tabs defaultValue="dashboard" className="space-y-6 dashboard-content">
-      <TabsList className="bg-[#1e1c2e] border border-[#9b87f5]/20 p-1 gap-1">
-        <TabsTrigger value="dashboard" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <BarChart className="h-4 w-4 mr-2" />
-          <span>Dashboard</span>
+    <Tabs defaultValue="dashboard" className="dashboard-content max-w-screen-2xl mx-auto">
+      <TabsList className="tabs-list flex overflow-x-auto md:flex-wrap space-x-1 mb-8 pb-1 h-auto border-b border-gray-800">
+        <TabsTrigger 
+          value="dashboard" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Dashboard
         </TabsTrigger>
-        <TabsTrigger value="profiles" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <Users className="h-4 w-4 mr-2" />
-          <span>Profiles</span>
+        <TabsTrigger 
+          value="profiles" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Profiles
         </TabsTrigger>
-        <TabsTrigger value="users" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <UserX className="h-4 w-4 mr-2" />
-          <span>Users</span>
+        <TabsTrigger 
+          value="users" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Users
         </TabsTrigger>
-        <TabsTrigger value="countries" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <Globe className="h-4 w-4 mr-2" />
-          <span>Countries</span>
+        <TabsTrigger 
+          value="payments" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Payment Verifications
         </TabsTrigger>
-        <TabsTrigger value="videos" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <Video className="h-4 w-4 mr-2" />
-          <span>Videos</span>
+        <TabsTrigger 
+          value="countries" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Countries
         </TabsTrigger>
-        <TabsTrigger value="contacts" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <MessageSquare className="h-4 w-4 mr-2" />
-          <span>Contacts</span>
+        <TabsTrigger 
+          value="videos" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Videos
         </TabsTrigger>
-        <TabsTrigger value="settings" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <Settings className="h-4 w-4 mr-2" />
-          <span>Settings</span>
+        <TabsTrigger 
+          value="contacts" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Contacts
         </TabsTrigger>
-        <TabsTrigger value="admin" className="tabs-trigger data-[state=active]:bg-[#9b87f5]/20 data-[state=active]:text-[#9b87f5]">
-          <UserCog className="h-4 w-4 mr-2" />
-          <span>Admin</span>
+        <TabsTrigger 
+          value="settings" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Settings
+        </TabsTrigger>
+        <TabsTrigger 
+          value="admin" 
+          className="tabs-trigger bg-transparent data-[state=active]:bg-[#1e1c2e] data-[state=active]:text-white px-4 py-2 rounded-md"
+        >
+          Admin
         </TabsTrigger>
       </TabsList>
+      
       {children}
     </Tabs>
   );

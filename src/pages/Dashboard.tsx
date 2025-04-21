@@ -8,6 +8,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
 import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
+import { PaymentVerificationsTabContent } from "@/components/dashboard/PaymentVerificationsTabContent";
 import { 
   DashboardTabContent, 
   CountriesTabContent, 
@@ -187,6 +188,9 @@ export default function Dashboard() {
         />
 
         <UsersTabContent />
+        
+        <PaymentVerificationsTabContent />
+        
         <CountriesTabContent />
         <VideosTabContent />
         <ContactsTabContent />
