@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,8 +16,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { getCurrencySymbol } from "@/services/settings";
 
-// Step enum to track signup process
 enum SignupStep {
   REGISTRATION = 'registration',
   PAYMENT_INSTRUCTIONS = 'payment_instructions',
@@ -38,6 +39,8 @@ export default function Signup() {
   const [email, setEmail] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [signupPrice, setSignupPrice] = useState<number>(49.99);
+  const [currencySymbol, setCurrencySymbol] = useState<string>("$");
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,10 +50,36 @@ export default function Signup() {
     },
   });
 
+  // Fetch settings including signup price and currency symbol
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("id", "default")
+          .single();
+
+        if (error) {
+          // fallback to defaults
+          setSignupPrice(49.99);
+          setCurrencySymbol("$");
+          return;
+        }
+        
+        setSignupPrice(data.signup_price ?? 49.99);
+        setCurrencySymbol(getCurrencySymbol(data.currency ?? "USD"));
+      } catch (err) {
+        setSignupPrice(49.99);
+        setCurrencySymbol("$");
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      // Generate a temporary email using the username
       const tempEmail = `${values.username.toLowerCase()}@escortsreloaded.com`;
       setEmail(tempEmail);
       
@@ -66,16 +95,15 @@ export default function Signup() {
 
       if (error) throw error;
 
-      if (data.user) {
+      if (data?.user) {
         setUserId(data.user.id);
-        
-        // Create entry in user_status table
+
+        // Insert user_status entry
         const { error: statusError } = await supabase
           .from('user_status')
           .insert([
             { user_id: data.user.id, approved: false, banned: false }
           ]);
-          
         if (statusError) throw statusError;
       }
 
@@ -84,7 +112,6 @@ export default function Signup() {
         description: "Please complete the payment step to activate your account.",
       });
 
-      // Move to payment instructions step
       setCurrentStep(SignupStep.PAYMENT_INSTRUCTIONS);
     } catch (error: any) {
       toast({
@@ -115,20 +142,37 @@ export default function Signup() {
 
     setUploadingProof(true);
     try {
-      // Upload to storage bucket
+      // Fix file upload issue: Check if file with same name exists before upload and remove it if so.
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-proof-${Date.now()}.${fileExt}`;
-      
+
+      // Remove old file if exists with same name (safe practice even though timestamped)
+      const { data: existingFiles } = await supabase.storage
+        .from('payment-proofs')
+        .list('', {
+          search: `${userId}-proof-`
+        });
+
+      if (existingFiles?.length) {
+        for (const file of existingFiles) {
+          if (file.name.startsWith(`${userId}-proof-`)) {
+            await supabase.storage.from('payment-proofs').remove([file.name]);
+          }
+        }
+      }
+
+      // Upload new file
       const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
         .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
+      // Get public URL for uploaded proof
+      const { data: publicUrlData, error: publicUrlError } = supabase.storage
         .from('payment-proofs')
         .getPublicUrl(fileName);
+      if (publicUrlError) throw publicUrlError;
 
       // Insert payment verification record
       const { error: insertError } = await supabase
@@ -146,7 +190,7 @@ export default function Signup() {
         title: "Proof uploaded successfully!",
         description: "The admin will review your payment proof and approve your account.",
       });
-      
+
       setCurrentStep(SignupStep.CONFIRMATION);
     } catch (error: any) {
       toast({
@@ -295,7 +339,7 @@ export default function Signup() {
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Amount:</span>
-                  <span className="font-medium text-green-400">$49.99</span>
+                  <span className="font-medium text-green-400">{currencySymbol}{signupPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Reference:</span>

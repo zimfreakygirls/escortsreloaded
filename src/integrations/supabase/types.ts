@@ -174,18 +174,21 @@ export type Database = {
           currency: string
           id: string
           profiles_per_page: number
+          signup_price: number | null
         }
         Insert: {
           created_at?: string
           currency?: string
           id: string
           profiles_per_page?: number
+          signup_price?: number | null
         }
         Update: {
           created_at?: string
           currency?: string
           id?: string
           profiles_per_page?: number
+          signup_price?: number | null
         }
         Relationships: []
       }

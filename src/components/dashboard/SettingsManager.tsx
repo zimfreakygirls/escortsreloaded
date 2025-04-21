@@ -26,6 +26,7 @@ interface SettingsManagerProps {
 
 export function SettingsManager({ settings, onSettingsChange }: SettingsManagerProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [localPrice, setLocalPrice] = useState(settings.signup_price ?? 49.99);
 
   const handleProfilesPerPageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -38,10 +39,18 @@ export function SettingsManager({ settings, onSettingsChange }: SettingsManagerP
     onSettingsChange({ ...settings, currency: value });
   };
 
+  const handleSignupPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setLocalPrice(value);
+      onSettingsChange({ ...settings, signup_price: value });
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
-      await saveSettings(settings);
+      await saveSettings({ ...settings, signup_price: localPrice });
     } finally {
       setIsSaving(false);
     }
@@ -102,6 +111,24 @@ export function SettingsManager({ settings, onSettingsChange }: SettingsManagerP
               </Select>
               <p className="text-xs text-gray-400">
                 Select the currency to display throughout the site
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="signup_price" className="block text-sm font-medium text-gray-300">
+                Signup Price
+              </label>
+              <Input 
+                id="signup_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={localPrice}
+                onChange={handleSignupPriceChange}
+                className="w-full bg-[#1e1c2e] border-gray-700 focus:border-[#9b87f5] focus:ring-1 focus:ring-[#7E69AB]"
+              />
+              <p className="text-xs text-gray-400">
+                Amount users must pay to activate their account during signup
               </p>
             </div>
           </div>
