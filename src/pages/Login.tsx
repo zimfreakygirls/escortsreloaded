@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -31,7 +31,7 @@ export default function Login() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -93,8 +93,11 @@ export default function Login() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
+      // Convert username to email format
+      const email = `${values.username.toLowerCase()}@escortsreloaded.com`;
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
+        email: email,
         password: values.password,
       });
 
@@ -148,15 +151,15 @@ export default function Login() {
             <div className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
-                          type="email"
-                          placeholder="Email"
+                          type="text"
+                          placeholder="Username"
                           className="bg-[#1e1c2e] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white pl-4 h-12"
                         />
                       </div>

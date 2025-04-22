@@ -16,7 +16,7 @@ interface Country {
 
 export function Header() {
   const navigate = useNavigate();
-  const [countries, setCountries] = useState<Country[]>([]);
+  const [countries, setCountries] = useState<any[]>([]);
   const [session, setSession] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 

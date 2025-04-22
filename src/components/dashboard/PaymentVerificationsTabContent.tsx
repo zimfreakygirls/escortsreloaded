@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimationWrapper } from "../ui/animation-wrapper";
 import { Badge } from "../ui/badge";
-import { CheckCircle, XCircle, Loader2, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, ExternalLink, Image } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface PaymentVerification {
   id: string;
@@ -208,14 +209,30 @@ export function PaymentVerificationsTabContent() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <a 
-                        href={verification.proof_image_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
-                      >
-                        View Proof <ExternalLink className="ml-1 h-4 w-4" />
-                      </a>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-[#9b87f5] hover:text-[#8b77e5] hover:bg-[#9b87f5]/10">
+                            <Image className="mr-1 h-4 w-4" /> View Proof
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg bg-[#292741] border border-[#9b87f5]/30">
+                          <div className="flex flex-col items-center p-2">
+                            <img 
+                              src={verification.proof_image_url} 
+                              alt="Payment Proof" 
+                              className="max-w-full max-h-[70vh] object-contain rounded-md"
+                            />
+                            <a 
+                              href={verification.proof_image_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="mt-4 flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
+                            >
+                              Open in new tab <ExternalLink className="ml-1 h-4 w-4" />
+                            </a>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                     <TableCell>
                       {verification.status === 'pending' ? (
@@ -265,4 +282,3 @@ export function PaymentVerificationsTabContent() {
     </TabsContent>
   );
 }
-
