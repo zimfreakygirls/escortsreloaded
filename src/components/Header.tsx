@@ -55,7 +55,7 @@ export function Header() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       
-      // Only check admin status if session exists
+      // Check admin status on auth state change
       if (session?.user?.id) {
         const adminStatus = await checkIsAdmin(session.user.id);
         setIsAdmin(adminStatus);

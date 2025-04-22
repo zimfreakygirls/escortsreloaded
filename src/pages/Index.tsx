@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchProfiles } from "@/services/profiles";
+import { fetchProfiles, ensureProfileImagesBucket } from "@/services/profiles";
 
 interface Settings {
   id: string;
@@ -38,21 +38,30 @@ export default function Index() {
   const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      setError(null);
+      
       try {
-        await Promise.all([
-          fetchProfiles().then(data => {
-            console.log("Fetched profiles:", data);
-            setProfiles(data);
-          }),
-          fetchSettings(),
-          checkSession()
-        ]);
+        // Ensure the profile-images bucket exists
+        await ensureProfileImagesBucket();
+        
+        // Fetch profiles
+        const profilesData = await fetchProfiles();
+        console.log("Fetched profiles:", profilesData);
+        setProfiles(profilesData);
+        
+        // Fetch settings
+        await fetchSettings();
+        
+        // Check session
+        await checkSession();
       } catch (error) {
         console.error("Error loading data:", error);
+        setError("Failed to load profiles. Please try again later.");
         toast({
           title: "Error",
           description: "Failed to load profiles",
@@ -116,11 +125,11 @@ export default function Index() {
       case "list":
         return "grid-cols-1 gap-4 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
       case "grid-1":
         return "grid-cols-1 max-w-lg mx-auto gap-4";
       default:
-        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
     }
   };
 
@@ -180,6 +189,17 @@ export default function Index() {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-lg text-red-500">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+              variant="outline"
+            >
+              Try Again
+            </Button>
+          </div>
         ) : profiles.length > 0 ? (
           <div className={`grid ${getGridClass()}`}>
             {profiles.slice(0, visibleProfiles).map((profile) => (
@@ -188,7 +208,7 @@ export default function Index() {
                   name={profile.name}
                   age={profile.age}
                   location={profile.location}
-                  imageUrl={profile.images[0] || '/placeholder.svg'}
+                  imageUrl={profile.images?.[0] || '/placeholder.svg'}
                   viewMode={viewMode}
                   city={profile.city}
                   country={profile.country}
@@ -205,7 +225,7 @@ export default function Index() {
           </div>
         )}
         
-        {visibleProfiles < profiles.length && (
+        {profiles.length > 0 && visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">
             <Button 
               size="lg" 

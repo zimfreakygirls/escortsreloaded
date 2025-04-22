@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 
 export interface Profile {
   id: string;
@@ -34,22 +33,26 @@ export const fetchProfiles = async (): Promise<Profile[]> => {
     return data || [];
   } catch (error: any) {
     console.error('Fetch error:', error);
-    // Import and use toast directly here can cause circular dependencies
-    // So we log the error instead
     throw error;
   }
 };
 
 export const ensureProfileImagesBucket = async () => {
   try {
+    console.log('Checking profile-images bucket...');
     const { data, error } = await supabase.storage.getBucket('profile-images');
     
     if (error && error.message.includes('does not exist')) {
+      console.log('Profile-images bucket does not exist, creating...');
       await supabase.storage.createBucket('profile-images', {
         public: true,
         fileSizeLimit: 5242880, // 5MB
       });
       console.log('Created profile-images bucket');
+    } else if (error) {
+      console.error('Error checking profile-images bucket:', error);
+    } else {
+      console.log('Profile-images bucket exists');
     }
   } catch (error) {
     console.error('Error ensuring profile-images bucket:', error);
