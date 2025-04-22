@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface Profile {
   id: string;
@@ -34,11 +34,8 @@ export const fetchProfiles = async (): Promise<Profile[]> => {
     return data || [];
   } catch (error: any) {
     console.error('Fetch error:', error);
-    toast({
-      title: "Error",
-      description: "Failed to fetch profiles",
-      variant: "destructive",
-    });
+    // Import and use toast directly here can cause circular dependencies
+    // So we log the error instead
     throw error;
   }
 };

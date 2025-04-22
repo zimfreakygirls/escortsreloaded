@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
@@ -7,6 +8,7 @@ import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { fetchProfiles } from "@/services/profiles";
 
 interface Settings {
   id: string;
@@ -35,11 +37,33 @@ export default function Index() {
   const [displayLimit, setDisplayLimit] = useState(6);
   const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfiles();
-    fetchSettings();
-    checkSession();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchProfiles().then(data => {
+            console.log("Fetched profiles:", data);
+            setProfiles(data);
+          }),
+          fetchSettings(),
+          checkSession()
+        ]);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profiles",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
     
     // Listen for authentication state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -57,37 +81,17 @@ export default function Index() {
     setSession(data.session);
   };
 
-  const fetchProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setProfiles(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch profiles",
-        variant: "destructive",
-      });
-    }
-  };
-
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('id', 'global_settings')
+        .eq('id', 'default')
         .single();
 
       if (error) {
         if (error.code === 'PGRST116') {
+          console.log("No settings found, using defaults");
           return;
         }
         throw error;
@@ -172,24 +176,34 @@ export default function Index() {
           </ToggleGroup>
         </div>
 
-        <div className={`grid ${getGridClass()}`}>
-          {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
-              <ProfileCard 
-                name={profile.name}
-                age={profile.age}
-                location={profile.location}
-                imageUrl={profile.images[0] || '/placeholder.svg'}
-                viewMode={viewMode}
-                city={profile.city}
-                country={profile.country}
-                phone={profile.is_verified ? profile.phone : undefined}
-                isVerified={profile.is_verified}
-                isPremium={profile.is_premium}
-              />
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : profiles.length > 0 ? (
+          <div className={`grid ${getGridClass()}`}>
+            {profiles.slice(0, visibleProfiles).map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
+                <ProfileCard 
+                  name={profile.name}
+                  age={profile.age}
+                  location={profile.location}
+                  imageUrl={profile.images[0] || '/placeholder.svg'}
+                  viewMode={viewMode}
+                  city={profile.city}
+                  country={profile.country}
+                  phone={profile.is_verified ? profile.phone : undefined}
+                  isVerified={profile.is_verified}
+                  isPremium={profile.is_premium}
+                />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-lg text-gray-500">No profiles found</p>
+          </div>
+        )}
         
         {visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">
