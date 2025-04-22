@@ -57,18 +57,14 @@ export function PaymentVerificationsTabContent() {
 
           try {
             // Get user from auth
-            const { data: userData, error: userError } = await supabase
-              .from('profiles')
-              .select('email, username')
-              .eq('id', verification.user_id)
-              .single();
-            
-            if (!userError && userData) {
-              email = userData.email || "Unknown";
-              username = userData.username || "Unknown";
+            const { data: authData } = await supabase.auth.admin.getUserById(verification.user_id);
+            if (authData?.user) {
+              email = authData.user.email || "Unknown";
+              username = authData.user.user_metadata?.username || verification.user_id.substring(0, 8);
             }
           } catch (e) {
             // Ignore error, fallback to defaults
+            console.log("Error fetching user details:", e);
           }
 
           return {

@@ -59,10 +59,9 @@ export default function Login() {
         
       if (error) {
         console.error('Error checking user status:', error);
+        setIsCheckingStatus(false);
         return false;
       }
-      
-      setIsCheckingStatus(false);
       
       if (data?.banned) {
         toast({
@@ -70,6 +69,7 @@ export default function Login() {
           description: "Your account has been banned. Please contact support for assistance.",
           variant: "destructive",
         });
+        setIsCheckingStatus(false);
         return false;
       }
       
@@ -79,9 +79,11 @@ export default function Login() {
           description: "Your account is awaiting approval from an administrator.",
           variant: "destructive",
         });
+        setIsCheckingStatus(false);
         return false;
       }
       
+      setIsCheckingStatus(false);
       return true;
     } catch (error) {
       console.error('Error in approval check:', error);
