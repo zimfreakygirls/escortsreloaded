@@ -49,18 +49,23 @@ export function PaymentVerificationsTabContent() {
         return;
       }
 
-      // Fetch user info from Supabase Auth admin API for each verification
+      // Fetch user info for each verification
       const verificationWithUserData: PaymentVerification[] = await Promise.all(
         verificationData.map(async (verification: PaymentVerification) => {
           let email = "Unknown";
           let username = "Unknown";
 
-          // Attempt to fetch the auth user by ID
           try {
-            const { data: userData } = await supabase.auth.admin.getUserById(verification.user_id);
-            if (userData?.user) {
-              email = userData.user.email || "Unknown";
-              username = userData.user.user_metadata?.username || "Unknown";
+            // Get user from auth
+            const { data: userData, error: userError } = await supabase
+              .from('profiles')
+              .select('email, username')
+              .eq('id', verification.user_id)
+              .single();
+            
+            if (!userError && userData) {
+              email = userData.email || "Unknown";
+              username = userData.username || "Unknown";
             }
           } catch (e) {
             // Ignore error, fallback to defaults
@@ -113,7 +118,6 @@ export function PaymentVerificationsTabContent() {
         if (statusError) throw statusError;
       }
 
-      // If declined, you can opt to ban or unban — not implemented here
       toast({
         title: approve ? "User Approved" : "User Declined",
         description: approve 
@@ -217,19 +221,31 @@ export function PaymentVerificationsTabContent() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg bg-[#292741] border border-[#9b87f5]/30">
                           <div className="flex flex-col items-center p-2">
-                            <img 
-                              src={verification.proof_image_url} 
-                              alt="Payment Proof" 
-                              className="max-w-full max-h-[70vh] object-contain rounded-md"
-                            />
-                            <a 
-                              href={verification.proof_image_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="mt-4 flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
-                            >
-                              Open in new tab <ExternalLink className="ml-1 h-4 w-4" />
-                            </a>
+                            {verification.proof_image_url && (
+                              <>
+                                <img 
+                                  src={verification.proof_image_url} 
+                                  alt="Payment Proof" 
+                                  className="max-w-full max-h-[70vh] object-contain rounded-md"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "/placeholder.svg";
+                                    target.onerror = null;
+                                  }}
+                                />
+                                <a 
+                                  href={verification.proof_image_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="mt-4 flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
+                                >
+                                  Open in new tab <ExternalLink className="ml-1 h-4 w-4" />
+                                </a>
+                              </>
+                            )}
+                            {!verification.proof_image_url && (
+                              <div className="text-gray-400 p-8">No image available</div>
+                            )}
                           </div>
                         </DialogContent>
                       </Dialog>

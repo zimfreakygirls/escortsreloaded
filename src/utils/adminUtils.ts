@@ -7,8 +7,13 @@ export const checkIsAdmin = async (userId: string): Promise<boolean> => {
   
   try {
     // First check if the user has the admin email
-    const { data: adminUser } = await supabase.auth.getUser(userId);
-    if (adminUser?.user?.email === 'admin@escortsreloaded.com') {
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+      
+    if (!userError && userData?.email === 'admin@escortsreloaded.com') {
       return true;
     }
     
