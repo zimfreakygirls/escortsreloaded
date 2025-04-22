@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimationWrapper } from "../ui/animation-wrapper";
 import { Badge } from "../ui/badge";
-import { CheckCircle, XCircle, Loader2, ExternalLink, Image } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, ExternalLink, Image, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface PaymentVerification {
@@ -32,6 +32,7 @@ export function PaymentVerificationsTabContent() {
   const [verifications, setVerifications] = useState<PaymentVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<boolean>(false);
 
   const fetchVerifications = async () => {
     setLoading(true);
@@ -138,6 +139,11 @@ export function PaymentVerificationsTabContent() {
     return new Date(dateString).toLocaleString();
   };
 
+  // Function to handle image loading errors and set a fallback
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center p-8">
@@ -217,18 +223,24 @@ export function PaymentVerificationsTabContent() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg bg-[#292741] border border-[#9b87f5]/30">
                           <div className="flex flex-col items-center p-2">
-                            {verification.proof_image_url && (
+                            {verification.proof_image_url ? (
                               <>
-                                <img 
-                                  src={verification.proof_image_url} 
-                                  alt="Payment Proof" 
-                                  className="max-w-full max-h-[70vh] object-contain rounded-md"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = "/placeholder.svg";
-                                    target.onerror = null;
-                                  }}
-                                />
+                                <div className="relative w-full h-auto max-h-[70vh] flex items-center justify-center">
+                                  {imageError ? (
+                                    <div className="flex flex-col items-center justify-center p-8 text-gray-400 border border-dashed border-gray-700 rounded-md w-full">
+                                      <AlertTriangle className="h-10 w-10 mb-2 text-yellow-500" />
+                                      <p className="text-center mb-1">Unable to load image</p>
+                                      <p className="text-xs text-center">The storage bucket or file may not exist</p>
+                                    </div>
+                                  ) : (
+                                    <img 
+                                      src={verification.proof_image_url} 
+                                      alt="Payment Proof" 
+                                      className="max-w-full max-h-[70vh] object-contain rounded-md"
+                                      onError={handleImageError}
+                                    />
+                                  )}
+                                </div>
                                 <a 
                                   href={verification.proof_image_url} 
                                   target="_blank" 
@@ -238,9 +250,11 @@ export function PaymentVerificationsTabContent() {
                                   Open in new tab <ExternalLink className="ml-1 h-4 w-4" />
                                 </a>
                               </>
-                            )}
-                            {!verification.proof_image_url && (
-                              <div className="text-gray-400 p-8">No image available</div>
+                            ) : (
+                              <div className="text-gray-400 p-8 flex flex-col items-center">
+                                <AlertTriangle className="h-8 w-8 mb-2 text-yellow-500" />
+                                <p>No image available</p>
+                              </div>
                             )}
                           </div>
                         </DialogContent>

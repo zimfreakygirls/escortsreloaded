@@ -43,7 +43,7 @@ export function Header() {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       
-      // Check admin status
+      // Only check admin status if session exists
       if (data.session?.user?.id) {
         const adminStatus = await checkIsAdmin(data.session.user.id);
         setIsAdmin(adminStatus);
@@ -55,7 +55,7 @@ export function Header() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       
-      // Check admin status
+      // Only check admin status if session exists
       if (session?.user?.id) {
         const adminStatus = await checkIsAdmin(session.user.id);
         setIsAdmin(adminStatus);
