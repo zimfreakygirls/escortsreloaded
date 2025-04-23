@@ -52,8 +52,8 @@ export function ProfileCard({
   return (
     <div className={`profile-card group relative ${
       isListView 
-        ? "flex items-center gap-6 bg-card rounded-xl overflow-hidden"
-        : "rounded-xl overflow-hidden bg-card max-w-md mx-auto h-full"
+        ? "flex items-center gap-6 bg-card rounded-xl overflow-hidden h-full"
+        : "rounded-xl overflow-hidden bg-card h-full"
     }`}>
       <ProfileCardImage 
         imageUrl={imageUrl}

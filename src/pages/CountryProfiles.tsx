@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,11 @@ export default function CountryProfiles() {
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(4);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (country) {
+      setIsLoading(true);
       fetchProfiles();
       fetchSettings();
     }
@@ -55,6 +58,8 @@ export default function CountryProfiles() {
         description: "Failed to fetch profiles",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,13 +95,13 @@ export default function CountryProfiles() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 gap-4 max-w-3xl mx-auto";
+        return "grid-cols-1 gap-6 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
       case "grid-1":
-        return "grid-cols-1 max-w-lg mx-auto gap-4";
+        return "grid-cols-1 max-w-md mx-auto gap-6";
       default:
-        return "grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
     }
   };
 
@@ -105,7 +110,7 @@ export default function CountryProfiles() {
       <Header />
       
       <main className="container pt-24 pb-12 px-4">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold capitalize">{country} Profiles</h1>
           <ToggleGroup 
             type="single" 
@@ -152,26 +157,36 @@ export default function CountryProfiles() {
           </ToggleGroup>
         </div>
         
-        <div className={`grid ${getGridClass()}`}>
-          {profiles.slice(0, visibleProfiles).map((profile) => (
-            <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
-              <ProfileCard 
-                name={profile.name}
-                age={profile.age}
-                location={profile.location}
-                imageUrl={profile.images[0] || '/placeholder.svg'}
-                viewMode={viewMode}
-                city={profile.city}
-                country={profile.country}
-                phone={profile.phone}
-                isVerified={profile.is_verified}
-                isPremium={profile.is_premium}
-              />
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : profiles.length > 0 ? (
+          <div className={`grid ${getGridClass()}`}>
+            {profiles.slice(0, visibleProfiles).map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full">
+                <ProfileCard 
+                  name={profile.name}
+                  age={profile.age}
+                  location={profile.location}
+                  imageUrl={profile.images[0] || '/placeholder.svg'}
+                  viewMode={viewMode}
+                  city={profile.city}
+                  country={profile.country}
+                  phone={profile.is_verified ? profile.phone : undefined}
+                  isVerified={profile.is_verified}
+                  isPremium={profile.is_premium}
+                />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-lg text-gray-500">No profiles found for {country}</p>
+          </div>
+        )}
         
-        {visibleProfiles < profiles.length && (
+        {profiles.length > 0 && visibleProfiles < profiles.length && (
           <div className="mt-12 flex justify-center">
             <Button 
               size="lg" 
@@ -181,12 +196,6 @@ export default function CountryProfiles() {
               <Plus className="w-5 h-5 mr-2" />
               Load More
             </Button>
-          </div>
-        )}
-
-        {profiles.length === 0 && (
-          <div className="text-center text-gray-500 mt-8">
-            No profiles found for {country}
           </div>
         )}
       </main>

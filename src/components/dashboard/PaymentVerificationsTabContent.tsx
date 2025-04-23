@@ -32,7 +32,7 @@ export function PaymentVerificationsTabContent() {
   const [verifications, setVerifications] = useState<PaymentVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<boolean>(false);
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
 
   const fetchVerifications = async () => {
     setLoading(true);
@@ -140,8 +140,20 @@ export function PaymentVerificationsTabContent() {
   };
 
   // Function to handle image loading errors and set a fallback
-  const handleImageError = () => {
-    setImageError(true);
+  const handleImageError = (id: string) => {
+    setImageErrors(prev => ({...prev, [id]: true}));
+  };
+
+  // Function to validate and enhance image URL
+  const getImageUrl = (url: string) => {
+    if (!url) return null;
+    
+    // If URL doesn't start with http, assume it's a relative path and prepend the Supabase URL
+    if (!url.startsWith('http')) {
+      const supabaseUrl = process.env.SUPABASE_URL || 'https://flzioxdlsyxapirlbxbt.supabase.co';
+      return `${supabaseUrl}/storage/v1/object/public/profile-images/${url}`;
+    }
+    return url;
   };
 
   if (loading) {
@@ -226,23 +238,24 @@ export function PaymentVerificationsTabContent() {
                             {verification.proof_image_url ? (
                               <>
                                 <div className="relative w-full h-auto max-h-[70vh] flex items-center justify-center">
-                                  {imageError ? (
+                                  {imageErrors[verification.id] ? (
                                     <div className="flex flex-col items-center justify-center p-8 text-gray-400 border border-dashed border-gray-700 rounded-md w-full">
                                       <AlertTriangle className="h-10 w-10 mb-2 text-yellow-500" />
                                       <p className="text-center mb-1">Unable to load image</p>
                                       <p className="text-xs text-center">The storage bucket or file may not exist</p>
+                                      <p className="text-xs text-center mt-2 text-gray-500">URL: {verification.proof_image_url}</p>
                                     </div>
                                   ) : (
                                     <img 
-                                      src={verification.proof_image_url} 
+                                      src={getImageUrl(verification.proof_image_url)}
                                       alt="Payment Proof" 
                                       className="max-w-full max-h-[70vh] object-contain rounded-md"
-                                      onError={handleImageError}
+                                      onError={() => handleImageError(verification.id)}
                                     />
                                   )}
                                 </div>
                                 <a 
-                                  href={verification.proof_image_url} 
+                                  href={getImageUrl(verification.proof_image_url)} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="mt-4 flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"

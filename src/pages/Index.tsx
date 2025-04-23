@@ -46,9 +46,7 @@ export default function Index() {
       setError(null);
       
       try {
-        // Ensure the profile-images bucket exists
-        await ensureProfileImagesBucket();
-        
+        // Skip bucket check to avoid errors if it doesn't exist
         // Fetch profiles
         const profilesData = await fetchProfiles();
         console.log("Fetched profiles:", profilesData);
@@ -123,13 +121,13 @@ export default function Index() {
   const getGridClass = () => {
     switch (viewMode) {
       case "list":
-        return "grid-cols-1 gap-4 max-w-3xl mx-auto";
+        return "grid-cols-1 gap-6 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
       case "grid-1":
-        return "grid-cols-1 max-w-lg mx-auto gap-4";
+        return "grid-cols-1 max-w-md mx-auto gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
     }
   };
 
@@ -138,7 +136,7 @@ export default function Index() {
       <Header />
       
       <main className="container pt-24 pb-12 px-4">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <h1 className="text-2xl font-bold">Discover Profiles</h1>
           <ToggleGroup 
             type="single" 
@@ -203,7 +201,7 @@ export default function Index() {
         ) : profiles.length > 0 ? (
           <div className={`grid ${getGridClass()}`}>
             {profiles.slice(0, visibleProfiles).map((profile) => (
-              <Link key={profile.id} to={`/profile/${profile.id}`} className="block w-full h-full">
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full">
                 <ProfileCard 
                   name={profile.name}
                   age={profile.age}
