@@ -144,16 +144,26 @@ export function PaymentVerificationsTabContent() {
     setImageErrors(prev => ({...prev, [id]: true}));
   };
 
-  // Function to validate and enhance image URL
+  // Improved function to validate and enhance image URL
   const getImageUrl = (url: string) => {
     if (!url) return null;
     
-    // If URL doesn't start with http, assume it's a relative path and prepend the Supabase URL
-    if (!url.startsWith('http')) {
-      const supabaseUrl = process.env.SUPABASE_URL || 'https://flzioxdlsyxapirlbxbt.supabase.co';
-      return `${supabaseUrl}/storage/v1/object/public/profile-images/${url}`;
+    // If it's already a complete URL, return it as is
+    if (url.startsWith('http')) {
+      return url;
     }
-    return url;
+    
+    // Handle different formats of proof image URLs
+    if (url.startsWith('payment-proofs/')) {
+      return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${url.replace('payment-proofs/', '')}`;
+    }
+    
+    if (url.includes('payment-proofs')) {
+      return url; // Already has the bucket name in path
+    }
+    
+    // Try all possible bucket combinations as fallback
+    return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
   };
 
   if (loading) {
@@ -244,6 +254,9 @@ export function PaymentVerificationsTabContent() {
                                       <p className="text-center mb-1">Unable to load image</p>
                                       <p className="text-xs text-center">The storage bucket or file may not exist</p>
                                       <p className="text-xs text-center mt-2 text-gray-500">URL: {verification.proof_image_url}</p>
+                                      <p className="text-xs text-center mt-4 text-gray-300">
+                                        To fix this, create a storage bucket named "payment-proofs" in Supabase.
+                                      </p>
                                     </div>
                                   ) : (
                                     <img 
