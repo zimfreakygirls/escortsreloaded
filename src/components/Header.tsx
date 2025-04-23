@@ -19,6 +19,7 @@ export function Header() {
   const [countries, setCountries] = useState<any[]>([]);
   const [session, setSession] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -40,6 +41,7 @@ export function Header() {
     
     // Check current session
     const checkSession = async () => {
+      setIsLoading(true);
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       
@@ -47,13 +49,17 @@ export function Header() {
       if (data.session?.user?.id) {
         const adminStatus = await checkIsAdmin(data.session.user.id);
         setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
       }
+      setIsLoading(false);
     };
     checkSession();
 
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
+      setIsLoading(true);
       
       // Check admin status on auth state change
       if (session?.user?.id) {
@@ -62,6 +68,7 @@ export function Header() {
       } else {
         setIsAdmin(false);
       }
+      setIsLoading(false);
     });
     
     // Clean up subscription
@@ -107,8 +114,8 @@ export function Header() {
           
           <CountryDropdownMenu countries={countries} />
           
-          {/* Only show admin dashboard icon if user is admin */}
-          {isAdmin && (
+          {/* Only show admin dashboard icon if user is admin and not loading */}
+          {!isLoading && isAdmin && (
             <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Shield className="w-4 h-4" />
@@ -141,8 +148,8 @@ export function Header() {
             </Link>
           </div>
           
-          {/* Only show admin dashboard icon if user is admin and on mobile */}
-          {isAdmin && (
+          {/* Only show admin dashboard icon if user is admin on mobile */}
+          {!isLoading && isAdmin && (
             <Link to="/dashboard" className="md:hidden">
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Shield className="w-4 h-4" />

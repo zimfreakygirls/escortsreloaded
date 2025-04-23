@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,6 @@ export default function Login() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,7 +48,6 @@ export default function Login() {
   }, [navigate]);
   
   const checkUserApprovalStatus = async (userId: string): Promise<boolean> => {
-    setIsCheckingStatus(true);
     try {
       const { data, error } = await supabase
         .from('user_status')
@@ -57,8 +56,12 @@ export default function Login() {
         .single();
         
       if (error) {
+        // If the error is about not finding the record, assume the user is approved
+        if (error.code === 'PGRST116') {
+          console.log('No user status record found, assuming approved');
+          return true;
+        }
         console.error('Error checking user status:', error);
-        setIsCheckingStatus(false);
         return false;
       }
       
@@ -68,26 +71,22 @@ export default function Login() {
           description: "Your account has been banned. Please contact support for assistance.",
           variant: "destructive",
         });
-        setIsCheckingStatus(false);
         return false;
       }
       
-      if (!data?.approved) {
+      if (data && !data.approved) {
         toast({
           title: "Account not approved",
           description: "Your account is awaiting approval from an administrator.",
           variant: "destructive",
         });
-        setIsCheckingStatus(false);
         return false;
       }
       
-      setIsCheckingStatus(false);
       return true;
     } catch (error) {
       console.error('Error in approval check:', error);
-      setIsCheckingStatus(false);
-      return false;
+      return true; // Default to approved if error checking
     }
   };
 
@@ -104,7 +103,7 @@ export default function Login() {
 
       if (error) throw error;
       
-      // Check if the user is approved
+      // Check if the user is approved - don't sign out if not approved, just show message
       const isApproved = await checkUserApprovalStatus(data.user.id);
       
       if (!isApproved) {
@@ -194,12 +193,12 @@ export default function Login() {
             <Button 
               type="submit" 
               className="w-full h-12 bg-gradient-to-r from-[#9b87f5] to-purple-500 hover:from-[#8b77e5] hover:to-purple-600 transition-all duration-300 text-white font-medium"
-              disabled={isLoading || isCheckingStatus}
+              disabled={isLoading}
             >
-              {(isLoading || isCheckingStatus) ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isCheckingStatus ? "Verifying account..." : "Logging in..."}
+                  Logging in...
                 </div>
               ) : (
                 "Log In"
