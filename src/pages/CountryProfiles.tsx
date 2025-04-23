@@ -97,11 +97,11 @@ export default function CountryProfiles() {
       case "list":
         return "grid-cols-1 gap-6 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-6";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
       case "grid-1":
         return "grid-cols-1 max-w-md mx-auto gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6";
     }
   };
 
