@@ -150,7 +150,7 @@ export function PaymentVerificationsTabContent() {
     
     // If URL doesn't start with http, assume it's a relative path and prepend the Supabase URL
     if (!url.startsWith('http')) {
-      const supabaseUrl = process.env.SUPABASE_URL || 'https://flzioxdlsyxapirlbxbt.supabase.co';
+      const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
       return `${supabaseUrl}/storage/v1/object/public/profile-images/${url}`;
     }
     return url;
