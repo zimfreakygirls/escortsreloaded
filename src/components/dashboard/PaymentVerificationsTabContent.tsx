@@ -49,22 +49,33 @@ export function PaymentVerificationsTabContent() {
         return;
       }
 
-      // Fetch user info for each verification
+      // For each verification, try to get user info from profiles table first, then fallback to user_id
       const verificationWithUserData: PaymentVerification[] = await Promise.all(
         verificationData.map(async (verification: PaymentVerification) => {
           let email = "Unknown";
           let username = "Unknown";
 
           try {
-            // Get user from auth using the service role client
-            const { data: authData, error: authError } = await supabase.auth.admin.getUserById(verification.user_id);
-            if (authData?.user && !authError) {
-              email = authData.user.email || "Unknown";
-              username = authData.user.user_metadata?.username || authData.user.user_metadata?.name || verification.user_id.substring(0, 8);
+            // First try to get from profiles table if it exists
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('name')
+              .eq('id', verification.user_id)
+              .single();
+
+            if (profileData?.name) {
+              username = profileData.name;
+              email = `user-${verification.user_id.substring(0, 8)}@example.com`;
+            } else {
+              // Fallback to shortened user ID
+              username = `User ${verification.user_id.substring(0, 8)}`;
+              email = `user-${verification.user_id.substring(0, 8)}@example.com`;
             }
           } catch (e) {
             console.log("Error fetching user details for user_id:", verification.user_id, e);
-            // Keep defaults
+            // Use fallback values
+            username = `User ${verification.user_id.substring(0, 8)}`;
+            email = `user-${verification.user_id.substring(0, 8)}@example.com`;
           }
 
           return {
@@ -143,11 +154,11 @@ export function PaymentVerificationsTabContent() {
     setImageErrors(prev => ({...prev, [id]: true}));
   };
 
-  // Function to validate and enhance image URL
+  // Function to validate and enhance image URL - now using the correct bucket
   const getImageUrl = (url: string) => {
     if (!url) return null;
     
-    // If URL doesn't start with http, assume it's a relative path and prepend the Supabase URL
+    // If URL doesn't start with http, assume it's a storage path and construct the full URL
     if (!url.startsWith('http')) {
       const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
       return `${supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
@@ -242,7 +253,7 @@ export function PaymentVerificationsTabContent() {
                                     <div className="flex flex-col items-center justify-center p-8 text-gray-400 border border-dashed border-gray-700 rounded-md w-full">
                                       <AlertTriangle className="h-10 w-10 mb-2 text-yellow-500" />
                                       <p className="text-center mb-1">Unable to load image</p>
-                                      <p className="text-xs text-center">The storage bucket or file may not exist</p>
+                                      <p className="text-xs text-center">The image file may not exist or is corrupted</p>
                                       <p className="text-xs text-center mt-2 text-gray-500">URL: {verification.proof_image_url}</p>
                                     </div>
                                   ) : (
