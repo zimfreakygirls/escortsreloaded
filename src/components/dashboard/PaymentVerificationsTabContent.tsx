@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { 
@@ -15,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AnimationWrapper } from "../ui/animation-wrapper";
 import { Badge } from "../ui/badge";
 import { CheckCircle, XCircle, Loader2, ExternalLink, Image, AlertTriangle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 
 interface PaymentVerification {
   id: string;
@@ -57,15 +56,27 @@ export function PaymentVerificationsTabContent() {
           let username = "Unknown";
 
           try {
-            // Get user from auth
-            const { data: authData } = await supabase.auth.admin.getUserById(verification.user_id);
-            if (authData?.user) {
-              email = authData.user.email || "Unknown";
-              username = authData.user.user_metadata?.username || verification.user_id.substring(0, 8);
+            // First try to get from profiles table
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('email, username')
+              .eq('id', verification.user_id)
+              .single();
+
+            if (profileData) {
+              email = profileData.email || "Unknown";
+              username = profileData.username || "Unknown";
+            } else {
+              // Fallback to auth user data
+              const { data: authData } = await supabase.auth.admin.getUserById(verification.user_id);
+              if (authData?.user) {
+                email = authData.user.email || "Unknown";
+                username = authData.user.user_metadata?.username || authData.user.user_metadata?.name || verification.user_id.substring(0, 8);
+              }
             }
           } catch (e) {
-            // Ignore error, fallback to defaults
-            console.log("Error fetching user details:", e);
+            console.log("Error fetching user details for user_id:", verification.user_id, e);
+            // Keep defaults
           }
 
           return {
@@ -151,7 +162,7 @@ export function PaymentVerificationsTabContent() {
     // If URL doesn't start with http, assume it's a relative path and prepend the Supabase URL
     if (!url.startsWith('http')) {
       const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
-      return `${supabaseUrl}/storage/v1/object/public/profile-images/${url}`;
+      return `${supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
     }
     return url;
   };
@@ -234,6 +245,7 @@ export function PaymentVerificationsTabContent() {
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg bg-[#292741] border border-[#9b87f5]/30">
+                          <DialogTitle className="text-center text-lg font-semibold text-white">Payment Proof</DialogTitle>
                           <div className="flex flex-col items-center p-2">
                             {verification.proof_image_url ? (
                               <>
