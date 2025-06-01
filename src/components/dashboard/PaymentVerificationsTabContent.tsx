@@ -56,23 +56,11 @@ export function PaymentVerificationsTabContent() {
           let username = "Unknown";
 
           try {
-            // First try to get from profiles table
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('email, username')
-              .eq('id', verification.user_id)
-              .single();
-
-            if (profileData) {
-              email = profileData.email || "Unknown";
-              username = profileData.username || "Unknown";
-            } else {
-              // Fallback to auth user data
-              const { data: authData } = await supabase.auth.admin.getUserById(verification.user_id);
-              if (authData?.user) {
-                email = authData.user.email || "Unknown";
-                username = authData.user.user_metadata?.username || authData.user.user_metadata?.name || verification.user_id.substring(0, 8);
-              }
+            // Get user from auth using the service role client
+            const { data: authData, error: authError } = await supabase.auth.admin.getUserById(verification.user_id);
+            if (authData?.user && !authError) {
+              email = authData.user.email || "Unknown";
+              username = authData.user.user_metadata?.username || authData.user.user_metadata?.name || verification.user_id.substring(0, 8);
             }
           } catch (e) {
             console.log("Error fetching user details for user_id:", verification.user_id, e);
