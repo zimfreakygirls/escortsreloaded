@@ -30,16 +30,11 @@ interface Profile {
   images: string[];
   city: string;
   country: string;
-  height: string;
-  weight: string;
-  proportions: string;
-  hair_color: string;
-  eye_color: string;
-  meeting_with: string;
   phone: string;
   is_verified: boolean;
   is_premium: boolean;
   price_per_hour: number;
+  video_url?: string;
 }
 
 export default function Index() {
