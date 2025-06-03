@@ -2,7 +2,6 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { CountryManager } from "@/components/CountryManager";
 import { VideoUploader } from "@/components/dashboard/VideoUploader";
-import { VideoManager } from "@/components/dashboard/VideoManager";
 import { ContactManager } from "@/components/dashboard/ContactManager";
 import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
@@ -32,9 +31,8 @@ export function CountriesTabContent() {
 
 export function VideosTabContent() {
   return (
-    <TabsContent value="videos" className="space-y-6">
+    <TabsContent value="videos" className="space-y-4">
       <VideoUploader />
-      <VideoManager />
     </TabsContent>
   );
 }

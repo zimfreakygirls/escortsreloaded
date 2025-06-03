@@ -17,7 +17,7 @@ export function VideoUploader() {
   });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setSaving] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -47,27 +47,19 @@ export function VideoUploader() {
     
     try {
       const fileExt = thumbnailFile.name.split('.').pop();
-      const filePath = `video-thumbnails/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      
-      console.log("Uploading thumbnail to:", filePath);
+      const filePath = `thumbnails/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       
       const { data, error } = await supabase.storage
-        .from('profile-images')
+        .from('profiles')
         .upload(filePath, thumbnailFile);
         
-      if (error) {
-        console.error("Upload error:", error);
-        throw error;
-      }
-      
-      console.log("Upload successful:", data);
+      if (error) throw error;
       
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('profile-images')
+        .from('profiles')
         .getPublicUrl(filePath);
         
-      console.log("Public URL:", urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error("Error uploading thumbnail:", error);
@@ -88,48 +80,36 @@ export function VideoUploader() {
     }
     
     try {
-      setLoading(true);
-      console.log("Starting video upload process...");
+      setSaving(true);
       
       // Upload thumbnail if provided
       let thumbnailUrl = null;
       if (thumbnailFile) {
-        console.log("Uploading thumbnail...");
         thumbnailUrl = await uploadThumbnail();
-        console.log("Thumbnail uploaded:", thumbnailUrl);
       }
       
       // Create a profile entry for the video
       const newProfile = {
         name: form.name,
-        age: 25, // Default age for video entries
-        location: "Video Content",
+        age: 0, // Required field but not relevant for video-only entries
+        location: "Video",
         city: "Video",
         country: "Video",
-        price_per_hour: 0, // No pricing for video entries
+        price_per_hour: 0, // Required field but not relevant for video-only entries
         video_url: form.telegramUrl,
-        images: thumbnailUrl ? [thumbnailUrl] : [],
-        is_premium: false,
-        is_verified: false
+        images: thumbnailUrl ? [thumbnailUrl] : []
       };
       
-      console.log("Inserting profile:", newProfile);
-      
-      const { data, error } = await supabase
+      // @ts-ignore - The profiles table exists but specific types might not match
+      const { error } = await supabase
         .from('profiles')
-        .insert([newProfile])
-        .select();
+        .insert([newProfile]);
         
-      if (error) {
-        console.error("Database error:", error);
-        throw error;
-      }
-      
-      console.log("Profile inserted successfully:", data);
+      if (error) throw error;
       
       toast({
         title: "Success",
-        description: "Video has been added successfully and will appear on the videos page",
+        description: "Video has been added successfully",
       });
       
       // Reset form
@@ -141,21 +121,15 @@ export function VideoUploader() {
       setThumbnailFile(null);
       setThumbnailPreview(null);
       
-      // Reset file input
-      const fileInput = document.getElementById('thumbnailFile') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding video:", error);
       toast({
         title: "Error",
-        description: `Failed to add video: ${error.message}`,
+        description: "Failed to add video. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -182,7 +156,6 @@ export function VideoUploader() {
                 onChange={handleInputChange}
                 placeholder="Enter a descriptive title for the video"
                 className="bg-[#1e1c2e] border-gray-700"
-                required
               />
             </div>
             
@@ -195,7 +168,6 @@ export function VideoUploader() {
                 onChange={handleInputChange}
                 placeholder="https://t.me/channel/video-link"
                 className="bg-[#1e1c2e] border-gray-700"
-                required
               />
               <p className="text-xs text-gray-400">
                 Paste the URL to a Telegram video. The format should be https://t.me/...

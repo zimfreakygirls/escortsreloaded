@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface Profile {
@@ -26,7 +26,6 @@ export default function Videos() {
           .from('profiles')
           .select('*')
           .not('video_url', 'is', null)
-          .eq('country', 'Video') // Only fetch video entries
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -46,52 +45,38 @@ export default function Videos() {
     return url && (url.includes('t.me') || url.includes('telegram.me'));
   };
 
-  // Function to convert Telegram URL to embeddable format
-  const getTelegramEmbedUrl = (url: string) => {
-    if (!url) return '';
-    
-    // Handle different Telegram URL formats
-    if (url.includes('t.me/c/')) {
-      // Private channel format: https://t.me/c/channel_id/message_id
-      const parts = url.split('/');
-      const channelId = parts[parts.indexOf('c') + 1];
-      const messageId = parts[parts.indexOf('c') + 2];
-      return `https://t.me/s/${channelId}/${messageId}`;
-    } else if (url.includes('t.me/')) {
-      // Public channel format
-      return url.replace('t.me/', 't.me/s/');
-    }
-    
-    return url;
-  };
-
-  // Function to render the appropriate video content
+  // Function to render the appropriate video embed based on URL
   const renderVideoContent = (videoUrl: string) => {
     if (!videoUrl) return null;
     
     if (isTelegramVideo(videoUrl)) {
-      const embedUrl = getTelegramEmbedUrl(videoUrl);
+      // For Telegram videos, we use an iframe that embeds the Telegram post
+      let embedUrl = videoUrl;
+      
+      // If it's a direct t.me link, convert it to embed format
+      if (embedUrl.includes('t.me/')) {
+        // Replace t.me with telegram.me for embedding
+        embedUrl = embedUrl.replace('t.me/', 'telegram.me/');
+        
+        // Ensure it has /embed at the end if it's a specific post
+        if (!embedUrl.endsWith('/embed') && embedUrl.split('/').length > 4) {
+          embedUrl = `${embedUrl}/embed`;
+        }
+      }
       
       return (
-        <div className="space-y-4">
-          <iframe 
-            src={embedUrl}
-            frameBorder="0" 
-            width="100%" 
-            height="480"
-            allowFullScreen
-            title="Telegram Video"
-            className="rounded-md"
-          />
-          <div className="text-sm text-gray-400">
-            <p>If the video doesn't load, you can view it directly on Telegram:</p>
-            <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-              Open in Telegram
-            </a>
-          </div>
-        </div>
+        <iframe 
+          src={embedUrl}
+          frameBorder="0" 
+          width="100%" 
+          height="480"
+          allowFullScreen
+          title="Telegram Video"
+          className="rounded-md"
+        ></iframe>
       );
     } else {
+      // For regular videos (e.g., mp4)
       return (
         <video controls className="w-full rounded-md">
           <source src={videoUrl} type="video/mp4" />
@@ -131,7 +116,7 @@ export default function Videos() {
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl bg-[#1e1c2e] border-gray-800">
-                          <DialogTitle className="text-xl font-semibold mb-4">{profile.name}</DialogTitle>
+                          <h3 className="text-xl font-semibold mb-4">{profile.name}</h3>
                           {profile.video_url && renderVideoContent(profile.video_url)}
                         </DialogContent>
                       </Dialog>
