@@ -1,216 +1,252 @@
-
-import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { fetchProfiles, ensureProfileImagesBucket } from "@/services/profiles";
-
-interface Settings {
-  id: string;
-  profiles_per_page: number;
-  created_at?: string;
-}
 
 interface Profile {
   id: string;
   name: string;
   age: number;
   location: string;
+  images: string[];
   city: string;
   country: string;
+  height: string;
+  weight: string;
+  proportions: string;
+  hair_color: string;
+  eye_color: string;
+  meeting_with: string;
+  phone: string;
+  is_verified: boolean;
+  is_premium: boolean;
   price_per_hour: number;
-  phone?: string;
-  images: string[];
-  is_verified?: boolean;
-  is_premium?: boolean;
 }
 
 export default function Index() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [visibleProfiles, setVisibleProfiles] = useState(6);
-  const [viewMode, setViewMode] = useState("grid-2");
-  const [displayLimit, setDisplayLimit] = useState(6);
-  const [session, setSession] = useState<any>(null);
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [countries, setCountries] = useState<any[]>([]);
+  const [profilesPerPage, setProfilesPerPage] = useState(6);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [settings, setSettings] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<string>("grid-3");
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
+    const fetchProfiles = async () => {
+      console.log("Fetching profiles...");
       try {
-        // Skip bucket check to avoid errors if it doesn't exist
-        // Fetch profiles
-        const profilesData = await fetchProfiles();
-        console.log("Fetched profiles:", profilesData);
-        setProfiles(profilesData);
-        
-        // Fetch settings
-        await fetchSettings();
-        
-        // Check session
-        await checkSession();
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .neq('country', 'Video') // Exclude video entries from discover page
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        console.log("Fetched profiles:", data);
+        setProfiles(data || []);
       } catch (error) {
-        console.error("Error loading data:", error);
-        setError("Failed to load profiles. Please try again later.");
-        toast({
-          title: "Error",
-          description: "Failed to load profiles",
-          variant: "destructive",
-        });
+        console.error('Error fetching profiles:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    loadData();
-    
-    // Listen for authentication state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    
-    // Clean up subscription on unmount
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    fetchProfiles();
   }, []);
 
-  const checkSession = async () => {
-    const { data } = await supabase.auth.getSession();
-    setSession(data.session);
-  };
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('countries')
+          .select('*')
+          .eq('active', true)
+          .order('name', { ascending: true });
 
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('id', 'default')
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          console.log("No settings found, using defaults");
-          return;
-        }
-        throw error;
+        if (error) throw error;
+        setCountries(data || []);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
       }
+    };
 
-      if (data) {
-        const settingsData = data as Settings;
-        setVisibleProfiles(settingsData.profiles_per_page);
-        setDisplayLimit(settingsData.profiles_per_page);
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select('*')
+          .eq('id', 'default')
+          .single();
+
+        if (error) throw error;
+        setSettings(data || { profiles_per_page: 6, currency: "USD" });
+        setProfilesPerPage(data?.profiles_per_page || 6);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+        setProfilesPerPage(6);
+      } finally {
+        setLoading(false);
       }
-    } catch (error: any) {
-      console.error("Failed to fetch settings:", error);
-    }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const filteredProfiles = profiles.filter((profile) => {
+    const searchRegex = new RegExp(searchQuery, "i");
+    const countryMatch = selectedCountry ? profile.country === selectedCountry : true;
+
+    return (
+      searchRegex.test(profile.name) &&
+      countryMatch
+    );
+  });
+
+  const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
+  const paginatedProfiles = filteredProfiles.slice(
+    (currentPage - 1) * profilesPerPage,
+    currentPage * profilesPerPage
+  );
+
+  const handleCountryChange = (country: string) => {
+    setSelectedCountry(country);
+    setCurrentPage(1);
   };
 
-  const handleLoadMore = () => {
-    setVisibleProfiles(prev => Math.min(prev + displayLimit, profiles.length));
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
-  const getGridClass = () => {
-    switch (viewMode) {
-      case "list":
-        return "grid-cols-1 gap-6 max-w-3xl mx-auto";
-      case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 gap-6";
-      case "grid-1":
-        return "grid-cols-1 max-w-md mx-auto gap-6";
-      default:
-        return "grid-cols-1 sm:grid-cols-2 gap-6";
-    }
+  const goToPreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const currencySymbol = settings?.currency === 'USD' ? '$' :
+    settings?.currency === 'EUR' ? '€' :
+      settings?.currency === 'GBP' ? '£' : '$';
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen">
       <Header />
-      
-      <main className="container pt-24 pb-12 px-4">
-        <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
-          <h1 className="text-2xl font-bold">Discover Profiles</h1>
-          <ToggleGroup 
-            type="single" 
-            value={viewMode} 
-            onValueChange={(value) => {
-              if (value) {
-                setViewMode(value);
-              }
-            }}
-            className="bg-secondary rounded-lg p-1"
-          >
-            <ToggleGroupItem 
-              value="grid-1" 
-              aria-label="Single Column"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </ToggleGroupItem>
-            <ToggleGroupItem 
-              value="grid-2" 
-              aria-label="Grid View"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="13" y="4" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="4" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="13" y="13" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </ToggleGroupItem>
-            <ToggleGroupItem 
-              value="list" 
-              aria-label="List View"
-              className="data-[state=on]:bg-primary data-[state=on]:text-white p-2 transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="4" y="10" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
-                <rect x="4" y="16" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </ToggleGroupItem>
-          </ToggleGroup>
+
+      <main className="container px-4 sm:px-6 pt-24 pb-12">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+          <Card className="w-full md:w-1/3 bg-card">
+            <CardHeader>
+              <CardTitle>Search Profiles</CardTitle>
+              <CardDescription>
+                Find the perfect match by name or keyword
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="search">Search</Label>
+                <Input
+                  id="search"
+                  placeholder="Enter name or keyword"
+                  type="search"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="bg-background border-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="country">Country</Label>
+                <Select value={selectedCountry} onValueChange={handleCountryChange}>
+                  <SelectTrigger className="w-full bg-background border-input">
+                    <SelectValue placeholder="Select a country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Countries</SelectItem>
+                    {countries.map((country: any) => (
+                      <SelectItem key={country.id} value={country.name}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="w-full md:w-2/3 flex items-center justify-end">
+            <div className="inline-flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className={`px-3 py-2 rounded-md ${viewMode === 'grid-3' ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80' : 'hover:bg-muted'}`}
+                onClick={() => setViewMode('grid-3')}
+              >
+                Grid View
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className={`px-3 py-2 rounded-md ${viewMode === 'list' ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80' : 'hover:bg-muted'}`}
+                onClick={() => setViewMode('list')}
+              >
+                List View
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
+        {loading ? (
           <div className="text-center py-12">
-            <p className="text-lg text-red-500">{error}</p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="mt-4"
-              variant="outline"
-            >
-              Try Again
-            </Button>
+            <div className="spinner"></div>
+            <p className="mt-2 text-muted-foreground">Loading profiles...</p>
           </div>
-        ) : profiles.length > 0 ? (
-          <div className={`grid ${getGridClass()}`}>
-            {profiles.slice(0, visibleProfiles).map((profile) => (
-              <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full">
-                <ProfileCard 
+        ) : paginatedProfiles.length > 0 ? (
+          <div className={`grid ${viewMode === 'list' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+            {paginatedProfiles.map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`}>
+                <ProfileCard
                   name={profile.name}
                   age={profile.age}
                   location={profile.location}
-                  imageUrl={profile.images?.[0] || '/placeholder.svg'}
+                  imageUrl={profile.images[0] || '/placeholder.svg'}
                   viewMode={viewMode}
+                  height={profile.height}
+                  weight={profile.weight}
+                  proportions={profile.proportions}
+                  hairColor={profile.hair_color}
+                  eyeColor={profile.eye_color}
+                  meetingWith={profile.meeting_with}
                   city={profile.city}
                   country={profile.country}
-                  phone={profile.is_verified ? profile.phone : undefined}
+                  phone={profile.phone}
                   isVerified={profile.is_verified}
                   isPremium={profile.is_premium}
                 />
@@ -219,21 +255,32 @@ export default function Index() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-lg text-gray-500">No profiles found</p>
+            <p className="text-muted-foreground">No profiles found.</p>
           </div>
         )}
-        
-        {profiles.length > 0 && visibleProfiles < profiles.length && (
-          <div className="mt-12 flex justify-center">
-            <Button 
-              size="lg" 
-              onClick={handleLoadMore}
-              className="px-8 py-6 bg-gradient-to-r from-primary/90 to-purple-500 hover:from-primary hover:to-purple-600 transition-all duration-300 text-base shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Load More Profiles
-            </Button>
-          </div>
+
+        {totalPages > 1 && (
+          <Card className="mt-8 bg-card">
+            <CardContent className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </main>
     </div>
