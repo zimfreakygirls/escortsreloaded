@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export default function Index() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("all");
   const [countries, setCountries] = useState<any[]>([]);
   const [profilesPerPage, setProfilesPerPage] = useState(6);
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,7 +117,7 @@ export default function Index() {
 
   const filteredProfiles = profiles.filter((profile) => {
     const searchRegex = new RegExp(searchQuery, "i");
-    const countryMatch = selectedCountry ? profile.country === selectedCountry : true;
+    const countryMatch = selectedCountry === "all" ? true : profile.country === selectedCountry;
 
     return (
       searchRegex.test(profile.name) &&
@@ -184,7 +185,7 @@ export default function Index() {
                     <SelectValue placeholder="Select a country" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Countries</SelectItem>
+                    <SelectItem value="all">All Countries</SelectItem>
                     {countries.map((country: any) => (
                       <SelectItem key={country.id} value={country.name}>
                         {country.name}
