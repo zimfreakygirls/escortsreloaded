@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { 
@@ -52,30 +53,24 @@ export function PaymentVerificationsTabContent() {
       // For each verification, try to get user info from profiles table first, then fallback to user_id
       const verificationWithUserData: PaymentVerification[] = await Promise.all(
         verificationData.map(async (verification: PaymentVerification) => {
-          let email = "Unknown";
-          let username = "Unknown";
+          let email = `user-${verification.user_id.substring(0, 8)}@example.com`;
+          let username = `User ${verification.user_id.substring(0, 8)}`;
 
           try {
             // First try to get from profiles table if it exists
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('name')
               .eq('id', verification.user_id)
-              .single();
+              .maybeSingle();
 
-            if (profileData?.name) {
+            if (profileData?.name && !profileError) {
               username = profileData.name;
-              email = `user-${verification.user_id.substring(0, 8)}@example.com`;
-            } else {
-              // Fallback to shortened user ID
-              username = `User ${verification.user_id.substring(0, 8)}`;
-              email = `user-${verification.user_id.substring(0, 8)}@example.com`;
             }
+            
+            console.log(`Fetched user data for ${verification.user_id}:`, { username, email });
           } catch (e) {
             console.log("Error fetching user details for user_id:", verification.user_id, e);
-            // Use fallback values
-            username = `User ${verification.user_id.substring(0, 8)}`;
-            email = `user-${verification.user_id.substring(0, 8)}@example.com`;
           }
 
           return {
@@ -154,16 +149,23 @@ export function PaymentVerificationsTabContent() {
     setImageErrors(prev => ({...prev, [id]: true}));
   };
 
-  // Function to validate and enhance image URL - now using the correct bucket
+  // Function to construct the correct image URL
   const getImageUrl = (url: string) => {
     if (!url) return null;
     
-    // If URL doesn't start with http, assume it's a storage path and construct the full URL
-    if (!url.startsWith('http')) {
-      const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
-      return `${supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
+    console.log('Original image URL:', url);
+    
+    // If URL already starts with http, use it as is
+    if (url.startsWith('http')) {
+      return url;
     }
-    return url;
+    
+    // If it's just a filename, construct the full URL
+    const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
+    const fullUrl = `${supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
+    
+    console.log('Constructed image URL:', fullUrl);
+    return fullUrl;
   };
 
   if (loading) {
@@ -278,7 +280,7 @@ export function PaymentVerificationsTabContent() {
                               <div className="text-gray-400 p-8 flex flex-col items-center">
                                 <AlertTriangle className="h-8 w-8 mb-2 text-yellow-500" />
                                 <p>No image available</p>
-                              </div>
+              </div>
                             )}
                           </div>
                         </DialogContent>
