@@ -233,12 +233,6 @@ export default function Index() {
                   location={profile.location}
                   imageUrl={profile.images[0] || '/placeholder.svg'}
                   viewMode={viewMode}
-                  height={profile.height}
-                  weight={profile.weight}
-                  proportions={profile.proportions}
-                  hairColor={profile.hair_color}
-                  eyeColor={profile.eye_color}
-                  meetingWith={profile.meeting_with}
                   city={profile.city}
                   country={profile.country}
                   phone={profile.phone}
