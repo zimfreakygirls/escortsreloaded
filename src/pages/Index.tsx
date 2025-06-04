@@ -130,11 +130,11 @@ export default function Index() {
       case "list":
         return "grid-cols-1 gap-6 max-w-3xl mx-auto";
       case "grid-2":
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6";
+        return "grid-cols-2 gap-4 sm:gap-6";
       case "grid-1":
         return "grid-cols-1 max-w-md mx-auto gap-6";
       default:
-        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6";
+        return "grid-cols-2 gap-4 sm:gap-6";
     }
   };
 
