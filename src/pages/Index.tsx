@@ -28,6 +28,7 @@ interface Profile {
   images: string[];
   is_verified?: boolean;
   is_premium?: boolean;
+  is_video?: boolean;
 }
 
 export default function Index() {
@@ -46,11 +47,17 @@ export default function Index() {
       setError(null);
       
       try {
-        // Skip bucket check to avoid errors if it doesn't exist
-        // Fetch profiles
-        const profilesData = await fetchProfiles();
-        console.log("Fetched profiles:", profilesData);
-        setProfiles(profilesData);
+        // Fetch profiles but exclude videos
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .or('is_video.is.null,is_video.eq.false')
+          .order('created_at', { ascending: false });
+
+        if (profilesError) throw profilesError;
+        
+        console.log("Fetched profiles (excluding videos):", profilesData);
+        setProfiles(profilesData || []);
         
         // Fetch settings
         await fetchSettings();

@@ -130,6 +130,7 @@ export type Database = {
           images: string[] | null
           is_premium: boolean | null
           is_verified: boolean | null
+          is_video: boolean | null
           location: string
           name: string
           phone: string | null
@@ -145,6 +146,7 @@ export type Database = {
           images?: string[] | null
           is_premium?: boolean | null
           is_verified?: boolean | null
+          is_video?: boolean | null
           location: string
           name: string
           phone?: string | null
@@ -160,6 +162,7 @@ export type Database = {
           images?: string[] | null
           is_premium?: boolean | null
           is_verified?: boolean | null
+          is_video?: boolean | null
           location?: string
           name?: string
           phone?: string | null

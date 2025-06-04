@@ -25,7 +25,7 @@ export default function Videos() {
         setLoading(true);
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, name, video_url, images, is_video')
           .not('video_url', 'is', null)
           .eq('is_video', true)
           .order('created_at', { ascending: false });
@@ -120,7 +120,7 @@ export default function Videos() {
             <p className="mt-2 text-muted-foreground">Loading videos...</p>
           </div>
         ) : profiles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             {profiles.map((profile) => (
               <Card key={profile.id} className="overflow-hidden bg-card">
                 <CardContent className="p-0 relative">
