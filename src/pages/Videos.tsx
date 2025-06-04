@@ -7,16 +7,16 @@ import { Play } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-interface Profile {
+interface VideoProfile {
   id: string;
   name: string;
-  video_url?: string;
+  video_url: string | null;
   images: string[];
-  is_video?: boolean;
+  is_video: boolean | null;
 }
 
 export default function Videos() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<VideoProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
