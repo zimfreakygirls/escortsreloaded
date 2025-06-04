@@ -12,6 +12,7 @@ interface Profile {
   name: string;
   video_url?: string;
   images: string[];
+  is_video?: boolean;
 }
 
 export default function Videos() {
@@ -26,6 +27,7 @@ export default function Videos() {
           .from('profiles')
           .select('*')
           .not('video_url', 'is', null)
+          .eq('is_video', true)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -45,40 +47,60 @@ export default function Videos() {
     return url && (url.includes('t.me') || url.includes('telegram.me'));
   };
 
+  // Function to convert Telegram URL to embeddable format
+  const getTelegramEmbedUrl = (url: string) => {
+    if (!url || !isTelegramVideo(url)) return url;
+    
+    try {
+      // Extract the channel and message ID from the URL
+      const urlParts = url.split('/');
+      if (urlParts.length >= 4) {
+        const channel = urlParts[urlParts.length - 2];
+        const messageId = urlParts[urlParts.length - 1];
+        
+        // Create embed URL
+        return `https://t.me/${channel}/${messageId}?embed=1`;
+      }
+    } catch (error) {
+      console.error('Error processing Telegram URL:', error);
+    }
+    
+    return url;
+  };
+
   // Function to render the appropriate video embed based on URL
   const renderVideoContent = (videoUrl: string) => {
     if (!videoUrl) return null;
     
     if (isTelegramVideo(videoUrl)) {
-      // For Telegram videos, we use an iframe that embeds the Telegram post
-      let embedUrl = videoUrl;
-      
-      // If it's a direct t.me link, convert it to embed format
-      if (embedUrl.includes('t.me/')) {
-        // Replace t.me with telegram.me for embedding
-        embedUrl = embedUrl.replace('t.me/', 'telegram.me/');
-        
-        // Ensure it has /embed at the end if it's a specific post
-        if (!embedUrl.endsWith('/embed') && embedUrl.split('/').length > 4) {
-          embedUrl = `${embedUrl}/embed`;
-        }
-      }
+      const embedUrl = getTelegramEmbedUrl(videoUrl);
       
       return (
-        <iframe 
-          src={embedUrl}
-          frameBorder="0" 
-          width="100%" 
-          height="480"
-          allowFullScreen
-          title="Telegram Video"
-          className="rounded-md"
-        ></iframe>
+        <div className="space-y-4">
+          <iframe 
+            src={embedUrl}
+            frameBorder="0" 
+            width="100%" 
+            height="480"
+            allowFullScreen
+            title="Telegram Video"
+            className="rounded-md"
+            sandbox="allow-scripts allow-same-origin allow-popups"
+          />
+          <div className="text-center">
+            <Button
+              onClick={() => window.open(videoUrl, '_blank')}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Open in Telegram
+            </Button>
+          </div>
+        </div>
       );
     } else {
       // For regular videos (e.g., mp4)
       return (
-        <video controls className="w-full rounded-md">
+        <video controls className="w-full rounded-md" autoPlay={false}>
           <source src={videoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
@@ -116,7 +138,7 @@ export default function Videos() {
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl bg-[#1e1c2e] border-gray-800">
-                          <h3 className="text-xl font-semibold mb-4">{profile.name}</h3>
+                          <h3 className="text-xl font-semibold mb-4 text-white">{profile.name}</h3>
                           {profile.video_url && renderVideoContent(profile.video_url)}
                         </DialogContent>
                       </Dialog>
