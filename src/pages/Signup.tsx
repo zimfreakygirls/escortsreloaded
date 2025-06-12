@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +16,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { getCurrencySymbol } from "@/services/settings";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 enum SignupStep {
   REGISTRATION = 'registration',
+  COUNTRY_SELECTION = 'country_selection',
   PAYMENT_INSTRUCTIONS = 'payment_instructions',
   PROOF_OF_PAYMENT = 'proof_of_payment',
   CONFIRMATION = 'confirmation'
@@ -29,6 +31,16 @@ const formSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+interface Country {
+  id: string;
+  name: string;
+  currency: string;
+  signup_price: number;
+  payment_phone: string;
+  payment_name: string;
+  active: boolean;
+}
+
 export default function Signup() {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -38,8 +50,8 @@ export default function Signup() {
   const [email, setEmail] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
-  const [signupPrice, setSignupPrice] = useState<number>(49.99);
-  const [currencySymbol, setCurrencySymbol] = useState<string>("$");
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,29 +62,31 @@ export default function Signup() {
   });
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchCountries = async () => {
       try {
         const { data, error } = await supabase
-          .from("settings")
+          .from("countries")
           .select("*")
-          .eq("id", "default")
-          .single();
+          .eq("active", true)
+          .order("name", { ascending: true });
 
-        if (error) {
-          setSignupPrice(49.99);
-          setCurrencySymbol("$");
-          return;
-        }
-        
-        setSignupPrice(data.signup_price ?? 49.99);
-        setCurrencySymbol(getCurrencySymbol(data.currency ?? "USD"));
+        if (error) throw error;
+        setCountries(data || []);
       } catch (err) {
-        setSignupPrice(49.99);
-        setCurrencySymbol("$");
+        console.error('Error fetching countries:', err);
       }
     };
-    fetchSettings();
+    fetchCountries();
   }, []);
+
+  const getCurrencySymbol = (currency: string) => {
+    switch (currency) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      default: return '$';
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -105,10 +119,10 @@ export default function Signup() {
 
       toast({
         title: "Account created!",
-        description: "Please complete the payment step to activate your account.",
+        description: "Please select your country for payment.",
       });
 
-      setCurrentStep(SignupStep.PAYMENT_INSTRUCTIONS);
+      setCurrentStep(SignupStep.COUNTRY_SELECTION);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -117,6 +131,14 @@ export default function Signup() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCountrySelection = (countryId: string) => {
+    const country = countries.find(c => c.id === countryId);
+    if (country) {
+      setSelectedCountry(country);
+      setCurrentStep(SignupStep.PAYMENT_INSTRUCTIONS);
     }
   };
 
@@ -218,6 +240,17 @@ export default function Signup() {
             </>
           )}
           
+          {currentStep === SignupStep.COUNTRY_SELECTION && (
+            <>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
+                Select Your Country
+              </h2>
+              <p className="mt-2 text-center text-gray-400">
+                Choose your country to see local pricing
+              </p>
+            </>
+          )}
+          
           {currentStep === SignupStep.PAYMENT_INSTRUCTIONS && (
             <>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-purple-400 bg-clip-text text-transparent">
@@ -315,26 +348,58 @@ export default function Signup() {
           </Form>
         )}
 
-        {currentStep === SignupStep.PAYMENT_INSTRUCTIONS && (
+        {currentStep === SignupStep.COUNTRY_SELECTION && (
+          <div className="space-y-6">
+            <div className="bg-[#1e1c2e] p-6 rounded-lg border border-[#9b87f5]/30">
+              <label className="block mb-4 text-white font-medium">
+                Select Your Country
+              </label>
+              <Select onValueChange={handleCountrySelection}>
+                <SelectTrigger className="bg-[#292741] border-[#9b87f5]/30 focus-visible:ring-[#9b87f5] focus-visible:border-[#9b87f5] text-white">
+                  <SelectValue placeholder="Choose your country" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1e1c2e] border-gray-700">
+                  {countries.map((country) => (
+                    <SelectItem 
+                      key={country.id} 
+                      value={country.id}
+                      className="text-white hover:bg-[#2d2b3a]"
+                    >
+                      {country.name} - {getCurrencySymbol(country.currency)}{country.signup_price?.toFixed(2) || '49.99'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {currentStep === SignupStep.PAYMENT_INSTRUCTIONS && selectedCountry && (
           <div className="space-y-6">
             <div className="bg-[#1e1c2e] p-6 rounded-lg border border-[#9b87f5]/30">
               <h3 className="text-xl font-semibold text-white mb-4">Payment Details</h3>
               <div className="space-y-3">
+                <div className="flex justify-between text-gray-300">
+                  <span>Country:</span>
+                  <span className="font-medium">{selectedCountry.name}</span>
+                </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Payment Method:</span>
                   <span className="font-medium">Mobile Money</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Account Number:</span>
-                  <span className="font-medium">+1 234-567-8900</span>
+                  <span className="font-medium">{selectedCountry.payment_phone}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Recipient Name:</span>
-                  <span className="font-medium">Escorts Reloaded</span>
+                  <span className="font-medium">{selectedCountry.payment_name}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Amount:</span>
-                  <span className="font-medium text-green-400">{currencySymbol}{signupPrice.toFixed(2)}</span>
+                  <span className="font-medium text-green-400">
+                    {getCurrencySymbol(selectedCountry.currency)}{selectedCountry.signup_price?.toFixed(2) || '49.99'}
+                  </span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Reference:</span>

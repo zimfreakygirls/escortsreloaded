@@ -79,20 +79,32 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
+          currency: string | null
           id: string
           name: string
+          payment_name: string | null
+          payment_phone: string | null
+          signup_price: number | null
         }
         Insert: {
           active?: boolean | null
           created_at?: string | null
+          currency?: string | null
           id?: string
           name: string
+          payment_name?: string | null
+          payment_phone?: string | null
+          signup_price?: number | null
         }
         Update: {
           active?: boolean | null
           created_at?: string | null
+          currency?: string | null
           id?: string
           name?: string
+          payment_name?: string | null
+          payment_phone?: string | null
+          signup_price?: number | null
         }
         Relationships: []
       }
@@ -126,6 +138,7 @@ export type Database = {
           city: string
           country: string
           created_at: string | null
+          currency: string | null
           id: string
           images: string[] | null
           is_premium: boolean | null
@@ -142,6 +155,7 @@ export type Database = {
           city: string
           country: string
           created_at?: string | null
+          currency?: string | null
           id?: string
           images?: string[] | null
           is_premium?: boolean | null
@@ -158,6 +172,7 @@ export type Database = {
           city?: string
           country?: string
           created_at?: string | null
+          currency?: string | null
           id?: string
           images?: string[] | null
           is_premium?: boolean | null

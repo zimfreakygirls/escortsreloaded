@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Loader2, Plus } from "lucide-react";
@@ -9,14 +9,24 @@ import { Checkbox } from "../ui/checkbox";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "../ui/form";
 import { Form } from "../ui/form";
 import { useForm } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface ProfileFormProps {
   onSuccess: () => void;
 }
 
+interface Country {
+  id: string;
+  name: string;
+  currency: string;
+  active: boolean;
+}
+
 export function ProfileForm({ onSuccess }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const { toast } = useToast();
 
   const form = useForm({
@@ -33,6 +43,40 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
       is_verified: false,
     }
   });
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('countries')
+          .select('*')
+          .eq('active', true)
+          .order('name', { ascending: true });
+        
+        if (error) throw error;
+        setCountries(data || []);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  const handleCountryChange = (countryName: string) => {
+    const country = countries.find(c => c.name === countryName);
+    setSelectedCountry(country || null);
+    form.setValue("country", countryName);
+  };
+
+  const getCurrencySymbol = (currency: string) => {
+    switch (currency) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      default: return '$';
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -90,6 +134,10 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         throw new Error("Please select at least one image");
       }
 
+      if (!selectedCountry) {
+        throw new Error("Please select a country");
+      }
+
       const countryName = data.country.trim();
       const formattedCountry = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase();
 
@@ -101,6 +149,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         location: data.location,
         city: data.city,
         country: formattedCountry,
+        currency: selectedCountry.currency,
         price_per_hour: parseInt(data.price_per_hour),
         phone: data.phone || null,
         video_url: data.video_url || null,
@@ -122,7 +171,8 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
       if (countryCheckError && countryCheckError.code === 'PGRST116') {
         await supabase.from('countries').insert({
           name: formattedCountry,
-          active: true
+          active: true,
+          currency: selectedCountry.currency
         });
       }
 
@@ -133,6 +183,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
 
       form.reset();
       setSelectedImages(null);
+      setSelectedCountry(null);
       onSuccess();
     } catch (error: any) {
       toast({
@@ -188,15 +239,27 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Country</label>
-            <Input
-              {...form.register("country", { required: true })}
-              placeholder="Country"
-              required
-              className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20"
-            />
+            <Select onValueChange={handleCountryChange}>
+              <SelectTrigger className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20">
+                <SelectValue placeholder="Select a country" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1e1c2e] border-gray-700">
+                {countries.map((country) => (
+                  <SelectItem 
+                    key={country.id} 
+                    value={country.name}
+                    className="text-white hover:bg-[#2d2b3a]"
+                  >
+                    {country.name} ({country.currency})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Price per hour</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Price per hour {selectedCountry && `(${getCurrencySymbol(selectedCountry.currency)})`}
+            </label>
             <Input
               {...form.register("price_per_hour", { required: true })}
               type="number"

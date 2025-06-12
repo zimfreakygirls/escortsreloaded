@@ -9,9 +9,9 @@ import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
 import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
 import { PaymentVerificationsTabContent } from "@/components/dashboard/PaymentVerificationsTabContent";
+import { CountryManager } from "@/components/dashboard/CountryManager";
 import { 
   DashboardTabContent, 
-  CountriesTabContent, 
   VideosTabContent, 
   ContactsTabContent, 
   SettingsTabContent, 
@@ -191,7 +191,10 @@ export default function Dashboard() {
         
         <PaymentVerificationsTabContent />
         
-        <CountriesTabContent />
+        <div value="countries" className="space-y-4">
+          <CountryManager />
+        </div>
+        
         <VideosTabContent />
         <ContactsTabContent />
         
