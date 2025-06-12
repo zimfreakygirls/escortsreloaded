@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AnimationWrapper } from "../ui/animation-wrapper";
 import { Badge } from "../ui/badge";
 import { CheckCircle, XCircle, Loader2, ExternalLink, Image, AlertTriangle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface PaymentVerification {
   id: string;
@@ -149,23 +149,38 @@ export function PaymentVerificationsTabContent() {
     setImageErrors(prev => ({...prev, [id]: true}));
   };
 
-  // Function to construct the correct image URL
-  const getImageUrl = (url: string) => {
-    if (!url) return null;
-    
-    console.log('Original image URL:', url);
-    
-    // If URL already starts with http, use it as is
-    if (url.startsWith('http')) {
-      return url;
+  // Function to get the signed URL for the image
+  const getSignedImageUrl = async (filePath: string) => {
+    try {
+      console.log('Getting signed URL for:', filePath);
+      
+      // Extract just the filename if it's a full URL
+      let fileName = filePath;
+      if (filePath.includes('/storage/v1/object/public/payment-proofs/')) {
+        fileName = filePath.split('/storage/v1/object/public/payment-proofs/')[1];
+      } else if (filePath.startsWith('http')) {
+        // If it's already a full URL, return it as is
+        return filePath;
+      }
+      
+      const { data, error } = await supabase.storage
+        .from('payment-proofs')
+        .createSignedUrl(fileName, 3600); // 1 hour expiry
+      
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        // Fallback to public URL
+        return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${fileName}`;
+      }
+      
+      console.log('Generated signed URL:', data.signedUrl);
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error in getSignedImageUrl:', error);
+      // Fallback to public URL
+      const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
+      return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${fileName}`;
     }
-    
-    // If it's just a filename, construct the full URL
-    const supabaseUrl = "https://flzioxdlsyxapirlbxbt.supabase.co";
-    const fullUrl = `${supabaseUrl}/storage/v1/object/public/payment-proofs/${url}`;
-    
-    console.log('Constructed image URL:', fullUrl);
-    return fullUrl;
   };
 
   if (loading) {
@@ -247,6 +262,9 @@ export function PaymentVerificationsTabContent() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-lg bg-[#292741] border border-[#9b87f5]/30">
                           <DialogTitle className="text-center text-lg font-semibold text-white">Payment Proof</DialogTitle>
+                          <DialogDescription className="text-center text-gray-400 text-sm">
+                            Review the payment proof submitted by the user
+                          </DialogDescription>
                           <div className="flex flex-col items-center p-2">
                             {verification.proof_image_url ? (
                               <>
@@ -256,31 +274,38 @@ export function PaymentVerificationsTabContent() {
                                       <AlertTriangle className="h-10 w-10 mb-2 text-yellow-500" />
                                       <p className="text-center mb-1">Unable to load image</p>
                                       <p className="text-xs text-center">The image file may not exist or is corrupted</p>
-                                      <p className="text-xs text-center mt-2 text-gray-500">URL: {verification.proof_image_url}</p>
+                                      <p className="text-xs text-center mt-2 text-gray-500 break-all">URL: {verification.proof_image_url}</p>
                                     </div>
                                   ) : (
-                                    <img 
-                                      src={getImageUrl(verification.proof_image_url)}
-                                      alt="Payment Proof" 
-                                      className="max-w-full max-h-[70vh] object-contain rounded-md"
+                                    <ImageWithFallback 
+                                      src={verification.proof_image_url}
+                                      alt="Payment Proof"
                                       onError={() => handleImageError(verification.id)}
+                                      getSignedUrl={getSignedImageUrl}
                                     />
                                   )}
                                 </div>
-                                <a 
-                                  href={getImageUrl(verification.proof_image_url)} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="mt-4 flex items-center text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      const signedUrl = await getSignedImageUrl(verification.proof_image_url);
+                                      window.open(signedUrl, '_blank');
+                                    } catch (error) {
+                                      console.error('Error opening image:', error);
+                                    }
+                                  }}
+                                  className="mt-4 text-[#9b87f5] hover:text-[#8b77e5] transition-colors"
                                 >
                                   Open in new tab <ExternalLink className="ml-1 h-4 w-4" />
-                                </a>
+                                </Button>
                               </>
                             ) : (
                               <div className="text-gray-400 p-8 flex flex-col items-center">
                                 <AlertTriangle className="h-8 w-8 mb-2 text-yellow-500" />
                                 <p>No image available</p>
-              </div>
+                              </div>
                             )}
                           </div>
                         </DialogContent>
@@ -332,5 +357,71 @@ export function PaymentVerificationsTabContent() {
         </div>
       </AnimationWrapper>
     </TabsContent>
+  );
+}
+
+// Separate component for image handling with async signed URL support
+function ImageWithFallback({ 
+  src, 
+  alt, 
+  onError, 
+  getSignedUrl 
+}: { 
+  src: string; 
+  alt: string; 
+  onError: () => void;
+  getSignedUrl: (path: string) => Promise<string>;
+}) {
+  const [imageSrc, setImageSrc] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+        const signedUrl = await getSignedUrl(src);
+        setImageSrc(signedUrl);
+      } catch (err) {
+        console.error('Failed to load image:', err);
+        setError(true);
+        onError();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [src, getSignedUrl, onError]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8 w-full h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-[#9b87f5]" />
+      </div>
+    );
+  }
+
+  if (error || !imageSrc) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-gray-400 border border-dashed border-gray-700 rounded-md w-full">
+        <AlertTriangle className="h-10 w-10 mb-2 text-yellow-500" />
+        <p className="text-center mb-1">Unable to load image</p>
+        <p className="text-xs text-center">The image file may not exist or is corrupted</p>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={imageSrc}
+      alt={alt}
+      className="max-w-full max-h-[70vh] object-contain rounded-md"
+      onError={() => {
+        setError(true);
+        onError();
+      }}
+    />
   );
 }
