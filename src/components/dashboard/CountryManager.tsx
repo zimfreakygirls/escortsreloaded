@@ -153,6 +153,7 @@ export function CountryManager() {
       case 'USD': return '$';
       case 'EUR': return '€';
       case 'GBP': return '£';
+      case 'ZMW': return 'K';
       default: return '$';
     }
   };
@@ -186,6 +187,7 @@ export function CountryManager() {
                 <SelectItem value="USD">USD ($)</SelectItem>
                 <SelectItem value="EUR">EUR (€)</SelectItem>
                 <SelectItem value="GBP">GBP (£)</SelectItem>
+                <SelectItem value="ZMW">ZMW (K)</SelectItem>
               </SelectContent>
             </Select>
             <Input
