@@ -10,6 +10,7 @@ import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
 import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
 import { PaymentVerificationsTabContent } from "@/components/dashboard/PaymentVerificationsTabContent";
 import { CountryManager } from "@/components/dashboard/CountryManager";
+import { TabsContent } from "@/components/ui/tabs";
 import { 
   DashboardTabContent, 
   VideosTabContent, 
@@ -191,9 +192,9 @@ export default function Dashboard() {
         
         <PaymentVerificationsTabContent />
         
-        <div value="countries" className="space-y-4">
+        <TabsContent value="countries" className="space-y-4">
           <CountryManager />
-        </div>
+        </TabsContent>
         
         <VideosTabContent />
         <ContactsTabContent />
