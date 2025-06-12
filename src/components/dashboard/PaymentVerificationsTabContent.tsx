@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { 
@@ -26,6 +25,8 @@ interface PaymentVerification {
   email?: string;
   username?: string;
 }
+
+const SUPABASE_URL = "https://flzioxdlsyxapirlbxbt.supabase.co";
 
 export function PaymentVerificationsTabContent() {
   const { toast } = useToast();
@@ -170,7 +171,7 @@ export function PaymentVerificationsTabContent() {
       if (error) {
         console.error('Error creating signed URL:', error);
         // Fallback to public URL
-        return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${fileName}`;
+        return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
       }
       
       console.log('Generated signed URL:', data.signedUrl);
@@ -179,7 +180,7 @@ export function PaymentVerificationsTabContent() {
       console.error('Error in getSignedImageUrl:', error);
       // Fallback to public URL
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${supabase.supabaseUrl}/storage/v1/object/public/payment-proofs/${fileName}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
     }
   };
 
