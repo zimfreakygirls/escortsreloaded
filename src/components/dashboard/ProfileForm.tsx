@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -74,6 +73,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
       case 'USD': return '$';
       case 'EUR': return '€';
       case 'GBP': return '£';
+      case 'ZMW': return 'K';
       default: return '$';
     }
   };
