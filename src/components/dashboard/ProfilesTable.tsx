@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Trash2, BadgeCheck, Crown, Edit, Check, X } from "lucide-react";
@@ -40,7 +39,10 @@ interface ProfilesTableProps {
 export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: ProfilesTableProps) {
   const { toast } = useToast();
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Profile>>({});
+  const [editForm, setEditForm] = useState<Partial<Profile>>({
+    is_verified: false,
+    is_premium: false,
+  });
 
   const deleteProfile = async (id: string) => {
     try {
@@ -140,57 +142,66 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       city: profile.city,
       country: profile.country,
       price_per_hour: profile.price_per_hour,
-      phone: profile.phone || '',
-      video_url: profile.video_url || '',
-      is_verified: profile.is_verified || false,
-      is_premium: profile.is_premium || false,
+      phone: profile.phone || "",
+      video_url: profile.video_url || "",
+      is_verified: !!profile.is_verified,
+      is_premium: !!profile.is_premium,
+    });
+  };
+
+  const closeEditDialog = () => {
+    setEditingProfile(null);
+    setEditForm({
+      is_verified: false,
+      is_premium: false,
     });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-    
-    if (type === 'number') {
-      setEditForm(prev => ({
+
+    if (type === "number") {
+      setEditForm((prev) => ({
         ...prev,
-        [name]: value === '' ? '' : Number(value)
+        [name]: value === "" ? "" : Number(value),
       }));
     } else {
-      setEditForm(prev => ({
+      setEditForm((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
-      [name]: checked
+      [name]: checked,
     }));
   };
 
   const saveProfile = async () => {
     if (!editingProfile) return;
-    
+
     try {
-      console.log('Saving profile with data:', editForm);
-      
+      // Ensure booleans, trim empty to null for nullable fields
+      const updatedProfile = {
+        name: editForm.name,
+        age: editForm.age,
+        location: editForm.location,
+        city: editForm.city,
+        country: editForm.country,
+        price_per_hour: editForm.price_per_hour,
+        phone: editForm.phone ? editForm.phone : null,
+        video_url: editForm.video_url ? editForm.video_url : null,
+        is_verified: !!editForm.is_verified,
+        is_premium: !!editForm.is_premium,
+      };
+
       const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: editForm.name,
-          age: editForm.age,
-          location: editForm.location,
-          city: editForm.city,
-          country: editForm.country,
-          price_per_hour: editForm.price_per_hour,
-          phone: editForm.phone || null,
-          video_url: editForm.video_url || null,
-          is_verified: editForm.is_verified,
-          is_premium: editForm.is_premium,
-        })
-        .eq('id', editingProfile.id);
+        .from("profiles")
+        .update(updatedProfile)
+        .eq("id", editingProfile.id);
 
       if (error) throw error;
 
@@ -199,10 +210,10 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: "Profile updated successfully",
       });
 
-      setEditingProfile(null);
-      onDelete(); // This refreshes the profiles list
+      closeEditDialog();
+      onDelete(); // Refresh profiles
     } catch (error: any) {
-      console.error('Update error:', error);
+      console.error("Update error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -295,7 +306,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
 
       {/* Edit Profile Dialog */}
       {editingProfile && (
-        <Dialog open={!!editingProfile} onOpenChange={(open) => !open && setEditingProfile(null)}>
+        <Dialog open={!!editingProfile} onOpenChange={(open) => { if (!open) closeEditDialog(); }}>
           <DialogContent className="bg-[#292741] border-gray-800 text-white max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Profile: {editingProfile.name}</DialogTitle>
@@ -420,7 +431,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
             <DialogFooter className="flex gap-2 justify-end">
               <Button
                 variant="outline"
-                onClick={() => setEditingProfile(null)}
+                onClick={closeEditDialog}
                 className="border-gray-700 hover:bg-gray-800"
               >
                 <X className="w-4 h-4 mr-2" />
