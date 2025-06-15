@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Trash2, BadgeCheck, Crown, Edit, Check, X } from "lucide-react";
@@ -86,7 +87,9 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
   };
 
   const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
-    setUpdatingStatus(`verify-${profileId}`);
+    const statusKey = `verify-${profileId}`;
+    setUpdatingStatus(statusKey);
+    
     try {
       const newStatus = !currentStatus;
       
@@ -112,12 +115,15 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         variant: "destructive",
       });
     } finally {
+      // Always reset the updating status
       setUpdatingStatus(null);
     }
   };
 
   const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
-    setUpdatingStatus(`premium-${profileId}`);
+    const statusKey = `premium-${profileId}`;
+    setUpdatingStatus(statusKey);
+    
     try {
       const newStatus = !currentStatus;
       
@@ -143,6 +149,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         variant: "destructive",
       });
     } finally {
+      // Always reset the updating status
       setUpdatingStatus(null);
     }
   };
@@ -163,14 +170,13 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     });
   };
 
-  // Ensure isSaving is *always* reset, even if something goes wrong
   const closeEditDialog = () => {
     setEditingProfile(null);
     setEditForm({
       is_verified: false,
       is_premium: false,
     });
-    setIsSaving(false); // always reset
+    setIsSaving(false);
     console.log("[Dialog] Closed and state reset.");
   };
 
@@ -244,18 +250,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: "Profile updated successfully",
       });
 
-      // Always reset saving/loading state before closing the dialog
-      setIsSaving(false);
       closeEditDialog();
-
-      // Don't block UI on this; refetch profile list in background
-      setTimeout(() => {
-        try {
-          onDelete();
-        } catch (err) {
-          console.error("[Profile] onDelete error:", err);
-        }
-      }, 0);
+      onDelete();
     } catch (error: any) {
       console.error("Update error:", error);
       toast({
@@ -263,7 +259,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: error?.message || String(error),
         variant: "destructive",
       });
-      setIsSaving(false); // Ensure user can retry even after an error
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -299,7 +296,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       size="sm"
                       onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
                       disabled={updatingStatus === `verify-${profile.id}`}
-                      className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
+                      className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full transition-all duration-200 ${
                         profile.is_verified 
                           ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600 hover:bg-blue-600" 
                           : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
@@ -314,7 +311,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       size="sm"
                       onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
                       disabled={updatingStatus === `premium-${profile.id}`}
-                      className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
+                      className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full transition-all duration-200 ${
                         profile.is_premium 
                           ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 hover:bg-amber-600" 
                           : "bg-gray-700/20 text-gray-400 border-gray-600 hover:bg-gray-700/30 hover:text-gray-300"
