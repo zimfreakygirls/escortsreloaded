@@ -40,11 +40,11 @@ export function UsersTable() {
         
         // If admin API works, map the user data with proper username extraction
         const mappedUsers = authUsers.users.map(user => {
-          // Try multiple metadata fields for username
+          // Try multiple metadata fields for username, fallback to generated username
           const username = user.user_metadata?.username || 
                           user.user_metadata?.full_name || 
                           user.user_metadata?.name ||
-                          null;
+                          `User ${user.id.substring(0, 8)}`;
           
           console.log(`User ${user.id} metadata:`, user.user_metadata);
           console.log(`Extracted username: ${username}`);
@@ -93,12 +93,12 @@ export function UsersTable() {
           throw statusError;
         }
         
-        // Create user records from status data
+        // Create user records from status data with better usernames
         if (userStatusData && userStatusData.length > 0) {
           const usersFromStatus = userStatusData.map(status => ({
             id: status.user_id,
-            email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
-            username: undefined,
+            email: `user-${status.user_id.substring(0, 6)}@example.com`,
+            username: `User ${status.user_id.substring(0, 8)}`, // More descriptive username
             created_at: status.created_at || new Date().toISOString(),
             last_sign_in_at: null,
             banned: status.banned,
@@ -111,7 +111,7 @@ export function UsersTable() {
           setUsers([{
             id: "1",
             email: "admin@escortsreloaded.com",
-            username: "Admin",
+            username: "Admin User",
             created_at: new Date().toISOString(),
             last_sign_in_at: new Date().toISOString(),
             banned: false,
@@ -137,7 +137,7 @@ export function UsersTable() {
       setUsers([{
         id: "1",
         email: "admin@escortsreloaded.com",
-        username: "Admin",
+        username: "Admin User",
         created_at: new Date().toISOString(),
         last_sign_in_at: new Date().toISOString(),
         banned: false,
