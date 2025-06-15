@@ -59,10 +59,14 @@ export function SettingsTabContent({ settings, onSettingsChange }: SettingsTabCo
 
 export function AdminTabContent() {
   return (
-    <TabsContent value="admin" className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-      <AdminSettings />
-      <AdminSignupSettings />
-      <SiteStatusManager />
+    <TabsContent value="admin" className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <AdminSettings />
+        <AdminSignupSettings />
+      </div>
+      <div className="mt-4">
+        <SiteStatusManager />
+      </div>
     </TabsContent>
   );
 }
