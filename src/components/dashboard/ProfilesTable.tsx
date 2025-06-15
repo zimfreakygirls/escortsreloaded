@@ -85,25 +85,30 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     
     try {
       const newStatus = !currentStatus;
+      console.log(`Updating verification for profile ${profileId} from ${currentStatus} to ${newStatus}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({ is_verified: newStatus })
-        .eq('id', profileId);
+        .eq('id', profileId)
+        .select();
 
       if (error) throw error;
+
+      console.log('Verification update result:', data);
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "verified" : "unverified"} successfully`,
       });
 
+      // Refresh the profiles data
       onDelete();
     } catch (error: any) {
       console.error('Verification error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update verification status",
         variant: "destructive",
       });
     } finally {
@@ -117,25 +122,30 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     
     try {
       const newStatus = !currentStatus;
+      console.log(`Updating premium status for profile ${profileId} from ${currentStatus} to ${newStatus}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({ is_premium: newStatus })
-        .eq('id', profileId);
+        .eq('id', profileId)
+        .select();
 
       if (error) throw error;
+
+      console.log('Premium update result:', data);
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "set as premium" : "removed from premium"} successfully`,
       });
 
+      // Refresh the profiles data
       onDelete();
     } catch (error: any) {
       console.error('Premium status error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update premium status",
         variant: "destructive",
       });
     } finally {
