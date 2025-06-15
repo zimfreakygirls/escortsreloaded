@@ -31,14 +31,24 @@ export function UsersTable() {
     try {
       setLoading(true);
       
-      // First attempt to get actual auth users via admin API
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
-      // --- Load profile data FIRST (id = user_id relationship is assumed) ---
+      // Load profile data FIRST (id = user_id relationship is assumed)
       let profilesMap = new Map<string, string>();
-      const { data: profilesData } = await supabase
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name');
+
+      console.log("Profiles fetch:", profilesData, "Error:", profilesError);
+
+      if (profilesError) {
+        toast({
+          title: "Error loading profiles",
+          description: profilesError.message,
+          variant: "destructive",
+        });
+      }
+
       if (profilesData && profilesData.length > 0) {
         profilesData.forEach(profile => {
           profilesMap.set(profile.id, profile.name);
@@ -48,7 +58,6 @@ export function UsersTable() {
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
         // Map the user data with better username extraction, fallback to profile name if available
         const mappedUsers = authUsers.users.map(user => {
-          // Prefer profile name if available
           const profileName = profilesMap.get(user.id);
           const metadata = user.user_metadata || {};
           const appMetadata = user.app_metadata || {};
@@ -67,7 +76,10 @@ export function UsersTable() {
           if (!username && user.email) {
             username = user.email.split('@')[0];
           }
-          
+
+          // Diagnostics
+          console.log("user.id", user.id, "| user.email", user.email, "| profileName", profileName, "| resolved username", username);
+
           return {
             id: user.id,
             email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
@@ -78,7 +90,19 @@ export function UsersTable() {
             approved: false // Will be updated below
           };
         });
-        
+
+        // Warn if no usernames came from profiles at all:
+        if (profilesData && profilesData.length > 0) {
+          const usernamesFromProfiles = mappedUsers.filter(u => profilesMap.has(u.id));
+          if (usernamesFromProfiles.length === 0) {
+            toast({
+              title: "No usernames loaded from profiles",
+              description:
+                "Check that there are profile records for each user and that you have admin SELECT access to the profiles table.",
+            });
+          }
+        }
+
         // Get user_status for merged banned/approved info
         const { data: userStatusData } = await supabase
           .from('user_status')
