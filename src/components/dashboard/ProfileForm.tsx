@@ -25,6 +25,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
+  const [countriesLoading, setCountriesLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const { toast } = useToast();
 
@@ -46,21 +47,68 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const { data, error } = await supabase
+        setCountriesLoading(true);
+        console.log('Fetching countries...');
+        
+        // First check if any countries exist
+        const { data: allCountries, error: allError } = await supabase
           .from('countries')
           .select('*')
-          .eq('active', true)
           .order('name', { ascending: true });
         
-        if (error) throw error;
-        setCountries(data || []);
+        console.log('All countries:', allCountries);
+        
+        if (allError) {
+          console.error('Error fetching all countries:', allError);
+        }
+
+        // If no countries exist, create some default ones
+        if (!allCountries || allCountries.length === 0) {
+          console.log('No countries found, creating default countries...');
+          
+          const defaultCountries = [
+            { name: 'United States', currency: 'USD', active: true },
+            { name: 'United Kingdom', currency: 'GBP', active: true },
+            { name: 'Canada', currency: 'USD', active: true },
+            { name: 'Australia', currency: 'USD', active: true },
+            { name: 'Germany', currency: 'EUR', active: true },
+            { name: 'France', currency: 'EUR', active: true },
+            { name: 'Zambia', currency: 'ZMW', active: true },
+            { name: 'South Africa', currency: 'USD', active: true },
+          ];
+
+          const { data: insertedCountries, error: insertError } = await supabase
+            .from('countries')
+            .insert(defaultCountries)
+            .select();
+
+          if (insertError) {
+            console.error('Error inserting default countries:', insertError);
+            throw insertError;
+          }
+
+          console.log('Default countries created:', insertedCountries);
+          setCountries(insertedCountries || []);
+        } else {
+          // Filter active countries
+          const activeCountries = allCountries.filter(c => c.active);
+          console.log('Active countries:', activeCountries);
+          setCountries(activeCountries);
+        }
       } catch (error) {
         console.error('Error fetching countries:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load countries. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setCountriesLoading(false);
       }
     };
 
     fetchCountries();
-  }, []);
+  }, [toast]);
 
   const handleCountryChange = (countryName: string) => {
     const country = countries.find(c => c.name === countryName);
@@ -239,22 +287,40 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Country</label>
-            <Select onValueChange={handleCountryChange}>
-              <SelectTrigger className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20">
-                <SelectValue placeholder="Select a country" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1e1c2e] border-gray-700">
-                {countries.map((country) => (
-                  <SelectItem 
-                    key={country.id} 
-                    value={country.name}
-                    className="text-white hover:bg-[#2d2b3a]"
-                  >
-                    {country.name} ({country.currency})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {countriesLoading ? (
+              <div className="flex items-center space-x-2 bg-[#1e1c2e] border border-gray-700 rounded-md px-3 py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-gray-400">Loading countries...</span>
+              </div>
+            ) : (
+              <Select onValueChange={handleCountryChange}>
+                <SelectTrigger className="bg-[#1e1c2e] border-gray-700 focus:border-[#ff719A] focus:ring-[#ff719A]/20">
+                  <SelectValue placeholder={countries.length > 0 ? "Select a country" : "No countries available"} />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1e1c2e] border-gray-700">
+                  {countries.length > 0 ? (
+                    countries.map((country) => (
+                      <SelectItem 
+                        key={country.id} 
+                        value={country.name}
+                        className="text-white hover:bg-[#2d2b3a]"
+                      >
+                        {country.name} ({country.currency})
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-countries" disabled className="text-gray-400">
+                      No countries available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+            {countries.length === 0 && !countriesLoading && (
+              <p className="text-sm text-yellow-400 mt-1">
+                No countries found. Please add countries in the Countries tab first.
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -343,7 +409,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
           />
         </div>
 
-        <Button type="submit" disabled={loading} className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90">
+        <Button type="submit" disabled={loading || countriesLoading} className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90">
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
