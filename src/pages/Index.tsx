@@ -83,6 +83,16 @@ export default function Index() {
       
       // Filter on client side for non-video profiles
       const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
+      
+      // Preload first few images for better perceived performance
+      const imagesToPreload = nonVideoProfiles.slice(0, 6);
+      imagesToPreload.forEach(profile => {
+        if (profile.images && profile.images[0]) {
+          const img = new Image();
+          img.src = profile.images[0];
+        }
+      });
+      
       setProfiles(nonVideoProfiles);
 
       // Fetch settings and visible profiles
@@ -211,7 +221,7 @@ export default function Index() {
           </div>
         ) : profiles.length > 0 ? (
           <div className={`grid ${getGridClass()}`}>
-            {profiles.slice(0, visibleProfiles).map((profile) => (
+            {profiles.slice(0, visibleProfiles).map((profile, index) => (
               <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full">
                 <ProfileCard 
                   name={profile.name}

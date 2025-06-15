@@ -10,6 +10,7 @@ interface ProfileImageGalleryProps {
 
 export function ProfileImageGallery({ profile }: ProfileImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
 
   // Function to detect if a URL is from Telegram
   const isTelegramVideo = (url: string) => {
@@ -58,14 +59,29 @@ export function ProfileImageGallery({ profile }: ProfileImageGalleryProps) {
     }
   };
 
+  const handleImageLoad = (index: number) => {
+    setLoadedImages(prev => new Set([...prev, index]));
+  };
+
   return (
     <>
       <div className="relative">
-        <div className="rounded-lg overflow-hidden">
+        <div className="rounded-lg overflow-hidden bg-gray-100">
           <img 
             src={profile.images[selectedImage] || '/placeholder.svg'} 
             alt={profile.name}
-            className="w-full h-[300px] sm:h-[500px] object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            className="w-full h-[300px] sm:h-[500px] object-cover transition-opacity duration-300"
+            style={{
+              opacity: loadedImages.has(selectedImage) ? 1 : 0.7
+            }}
+            onLoad={() => handleImageLoad(selectedImage)}
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.src = '/placeholder.svg';
+            }}
           />
         </div>
         
@@ -91,14 +107,25 @@ export function ProfileImageGallery({ profile }: ProfileImageGalleryProps) {
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
-              className={`flex-shrink-0 rounded-md overflow-hidden border-2 ${
+              className={`flex-shrink-0 rounded-md overflow-hidden border-2 transition-all ${
                 selectedImage === index ? 'border-primary' : 'border-transparent'
               }`}
             >
               <img 
                 src={image} 
                 alt={`${profile.name} ${index + 1}`}
-                className="w-16 h-16 sm:w-20 sm:h-20 object-cover"
+                loading="lazy"
+                decoding="async"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-cover transition-opacity duration-200"
+                style={{
+                  contentVisibility: 'auto',
+                  containIntrinsicSize: '80px 80px'
+                }}
+                onLoad={() => handleImageLoad(index)}
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.src = '/placeholder.svg';
+                }}
               />
             </button>
           ))}

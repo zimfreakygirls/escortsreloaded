@@ -11,9 +11,23 @@ export function ProfileCardImage({ imageUrl, name, isListView }: ProfileCardImag
       <img
         src={imageUrl}
         alt={name}
+        loading="lazy"
+        decoding="async"
         className={`w-full h-full object-cover transition-transform ${
           isListView ? "" : "group-hover:scale-105"
         }`}
+        style={{ 
+          contentVisibility: 'auto',
+          containIntrinsicSize: isListView ? '160px 160px' : '300px 375px'
+        }}
+        onLoad={(e) => {
+          const img = e.target as HTMLImageElement;
+          img.style.opacity = '1';
+        }}
+        onError={(e) => {
+          const img = e.target as HTMLImageElement;
+          img.src = '/placeholder.svg';
+        }}
       />
     </div>
   );
