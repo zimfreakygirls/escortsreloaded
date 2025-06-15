@@ -36,9 +36,18 @@ export function UsersTable() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
-        // If admin API works, map the user data
+        console.log("Fetched auth users:", authUsers.users);
+        
+        // If admin API works, map the user data with proper username extraction
         const mappedUsers = authUsers.users.map(user => {
-          const username = user.user_metadata?.username || user.user_metadata?.full_name || null;
+          // Try multiple metadata fields for username
+          const username = user.user_metadata?.username || 
+                          user.user_metadata?.full_name || 
+                          user.user_metadata?.name ||
+                          null;
+          
+          console.log(`User ${user.id} metadata:`, user.user_metadata);
+          console.log(`Extracted username: ${username}`);
           
           return {
             id: user.id,
@@ -163,7 +172,6 @@ export function UsersTable() {
     return (
       <div className="flex justify-center p-8">
         <div className="animate-spin h-8 w-8 border-t-2 border-[#9b87f5] rounded-full"></div>
-      </div>
     );
   }
 
