@@ -1,7 +1,6 @@
-
 import { Header } from "@/components/Header";
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { ProfileDetailHeader } from "@/components/profile-detail/ProfileDetailHeader";
@@ -15,7 +14,11 @@ export default function ProfileDetail() {
   const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
 
+  // ref to track if component is mounted (to avoid state updates on unmounted)
+  const mountedRef = useRef(true);
+
   useEffect(() => {
+    mountedRef.current = true;
     if (id) {
       fetchProfile();
       checkSession();
@@ -25,10 +28,37 @@ export default function ProfileDetail() {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-    
+
+    // --- Supabase realtime: Listen for changes to this profile ---
+    let realtimeChannel: any = null;
+    if (id) {
+      realtimeChannel = supabase
+        .channel('public:profiles:id=' + id)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${id}`
+          },
+          (payload) => {
+            // Only update state if the right row is changed
+            if (payload.new && mountedRef.current) {
+              setProfile(payload.new);
+            }
+          }
+        )
+        .subscribe();
+    }
+
     // Clean up subscription
     return () => {
+      mountedRef.current = false;
       authListener?.subscription.unsubscribe();
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, [id]);
 
