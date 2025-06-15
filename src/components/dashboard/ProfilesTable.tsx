@@ -91,55 +91,25 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
   const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `verify-${profileId}`;
     setUpdatingStatus(statusKey);
-    console.log(`toggleVerificationStatus called for ${profileId}, currentStatus: ${currentStatus}`);
 
-    // Optimistically update UI
-    setLocalProfiles((prev) =>
-      prev.map(profile =>
-        profile.id === profileId
-          ? { ...profile, is_verified: !currentStatus }
-          : profile
-      )
-    );
     try {
       const newStatus = !currentStatus;
-      console.log(`Updating Supabase: { is_verified: ${newStatus} }`);
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_verified: newStatus })
         .eq('id', profileId)
         .select();
 
-      console.log('Supabase update response:', data, error);
-
       if (error) throw error;
-
-      if (data && data.length) {
-        setLocalProfiles((prev) =>
-          prev.map(profile =>
-            profile.id === profileId ? { ...profile, ...data[0] } : profile
-          )
-        );
-        console.log('Local profile updated from Supabase data:', data[0]);
-      } else {
-        console.log('No data returned from Supabase after update.');
-      }
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "verified" : "unverified"} successfully`,
       });
-      onDelete(); // Let parent reload from backend too
+
+      // Always trigger parent refresh for backend truth (with new RLS this will work!)
+      onDelete();
     } catch (error: any) {
-      // Revert UI change if failed
-      setLocalProfiles((prev) =>
-        prev.map(profile =>
-          profile.id === profileId
-            ? { ...profile, is_verified: currentStatus }
-            : profile
-        )
-      );
-      console.error('Verification error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update verification status",
@@ -147,61 +117,30 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       });
     } finally {
       setUpdatingStatus(null);
-      console.log('setUpdatingStatus(null) called in finally (verify).');
     }
   };
 
   const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `premium-${profileId}`;
     setUpdatingStatus(statusKey);
-    console.log(`togglePremiumStatus called for ${profileId}, currentStatus: ${currentStatus}`);
 
-    // Optimistically update UI
-    setLocalProfiles((prev) =>
-      prev.map(profile =>
-        profile.id === profileId
-          ? { ...profile, is_premium: !currentStatus }
-          : profile
-      )
-    );
     try {
       const newStatus = !currentStatus;
-      console.log(`Updating Supabase: { is_premium: ${newStatus} }`);
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_premium: newStatus })
         .eq('id', profileId)
         .select();
 
-      console.log('Supabase update response:', data, error);
-
       if (error) throw error;
-
-      if (data && data.length) {
-        setLocalProfiles((prev) =>
-          prev.map(profile =>
-            profile.id === profileId ? { ...profile, ...data[0] } : profile
-          )
-        );
-        console.log('Local profile updated from Supabase data:', data[0]);
-      } else {
-        console.log('No data returned from Supabase after update.');
-      }
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "set as premium" : "removed from premium"} successfully`,
       });
-      onDelete(); // Let parent reload from backend too
+
+      onDelete();
     } catch (error: any) {
-      setLocalProfiles((prev) =>
-        prev.map(profile =>
-          profile.id === profileId
-            ? { ...profile, is_premium: currentStatus }
-            : profile
-        )
-      );
-      console.error('Premium status error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update premium status",
@@ -209,7 +148,6 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       });
     } finally {
       setUpdatingStatus(null);
-      console.log('setUpdatingStatus(null) called in finally (premium).');
     }
   };
 
