@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Power } from "lucide-react";
 
@@ -10,6 +12,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const checkSiteStatus = async () => {
@@ -22,7 +25,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
         if (error) {
           console.error('Error checking site status:', error);
-          // If we can't check status, assume site is online
           setIsOnline(true);
         } else {
           setIsOnline(data.is_online);
@@ -50,7 +52,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           filter: 'id=eq.global'
         },
         (payload) => {
-          console.log('Site status changed:', payload);
           setIsOnline(payload.new.is_online);
           setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
@@ -62,7 +63,19 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
+  // Always allow /admin-login and /dashboard access regardless of isOnline state
+  const path = location.pathname;
+  const adminRoutes = ["/admin-login", "/dashboard"];
+
+  // While loading, show spinner for admin routes and maintenance-check for others
   if (loading) {
+    if (adminRoutes.includes(path)) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -70,6 +83,12 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
+  // If the site is offline but we're on admin-login or dashboard, allow admin access
+  if (!isOnline && adminRoutes.includes(path)) {
+    return <>{children}</>;
+  }
+
+  // If site is offline (maintenance) and not an allowed route, show maintenance message
   if (!isOnline) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
@@ -87,5 +106,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
+  // By default, render children (site is online)
   return <>{children}</>;
 }
