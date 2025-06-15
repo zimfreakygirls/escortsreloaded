@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
@@ -47,17 +46,26 @@ export default function Index() {
       setError(null);
       
       try {
-        // Fetch profiles but exclude videos
+        console.log("Starting to fetch profiles...");
+        
+        // Fetch all profiles first, then filter client-side to avoid restrictive SQL filtering
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('*')
-          .or('is_video.is.null,is_video.eq.false')
           .order('created_at', { ascending: false });
 
-        if (profilesError) throw profilesError;
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          throw profilesError;
+        }
         
-        console.log("Fetched profiles (excluding videos):", profilesData);
-        setProfiles(profilesData || []);
+        console.log("Raw profiles data:", profilesData);
+        
+        // Filter out video profiles client-side (more reliable than SQL filtering)
+        const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
+        
+        console.log("Filtered profiles (excluding videos):", nonVideoProfiles);
+        setProfiles(nonVideoProfiles);
         
         // Fetch settings
         await fetchSettings();
