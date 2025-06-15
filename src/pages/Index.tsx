@@ -250,9 +250,8 @@ export default function Index() {
           </div>
         ) : profiles.length > 0 ? (
           <div className={`grid ${getGridClass()}`}>
-            {profiles.slice(0, visibleProfiles).map((profile, index) => (
-              <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full relative">
-                <span className="absolute top-2 left-2 z-10 bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center font-bold shadow-md text-xs sm:text-base">{index + 1}</span>
+            {profiles.slice(0, visibleProfiles).map((profile) => (
+              <Link key={profile.id} to={`/profile/${profile.id}`} className="block h-full">
                 <ProfileCard 
                   name={profile.name}
                   age={profile.age}
@@ -261,7 +260,8 @@ export default function Index() {
                   viewMode={viewMode}
                   city={profile.city}
                   country={profile.country}
-                  phone={profile.is_verified ? profile.phone : undefined}
+                  // Always pass phone as-is; ProfileCard handles logic of display based on isVerified/isPremium/etc.
+                  phone={profile.phone}
                   isVerified={profile.is_verified}
                   isPremium={profile.is_premium}
                 />
