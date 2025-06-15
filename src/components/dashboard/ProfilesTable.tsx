@@ -43,6 +43,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     is_verified: false,
     is_premium: false,
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   const deleteProfile = async (id: string) => {
     try {
@@ -155,11 +156,11 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       is_verified: false,
       is_premium: false,
     });
+    setIsSaving(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-
     if (type === "number") {
       setEditForm((prev) => ({
         ...prev,
@@ -176,15 +177,15 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
   const handleCheckboxChange = (name: string, checked: boolean) => {
     setEditForm((prev) => ({
       ...prev,
-      [name]: checked,
+      [name]: checked === true,
     }));
   };
 
   const saveProfile = async () => {
     if (!editingProfile) return;
+    setIsSaving(true);
 
     try {
-      // Ensure booleans, trim empty to null for nullable fields
       const updatedProfile = {
         name: editForm.name,
         age: editForm.age,
@@ -219,6 +220,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: error.message,
         variant: "destructive",
       });
+      setIsSaving(false);
     }
   };
 
@@ -310,6 +312,9 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
           <DialogContent className="bg-[#292741] border-gray-800 text-white max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Profile: {editingProfile.name}</DialogTitle>
+              <span className="sr-only" id="dialog-description-edit-profile">
+                Edit the profile details, including premium and verified status. 
+              </span>
             </DialogHeader>
             
             <div className="space-y-4 py-4">
@@ -404,8 +409,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="is_verified" 
-                      checked={!!editForm.is_verified} 
-                      onCheckedChange={(checked) => handleCheckboxChange('is_verified', !!checked)}
+                      checked={!!editForm.is_verified}
+                      onCheckedChange={(checked: boolean | "indeterminate") => handleCheckboxChange("is_verified", checked === true)}
                       className={!!editForm.is_verified ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600" : ""}
                     />
                     <label htmlFor="is_verified" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -416,8 +421,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="is_premium" 
-                      checked={!!editForm.is_premium} 
-                      onCheckedChange={(checked) => handleCheckboxChange('is_premium', !!checked)}
+                      checked={!!editForm.is_premium}
+                      onCheckedChange={(checked: boolean | "indeterminate") => handleCheckboxChange("is_premium", checked === true)}
                       className={!!editForm.is_premium ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600" : ""}
                     />
                     <label htmlFor="is_premium" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -433,6 +438,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                 variant="outline"
                 onClick={closeEditDialog}
                 className="border-gray-700 hover:bg-gray-800"
+                disabled={isSaving}
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancel
@@ -440,9 +446,10 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
               <Button 
                 onClick={saveProfile}
                 className="bg-gradient-to-r from-[#ff719A] to-[#f97316] hover:from-[#ff719A]/90 hover:to-[#f97316]/90"
+                disabled={isSaving}
               >
                 <Check className="w-4 h-4 mr-2" />
-                Save Changes
+                {isSaving ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </DialogContent>
