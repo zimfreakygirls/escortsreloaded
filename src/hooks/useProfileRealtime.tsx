@@ -29,13 +29,17 @@ export function useProfileRealtime(id: string | undefined) {
             filter: `id=eq.${id}`
           },
           (payload) => {
-            // Only update state if the right row is changed
+            console.log('Profile update received:', payload);
+            // Only update state if the right row is changed and component is mounted
             if (payload.new && mountedRef.current) {
               setProfile(payload.new);
+              console.log('Profile updated in real-time:', payload.new);
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Realtime subscription status:', status);
+        });
     }
 
     // Clean up subscription
@@ -59,8 +63,10 @@ export function useProfileRealtime(id: string | undefined) {
         throw error;
       }
 
+      console.log('Profile fetched:', data);
       setProfile(data);
     } catch (error: any) {
+      console.error('Error fetching profile:', error);
       toast({
         title: "Error",
         description: "Failed to fetch profile details",

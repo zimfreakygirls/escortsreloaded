@@ -44,6 +44,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     is_premium: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   const deleteProfile = async (id: string) => {
     try {
@@ -85,19 +86,23 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
   };
 
   const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
+    setUpdatingStatus(`verify-${profileId}`);
     try {
+      const newStatus = !currentStatus;
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ is_verified: !currentStatus })
+        .update({ is_verified: newStatus })
         .eq('id', profileId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Profile ${!currentStatus ? "verified" : "unverified"} successfully`,
+        description: `Profile ${newStatus ? "verified" : "unverified"} successfully`,
       });
 
+      // Refresh the profiles list to show updated status
       onDelete();
     } catch (error: any) {
       console.error('Verification error:', error);
@@ -106,23 +111,29 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
   const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
+    setUpdatingStatus(`premium-${profileId}`);
     try {
+      const newStatus = !currentStatus;
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ is_premium: !currentStatus })
+        .update({ is_premium: newStatus })
         .eq('id', profileId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Profile ${!currentStatus ? "set as premium" : "removed from premium"} successfully`,
+        description: `Profile ${newStatus ? "set as premium" : "removed from premium"} successfully`,
       });
 
+      // Refresh the profiles list to show updated status
       onDelete();
     } catch (error: any) {
       console.error('Premium status error:', error);
@@ -131,6 +142,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -285,6 +298,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       variant="outline"
                       size="sm"
                       onClick={() => toggleVerificationStatus(profile.id, !!profile.is_verified)}
+                      disabled={updatingStatus === `verify-${profile.id}`}
                       className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                         profile.is_verified 
                           ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600 hover:bg-blue-600" 
@@ -292,13 +306,14 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       }`}
                     >
                       <BadgeCheck className="h-4 w-4" />
-                      {profile.is_verified ? "Verified" : "Verify"}
+                      {updatingStatus === `verify-${profile.id}` ? "Updating..." : (profile.is_verified ? "Verified" : "Verify")}
                     </Button>
                     
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => togglePremiumStatus(profile.id, !!profile.is_premium)}
+                      disabled={updatingStatus === `premium-${profile.id}`}
                       className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full ${
                         profile.is_premium 
                           ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 hover:bg-amber-600" 
@@ -306,7 +321,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
                       }`}
                     >
                       <Crown className="h-4 w-4" />
-                      {profile.is_premium ? "Premium" : "Make Premium"}
+                      {updatingStatus === `premium-${profile.id}` ? "Updating..." : (profile.is_premium ? "Premium" : "Make Premium")}
                     </Button>
                   </div>
                 </TableCell>
