@@ -150,13 +150,14 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     });
   };
 
+  // Wrap closeEditDialog with isSaving reset, always
   const closeEditDialog = () => {
     setEditingProfile(null);
     setEditForm({
       is_verified: false,
       is_premium: false,
     });
-    setIsSaving(false);
+    setIsSaving(false); // ensure reset any time dialog closes
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +187,22 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     setIsSaving(true);
 
     try {
+      // Defensive: Prevent undefined for required fields
+      const requiredFields = [
+        'name',
+        'age',
+        'location',
+        'city',
+        'country',
+        'price_per_hour'
+      ];
+      for (let k of requiredFields) {
+        // @ts-ignore
+        if (!editForm[k] && editForm[k] !== 0) {
+          throw new Error(`Required field '${k}' is missing`);
+        }
+      }
+
       const updatedProfile = {
         name: editForm.name,
         age: editForm.age,
@@ -193,8 +210,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         city: editForm.city,
         country: editForm.country,
         price_per_hour: editForm.price_per_hour,
-        phone: editForm.phone ? editForm.phone : null,
-        video_url: editForm.video_url ? editForm.video_url : null,
+        phone: editForm.phone?.toString().trim() ? editForm.phone : null,
+        video_url: editForm.video_url?.toString().trim() ? editForm.video_url : null,
         is_verified: !!editForm.is_verified,
         is_premium: !!editForm.is_premium,
       };
@@ -212,15 +229,15 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
       });
 
       closeEditDialog();
-      onDelete(); // Refresh profiles
+      onDelete();
     } catch (error: any) {
       console.error("Update error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error?.message || String(error),
         variant: "destructive",
       });
-      setIsSaving(false);
+      setIsSaving(false); // Ensure user can retry even after an error
     }
   };
 
@@ -308,8 +325,14 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
 
       {/* Edit Profile Dialog */}
       {editingProfile && (
-        <Dialog open={!!editingProfile} onOpenChange={(open) => { if (!open) closeEditDialog(); }}>
-          <DialogContent className="bg-[#292741] border-gray-800 text-white max-w-md">
+        <Dialog 
+          open={!!editingProfile} 
+          onOpenChange={(open) => { if (!open) closeEditDialog(); }}
+        >
+          <DialogContent
+            className="bg-[#292741] border-gray-800 text-white max-w-md"
+            aria-describedby="dialog-description-edit-profile"
+          >
             <DialogHeader>
               <DialogTitle>Edit Profile: {editingProfile.name}</DialogTitle>
               <span className="sr-only" id="dialog-description-edit-profile">
