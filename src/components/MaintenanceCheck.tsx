@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Power } from "lucide-react";
-import { useLocation } from "react-router-dom";
 import { checkIsAdmin } from "@/utils/adminUtils";
 
 interface MaintenanceCheckProps {
@@ -9,7 +9,6 @@ interface MaintenanceCheckProps {
 }
 
 export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
-  const location = useLocation();
   const [isOnline, setIsOnline] = useState(true);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,10 +28,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           setIsOnline(true);
         } else {
           setIsOnline(data.is_online);
-          setMaintenanceMessage(
-            data.maintenance_message ||
-              "The site is currently under maintenance. Please check back later."
-          );
+          setMaintenanceMessage(data.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
       } catch (error) {
         console.error('Error checking site status:', error);
@@ -44,6 +40,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
     checkSiteStatus();
 
+    // Site status subscription
     const subscription = supabase
       .channel('site_status_changes')
       .on(
@@ -52,14 +49,11 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           event: 'UPDATE',
           schema: 'public',
           table: 'site_status',
-          filter: 'id=eq.global',
+          filter: 'id=eq.global'
         },
         (payload) => {
           setIsOnline(payload.new.is_online);
-          setMaintenanceMessage(
-            payload.new.maintenance_message ||
-              "The site is currently under maintenance. Please check back later."
-          );
+          setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
       )
       .subscribe();
@@ -69,16 +63,15 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
+  // Check if user is admin to bypass maintenance
   useEffect(() => {
     const checkAdmin = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session?.user?.id) {
         setIsAdmin(false);
-        console.log("No user session found, setIsAdmin(false)");
       } else {
         const _isAdmin = await checkIsAdmin(data.session.user.id);
         setIsAdmin(_isAdmin);
-        console.log(`Admin check for user ${data.session.user.id}:`, _isAdmin);
       }
     };
     checkAdmin();
@@ -86,11 +79,9 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session?.user?.id) {
         setIsAdmin(false);
-        console.log("Auth state: No session -> setIsAdmin(false)");
       } else {
         const _isAdmin = await checkIsAdmin(session.user.id);
         setIsAdmin(_isAdmin);
-        console.log(`Auth state: Admin check for user ${session.user.id}:`, _isAdmin);
       }
     });
 
@@ -99,33 +90,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
-  // LOGIC DEBUGGING 
-  console.log(
-    "[MaintenanceCheck]",
-    { 
-      path: location.pathname,
-      loading,
-      isAdmin,
-      isOnline,
-    }
-  );
-
-  // If we're still loading or checking admin, show spinner
   if (loading || isAdmin === null) {
-    // But: if we're on /admin-login or /dashboard, show spinner for a short time ONLY, then let the page through so user doesn't get stuck
-    if (
-      location.pathname === "/admin-login" ||
-      location.pathname === "/dashboard"
-    ) {
-      console.log("Spinner shown for /admin-login or /dashboard during loading.");
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
-        </div>
-      );
-    }
-
-    // For all other pages, normal loading
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -133,28 +98,8 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // Allow /admin-login at all times
-  if (location.pathname === "/admin-login") {
-    console.log("Allowing /admin-login at all times");
-    return <>{children}</>;
-  }
-
-  // During maintenance, allow admins to access the dashboard and all subpages underneath /dashboard
-  // (use startsWith in case your dashboard route is more complex, e.g. /dashboard/settings etc)
+  // If maintenance kill switch is ON, but user is admin, allow access
   if (!isOnline && !isAdmin) {
-    // Allow admin-accessible paths anyway (i.e., /admin-login)
-    if (
-      location.pathname === "/admin-login" ||
-      location.pathname.startsWith("/dashboard")
-    ) {
-      console.log(
-        "Maintenance: Allowing /admin-login or /dashboard path even though not online and not admin."
-      );
-      return <>{children}</>;
-    }
-
-    // Everyone else gets maintenance screen
-    console.log("Maintenance: Blocking path for non-admin user.");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-md mx-auto text-center p-8">
@@ -171,7 +116,5 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // Otherwise, let everything through
-  console.log("Allowing all content through:", { path: location.pathname });
   return <>{children}</>;
 }
