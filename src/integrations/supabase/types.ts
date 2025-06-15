@@ -210,6 +210,30 @@ export type Database = {
         }
         Relationships: []
       }
+      site_status: {
+        Row: {
+          id: string
+          is_online: boolean
+          maintenance_message: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          is_online?: boolean
+          maintenance_message?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          is_online?: boolean
+          maintenance_message?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_status: {
         Row: {
           approved: boolean

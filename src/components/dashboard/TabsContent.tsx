@@ -7,6 +7,7 @@ import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { SiteStatusManager } from "@/components/dashboard/SiteStatusManager";
 
 interface SettingsTabContentProps {
   settings: any;
@@ -61,6 +62,7 @@ export function AdminTabContent() {
     <TabsContent value="admin" className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
       <AdminSettings />
       <AdminSignupSettings />
+      <SiteStatusManager />
     </TabsContent>
   );
 }
