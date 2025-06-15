@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -35,60 +34,62 @@ export function UsersTable() {
       // First attempt to get actual auth users via admin API
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
+      // --- Load profile data FIRST (id = user_id relationship is assumed) ---
+      let profilesMap = new Map<string, string>();
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, name');
+      if (profilesData && profilesData.length > 0) {
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.id, profile.name);
+        });
+      }
+
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
-        console.log("Fetched auth users:", authUsers.users);
-        
-        // If admin API works, map the user data with better username extraction
+        // Map the user data with better username extraction, fallback to profile name if available
         const mappedUsers = authUsers.users.map(user => {
-          // Try multiple metadata fields for username with better fallback logic
+          // Prefer profile name if available
+          const profileName = profilesMap.get(user.id);
           const metadata = user.user_metadata || {};
           const appMetadata = user.app_metadata || {};
-          
-          let username = metadata.username || 
-                        metadata.user_name || 
-                        metadata.full_name || 
-                        metadata.name ||
-                        metadata.display_name ||
-                        appMetadata.username ||
-                        appMetadata.full_name ||
-                        null;
-          
-          // If we have an email but no username, extract username from email
+
+          let username = 
+            profileName ||
+            metadata.username ||
+            metadata.user_name ||
+            metadata.full_name ||
+            metadata.name ||
+            metadata.display_name ||
+            appMetadata.username ||
+            appMetadata.full_name ||
+            null;
+
           if (!username && user.email) {
             username = user.email.split('@')[0];
           }
           
-          console.log(`User ${user.id}:`, {
-            email: user.email,
-            metadata: metadata,
-            appMetadata: appMetadata,
-            extractedUsername: username
-          });
-          
           return {
             id: user.id,
             email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
-            username: username,
+            username,
             created_at: user.created_at || new Date().toISOString(),
             last_sign_in_at: user.last_sign_in_at,
-            banned: false, // Will be updated from user_status
-            approved: false // Will be updated from user_status
+            banned: false, // Will be updated below
+            approved: false // Will be updated below
           };
         });
         
-        // Get status data to merge with auth data
+        // Get user_status for merged banned/approved info
         const { data: userStatusData } = await supabase
           .from('user_status')
           .select('*');
           
         if (userStatusData && userStatusData.length > 0) {
-          // Create a lookup map for quick access
           const statusMap = new Map();
           userStatusData.forEach(status => {
             statusMap.set(status.user_id, status);
           });
           
-          // Update user data with status information
           mappedUsers.forEach(user => {
             const status = statusMap.get(user.id);
             if (status) {
@@ -98,46 +99,19 @@ export function UsersTable() {
           });
         }
         
-        // Try to get additional username data from profiles table
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, name');
-          
-        if (profilesData && profilesData.length > 0) {
-          // Create a lookup map for profile names
-          const profilesMap = new Map();
-          profilesData.forEach(profile => {
-            // Assuming the profile id might be linked to user id somehow
-            // This is a fallback in case we can find usernames in profiles
-            profilesMap.set(profile.id, profile.name);
-          });
-          
-          // Update usernames if we found better ones in profiles
-          mappedUsers.forEach(user => {
-            const profileName = profilesMap.get(user.id);
-            if (profileName && !user.username) {
-              user.username = profileName;
-            }
-          });
-        }
-        
         setUsers(mappedUsers);
       } else {
-        // Fallback to user_status table which is accessible with anon key
+        // Fallback: Get user_status and join on profiles
         const { data: userStatusData, error: statusError } = await supabase
           .from('user_status')
           .select('*');
-          
-        if (statusError) {
-          throw statusError;
-        }
+        if (statusError) throw statusError;
         
-        // Create user records from status data
         if (userStatusData && userStatusData.length > 0) {
           const usersFromStatus = userStatusData.map(status => ({
             id: status.user_id,
-            email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
-            username: undefined,
+            email: `user-${status.user_id.substring(0, 6)}@example.com`,
+            username: profilesMap.get(status.user_id) || undefined,
             created_at: status.created_at || new Date().toISOString(),
             last_sign_in_at: null,
             banned: status.banned,
@@ -146,7 +120,7 @@ export function UsersTable() {
           
           setUsers(usersFromStatus);
         } else {
-          // If no status records, create at least one demo user for testing
+          // Demo fallback
           setUsers([{
             id: "1",
             email: "admin@escortsreloaded.com",
@@ -156,7 +130,6 @@ export function UsersTable() {
             banned: false,
             approved: true
           }]);
-          
           toast({
             title: "Note",
             description: "No user records found. Create users or add entries to the user_status table.",
@@ -172,7 +145,6 @@ export function UsersTable() {
         variant: "destructive",
       });
       
-      // Fallback to show at least one user for demo purposes
       setUsers([{
         id: "1",
         email: "admin@escortsreloaded.com",
