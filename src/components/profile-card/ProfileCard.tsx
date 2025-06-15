@@ -1,5 +1,5 @@
 
-import { useProfileSession } from "./useProfileSession";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { ProfileCardBadges } from "./ProfileCardBadges";
 import { ProfileCardImage } from "./ProfileCardImage";
 import { ProfileCardDetails } from "./ProfileCardDetails";
@@ -42,7 +42,7 @@ export function ProfileCard({
   isPremium
 }: ProfileCardProps) {
   const isListView = viewMode === "list";
-  const session = useProfileSession();
+  const session = useAuthSession();
 
   // Show phone only if:
   // 1. It exists AND

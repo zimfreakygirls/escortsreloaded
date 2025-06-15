@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
@@ -7,7 +8,6 @@ import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchProfiles, ensureProfileImagesBucket } from "@/services/profiles";
 
 interface Settings {
   id: string;
@@ -40,34 +40,23 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Unified effect for session & profiles with best-practices
   useEffect(() => {
     let isMounted = true;
-    let unsub: any = null;
 
-    // Set up auth state listener FIRST (not after fetching profiles)
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        // When session changes, refetch profiles if logged in
-        if (session) {
-          loadProfiles();
-        } else {
-          setProfiles([]);
-        }
       }
     );
 
-    // On mount, also check current session
+    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        loadProfiles();
-      } else {
-        setProfiles([]);
-        setIsLoading(false);
-      }
     });
+
+    // Load profiles regardless of authentication status
+    loadProfiles();
 
     // Clean up
     return () => {
@@ -107,11 +96,6 @@ export default function Index() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const checkSession = async () => {
-    const { data } = await supabase.auth.getSession();
-    setSession(data.session);
   };
 
   const fetchSettings = async () => {
