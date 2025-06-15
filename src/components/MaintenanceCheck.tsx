@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Power } from "lucide-react";
+import { useLocation } from "react-router-dom"; // <-- add this
 import { checkIsAdmin } from "@/utils/adminUtils";
 
 interface MaintenanceCheckProps {
@@ -9,6 +10,7 @@ interface MaintenanceCheckProps {
 }
 
 export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
+  const location = useLocation(); // <-- get current route
   const [isOnline, setIsOnline] = useState(true);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
     checkSiteStatus();
 
-    // Site status subscription
     const subscription = supabase
       .channel('site_status_changes')
       .on(
@@ -63,7 +64,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
-  // Check if user is admin to bypass maintenance
   useEffect(() => {
     const checkAdmin = async () => {
       const { data } = await supabase.auth.getSession();
@@ -98,8 +98,12 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // If maintenance kill switch is ON, but user is admin, allow access
-  if (!isOnline && !isAdmin) {
+  // Always allow access to /admin-login even during maintenance
+  if (
+    !isOnline && 
+    !isAdmin &&
+    location.pathname !== "/admin-login"
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-md mx-auto text-center p-8">
