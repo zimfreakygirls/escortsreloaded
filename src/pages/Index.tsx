@@ -40,63 +40,74 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Unified effect for session & profiles with best-practices
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        console.log("Starting to fetch profiles...");
-        
-        // Fetch all profiles first, then filter client-side to avoid restrictive SQL filtering
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
+    let isMounted = true;
+    let unsub: any = null;
 
-        if (profilesError) {
-          console.error("Error fetching profiles:", profilesError);
-          throw profilesError;
+    // Set up auth state listener FIRST (not after fetching profiles)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        // When session changes, refetch profiles if logged in
+        if (session) {
+          loadProfiles();
+        } else {
+          setProfiles([]);
         }
-        
-        console.log("Raw profiles data:", profilesData);
-        
-        // Filter out video profiles client-side (more reliable than SQL filtering)
-        const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
-        
-        console.log("Filtered profiles (excluding videos):", nonVideoProfiles);
-        setProfiles(nonVideoProfiles);
-        
-        // Fetch settings
-        await fetchSettings();
-        
-        // Check session
-        await checkSession();
-      } catch (error) {
-        console.error("Error loading data:", error);
-        setError("Failed to load profiles. Please try again later.");
-        toast({
-          title: "Error",
-          description: "Failed to load profiles",
-          variant: "destructive",
-        });
-      } finally {
+      }
+    );
+
+    // On mount, also check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        loadProfiles();
+      } else {
+        setProfiles([]);
         setIsLoading(false);
       }
-    };
-
-    loadData();
-    
-    // Listen for authentication state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
     });
-    
-    // Clean up subscription on unmount
+
+    // Clean up
     return () => {
-      authListener?.subscription.unsubscribe();
+      subscription.unsubscribe();
+      isMounted = false;
     };
+    // eslint-disable-next-line
   }, []);
+
+  const loadProfiles = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch all profiles, then filter out is_video
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) {
+        throw profilesError;
+      }
+      // Filter on client side for non-video profiles
+      const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
+      setProfiles(nonVideoProfiles);
+
+      // Fetch settings and visible profiles
+      await fetchSettings();
+    } catch (err) {
+      setError("Failed to load profiles. Please try again later.");
+      toast({
+        title: "Error",
+        description: "Failed to load profiles",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const checkSession = async () => {
     const { data } = await supabase.auth.getSession();
