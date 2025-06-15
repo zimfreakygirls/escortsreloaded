@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Power } from "lucide-react";
-import { useLocation } from "react-router-dom"; // <-- add this
+import { useLocation } from "react-router-dom";
 import { checkIsAdmin } from "@/utils/adminUtils";
 
 interface MaintenanceCheckProps {
@@ -10,7 +9,7 @@ interface MaintenanceCheckProps {
 }
 
 export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
-  const location = useLocation(); // <-- get current route
+  const location = useLocation();
   const [isOnline, setIsOnline] = useState(true);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -30,7 +29,10 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           setIsOnline(true);
         } else {
           setIsOnline(data.is_online);
-          setMaintenanceMessage(data.maintenance_message || "The site is currently under maintenance. Please check back later.");
+          setMaintenanceMessage(
+            data.maintenance_message ||
+              "The site is currently under maintenance. Please check back later."
+          );
         }
       } catch (error) {
         console.error('Error checking site status:', error);
@@ -50,11 +52,14 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           event: 'UPDATE',
           schema: 'public',
           table: 'site_status',
-          filter: 'id=eq.global'
+          filter: 'id=eq.global',
         },
         (payload) => {
           setIsOnline(payload.new.is_online);
-          setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
+          setMaintenanceMessage(
+            payload.new.maintenance_message ||
+              "The site is currently under maintenance. Please check back later."
+          );
         }
       )
       .subscribe();
@@ -90,7 +95,21 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
+  // If we're still loading or checking admin, show spinner
   if (loading || isAdmin === null) {
+    // But: if we're on /admin-login or /dashboard, show spinner for a short time ONLY, then let the page through so user doesn't get stuck
+    if (
+      location.pathname === "/admin-login" ||
+      location.pathname === "/dashboard"
+    ) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
+        </div>
+      );
+    }
+
+    // For all other pages, normal loading
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -98,12 +117,23 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // Always allow access to /admin-login even during maintenance
-  if (
-    !isOnline && 
-    !isAdmin &&
-    location.pathname !== "/admin-login"
-  ) {
+  // Allow /admin-login at all times
+  if (location.pathname === "/admin-login") {
+    return <>{children}</>;
+  }
+
+  // During maintenance, allow admins to access the dashboard and all subpages underneath /dashboard
+  // (use startsWith in case your dashboard route is more complex, e.g. /dashboard/settings etc)
+  if (!isOnline && !isAdmin) {
+    // Allow admin-accessible paths anyway (i.e., /admin-login)
+    if (
+      location.pathname === "/admin-login" ||
+      location.pathname.startsWith("/dashboard")
+    ) {
+      return <>{children}</>;
+    }
+
+    // Everyone else gets maintenance screen
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-md mx-auto text-center p-8">
@@ -120,5 +150,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
+  // Otherwise, let everything through
   return <>{children}</>;
 }
