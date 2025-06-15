@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,12 +78,14 @@ export default function Signup() {
     fetchCountries();
   }, []);
 
-  const getCurrencySymbol = (currency: string) => {
+  // Use the existing getCurrencySymbol and enhance for kwacha
+  const getCurrencyLabel = (currency: string) => {
     switch (currency) {
       case 'USD': return '$';
       case 'EUR': return '€';
       case 'GBP': return '£';
-      default: return '$';
+      case 'ZMW': return 'Zambian Kwacha (K)';
+      default: return currency;
     }
   };
 
@@ -365,7 +366,10 @@ export default function Signup() {
                       value={country.id}
                       className="text-white hover:bg-[#2d2b3a]"
                     >
-                      {country.name} - {getCurrencySymbol(country.currency)}{country.signup_price?.toFixed(2) || '49.99'}
+                      {country.name} - {country.currency === "ZMW"
+                        ? `Zambian Kwacha (K)${country.signup_price?.toFixed(2) || "49.99"}`
+                        : `${getCurrencyLabel(country.currency)}${country.signup_price?.toFixed(2) || "49.99"}`
+                      }
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -398,7 +402,7 @@ export default function Signup() {
                 <div className="flex justify-between text-gray-300">
                   <span>Amount:</span>
                   <span className="font-medium text-green-400">
-                    {getCurrencySymbol(selectedCountry.currency)}{selectedCountry.signup_price?.toFixed(2) || '49.99'}
+                    {getCurrencyLabel(selectedCountry.currency)}{selectedCountry.signup_price?.toFixed(2) || '49.99'}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-300">
