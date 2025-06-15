@@ -80,10 +80,40 @@ export default function Index() {
       if (profilesError) {
         throw profilesError;
       }
-      
-      // Filter on client side for non-video profiles
-      const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
-      
+
+      // Filter for real, admin-added non-video profiles:
+      // - Must have at least one image (image[0] is not /placeholder.svg/)
+      // - Optionally: require is_verified true (uncomment if desired).
+      // - Exclude default/empty profiles with no image and no price
+      const nonVideoProfiles = (profilesData || []).filter(profile => {
+        // A "real" profile must have at least one image URL that is not the placeholder and that is not empty
+        const hasRealImage =
+          Array.isArray(profile.images) &&
+          profile.images.length > 0 &&
+          profile.images[0] &&
+          !profile.images[0].includes("placeholder.svg");
+
+        // Optionally filter for verified only (uncomment next line if you want!)
+        // const isActuallyVerified = !!profile.is_verified;
+
+        // Potential criteria: Must have image, non-default name, phone present, admin sets is_verified
+        const isAdminAdded =
+          hasRealImage &&
+          typeof profile.name === "string" &&
+          profile.name.trim().length > 0 &&
+          typeof profile.city === "string" &&
+          profile.city.trim().length > 0 &&
+          typeof profile.country === "string" &&
+          profile.country.trim().length > 0;
+
+        // filter out entries that might be default or missing details
+        return (
+          !profile.is_video &&
+          isAdminAdded
+          // && isActuallyVerified // Uncomment if you want to restrict to only verified profiles
+        );
+      });
+
       // Preload first few images for better perceived performance
       const imagesToPreload = nonVideoProfiles.slice(0, 6);
       imagesToPreload.forEach(profile => {
@@ -92,7 +122,7 @@ export default function Index() {
           img.src = profile.images[0];
         }
       });
-      
+
       setProfiles(nonVideoProfiles);
 
       // Fetch settings and visible profiles
