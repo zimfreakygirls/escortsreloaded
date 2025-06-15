@@ -150,14 +150,15 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
     });
   };
 
-  // Wrap closeEditDialog with isSaving reset, always
+  // Ensure isSaving is *always* reset, even if something goes wrong
   const closeEditDialog = () => {
     setEditingProfile(null);
     setEditForm({
       is_verified: false,
       is_premium: false,
     });
-    setIsSaving(false); // ensure reset any time dialog closes
+    setIsSaving(false); // always reset
+    console.log("[Dialog] Closed and state reset.");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,6 +217,8 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         is_premium: !!editForm.is_premium,
       };
 
+      console.log("[Update] Saving profile:", updatedProfile);
+
       const { error } = await supabase
         .from("profiles")
         .update(updatedProfile)
@@ -228,8 +231,18 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: "Profile updated successfully",
       });
 
+      // Always reset saving/loading state before closing the dialog
+      setIsSaving(false);
       closeEditDialog();
-      onDelete();
+
+      // Don't block UI on this; refetch profile list in background
+      setTimeout(() => {
+        try {
+          onDelete();
+        } catch (err) {
+          console.error("[Profile] onDelete error:", err);
+        }
+      }, 0);
     } catch (error: any) {
       console.error("Update error:", error);
       toast({
