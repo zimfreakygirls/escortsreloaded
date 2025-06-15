@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -31,19 +30,25 @@ interface Profile {
 
 interface ProfilesTableProps {
   profiles: Profile[];
-  onDelete: () => void;
+  onDelete: () => void; // Actually a reload
   currencySymbol?: string;
 }
 
-export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: ProfilesTableProps) {
+export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol = '$' }: ProfilesTableProps) {
   const { toast } = useToast();
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [localProfiles, setLocalProfiles] = useState<Profile[]>(propProfiles);
+
+  // Keep localProfiles up-to-date with input props
+  useEffect(() => {
+    setLocalProfiles(propProfiles);
+  }, [propProfiles]);
 
   const deleteProfile = async (id: string) => {
     try {
-      const profile = profiles.find(p => p.id === id);
-      
+      const profile = localProfiles.find(p => p.id === id);
+
       if (profile) {
         // Delete images from storage
         for (const imageUrl of profile.images) {
@@ -68,6 +73,10 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
         description: "Profile deleted successfully",
       });
 
+      // Optimistically remove from UI
+      setLocalProfiles(localProfiles => localProfiles.filter(p => p.id !== id));
+
+      // Also call onDelete for parent to refetch from db
       onDelete();
     } catch (error: any) {
       console.error('Delete error:', error);
@@ -82,11 +91,18 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
   const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `verify-${profileId}`;
     setUpdatingStatus(statusKey);
-    
+
+    // Optimistically update UI
+    setLocalProfiles((prev) =>
+      prev.map(profile =>
+        profile.id === profileId
+          ? { ...profile, is_verified: !currentStatus }
+          : profile
+      )
+    );
+
     try {
       const newStatus = !currentStatus;
-      console.log(`Updating verification for profile ${profileId} from ${currentStatus} to ${newStatus}`);
-      
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_verified: newStatus })
@@ -95,16 +111,29 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
 
       if (error) throw error;
 
-      console.log('Verification update result:', data);
+      // Replace updated profile with the db response, if available:
+      if (data && data.length) {
+        setLocalProfiles((prev) =>
+          prev.map(profile =>
+            profile.id === profileId ? { ...profile, ...data[0] } : profile
+          )
+        );
+      }
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "verified" : "unverified"} successfully`,
       });
-
-      // Refresh the profiles data
-      onDelete();
+      onDelete(); // Let parent reload from backend too
     } catch (error: any) {
+      // Revert UI change if failed
+      setLocalProfiles((prev) =>
+        prev.map(profile =>
+          profile.id === profileId
+            ? { ...profile, is_verified: currentStatus } // revert
+            : profile
+        )
+      );
       console.error('Verification error:', error);
       toast({
         title: "Error",
@@ -119,11 +148,18 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
   const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `premium-${profileId}`;
     setUpdatingStatus(statusKey);
-    
+
+    // Optimistically update UI
+    setLocalProfiles((prev) =>
+      prev.map(profile =>
+        profile.id === profileId
+          ? { ...profile, is_premium: !currentStatus }
+          : profile
+      )
+    );
+
     try {
       const newStatus = !currentStatus;
-      console.log(`Updating premium status for profile ${profileId} from ${currentStatus} to ${newStatus}`);
-      
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_premium: newStatus })
@@ -132,16 +168,28 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
 
       if (error) throw error;
 
-      console.log('Premium update result:', data);
+      // Replace updated profile with the db response, if available:
+      if (data && data.length) {
+        setLocalProfiles((prev) =>
+          prev.map(profile =>
+            profile.id === profileId ? { ...profile, ...data[0] } : profile
+          )
+        );
+      }
 
       toast({
         title: "Success",
         description: `Profile ${newStatus ? "set as premium" : "removed from premium"} successfully`,
       });
-
-      // Refresh the profiles data
-      onDelete();
+      onDelete(); // Let parent reload from backend too
     } catch (error: any) {
+      setLocalProfiles((prev) =>
+        prev.map(profile =>
+          profile.id === profileId
+            ? { ...profile, is_premium: currentStatus } // revert
+            : profile
+        )
+      );
       console.error('Premium status error:', error);
       toast({
         title: "Error",
@@ -178,7 +226,7 @@ export function ProfilesTable({ profiles, onDelete, currencySymbol = '$' }: Prof
             </TableRow>
           </TableHeader>
           <TableBody>
-            {profiles.map((profile) => (
+            {localProfiles.map((profile) => (
               <TableRow key={profile.id} className="border-gray-800 hover:bg-[#1e1c2e]/30">
                 <TableCell className="font-medium text-white">{profile.name}</TableCell>
                 <TableCell className="text-gray-300">{profile.age}</TableCell>
