@@ -98,6 +98,29 @@ export function UsersTable() {
           });
         }
         
+        // Try to get additional username data from profiles table
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name');
+          
+        if (profilesData && profilesData.length > 0) {
+          // Create a lookup map for profile names
+          const profilesMap = new Map();
+          profilesData.forEach(profile => {
+            // Assuming the profile id might be linked to user id somehow
+            // This is a fallback in case we can find usernames in profiles
+            profilesMap.set(profile.id, profile.name);
+          });
+          
+          // Update usernames if we found better ones in profiles
+          mappedUsers.forEach(user => {
+            const profileName = profilesMap.get(user.id);
+            if (profileName && !user.username) {
+              user.username = profileName;
+            }
+          });
+        }
+        
         setUsers(mappedUsers);
       } else {
         // Fallback to user_status table which is accessible with anon key
@@ -181,7 +204,15 @@ export function UsersTable() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleString();
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (loading) {
