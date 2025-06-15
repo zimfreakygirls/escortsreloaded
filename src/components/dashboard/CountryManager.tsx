@@ -26,6 +26,7 @@ export function CountryManager() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedCountry, setEditedCountry] = useState<Country | null>(null);
   const [newCountry, setNewCountry] = useState({
     name: '',
     currency: 'USD',
@@ -40,11 +41,11 @@ export function CountryManager() {
 
   const fetchCountries = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('countries')
         .select('*')
         .order('name');
-      
       if (error) throw error;
       setCountries(data || []);
     } catch (error) {
@@ -59,19 +60,35 @@ export function CountryManager() {
     }
   };
 
-  const handleSave = async (country: Country) => {
+  const handleEditClick = (country: Country) => {
+    setEditingId(country.id);
+    setEditedCountry({ ...country });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditedCountry(null);
+  };
+
+  const handleEditChange = <K extends keyof Country>(key: K, value: Country[K]) => {
+    if (!editedCountry) return;
+    setEditedCountry({ ...editedCountry, [key]: value });
+  };
+
+  const handleSave = async () => {
+    if (!editedCountry) return;
     try {
       const { error } = await supabase
         .from('countries')
         .update({
-          name: country.name,
-          currency: country.currency,
-          signup_price: country.signup_price,
-          payment_phone: country.payment_phone,
-          payment_name: country.payment_name,
-          active: country.active
+          name: editedCountry.name,
+          currency: editedCountry.currency,
+          signup_price: editedCountry.signup_price,
+          payment_phone: editedCountry.payment_phone,
+          payment_name: editedCountry.payment_name,
+          active: editedCountry.active
         })
-        .eq('id', country.id);
+        .eq('id', editedCountry.id);
 
       if (error) throw error;
 
@@ -81,6 +98,7 @@ export function CountryManager() {
       });
       
       setEditingId(null);
+      setEditedCountry(null);
       fetchCountries();
     } catch (error: any) {
       toast({
@@ -122,14 +140,13 @@ export function CountryManager() {
       const { error } = await supabase
         .from('countries')
         .insert([newCountry]);
-
       if (error) throw error;
 
       toast({
         title: "Success",
         description: "Country added successfully",
       });
-      
+
       setNewCountry({
         name: '',
         currency: 'USD',
@@ -137,7 +154,6 @@ export function CountryManager() {
         payment_phone: '',
         payment_name: 'Escorts Reloaded'
       });
-      
       fetchCountries();
     } catch (error: any) {
       toast({
@@ -247,38 +263,120 @@ export function CountryManager() {
             <TableBody>
               {countries.map((country) => (
                 <TableRow key={country.id} className="border-gray-800">
-                  <TableCell className="text-white">{country.name}</TableCell>
-                  <TableCell className="text-white">{country.currency}</TableCell>
-                  <TableCell className="text-white">
-                    {getCurrencySymbol(country.currency)}{country.signup_price?.toFixed(2) || '0.00'}
-                  </TableCell>
-                  <TableCell className="text-white">{country.payment_phone}</TableCell>
-                  <TableCell className="text-white">{country.payment_name}</TableCell>
-                  <TableCell>
-                    <Badge variant={country.active ? "default" : "secondary"}>
-                      {country.active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingId(country.id)}
-                        className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(country.id)}
-                        className="h-8 w-8 text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  {editingId === country.id && editedCountry ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          value={editedCountry.name}
+                          onChange={e => handleEditChange('name', e.target.value)}
+                          className="bg-[#292741] border-gray-700 text-white"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={editedCountry.currency}
+                          onValueChange={val => handleEditChange('currency', val)}
+                        >
+                          <SelectTrigger className="bg-[#292741] border-gray-700 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USD">USD ($)</SelectItem>
+                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                            <SelectItem value="ZMW">ZMW (K)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editedCountry.signup_price}
+                          onChange={e => handleEditChange('signup_price', parseFloat(e.target.value) || 0)}
+                          className="bg-[#292741] border-gray-700 text-white"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editedCountry.payment_phone}
+                          onChange={e => handleEditChange('payment_phone', e.target.value)}
+                          className="bg-[#292741] border-gray-700 text-white"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editedCountry.payment_name}
+                          onChange={e => handleEditChange('payment_name', e.target.value)}
+                          className="bg-[#292741] border-gray-700 text-white"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={editedCountry.active}
+                          onCheckedChange={val => handleEditChange('active', val)}
+                        />
+                        <Badge variant={editedCountry.active ? "default" : "secondary"}>
+                          {editedCountry.active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleSave}
+                            className="h-8 w-8 text-green-400 hover:text-green-300"
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleCancelEdit}
+                            className="h-8 w-8 text-gray-400 hover:text-gray-300"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell className="text-white">{country.name}</TableCell>
+                      <TableCell className="text-white">{country.currency}</TableCell>
+                      <TableCell className="text-white">
+                        {getCurrencySymbol(country.currency)}{country.signup_price?.toFixed(2) || '0.00'}
+                      </TableCell>
+                      <TableCell className="text-white">{country.payment_phone}</TableCell>
+                      <TableCell className="text-white">{country.payment_name}</TableCell>
+                      <TableCell>
+                        <Badge variant={country.active ? "default" : "secondary"}>
+                          {country.active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(country)}
+                            className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(country.id)}
+                            className="h-8 w-8 text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
