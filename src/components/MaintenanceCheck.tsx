@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Power } from "lucide-react";
-import { checkIsAdmin } from "@/utils/adminUtils";
 
 interface MaintenanceCheckProps {
   children: React.ReactNode;
@@ -12,7 +10,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkSiteStatus = async () => {
@@ -25,6 +22,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
         if (error) {
           console.error('Error checking site status:', error);
+          // If we can't check status, assume site is online
           setIsOnline(true);
         } else {
           setIsOnline(data.is_online);
@@ -40,7 +38,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
     checkSiteStatus();
 
-    // Site status subscription
+    // Set up real-time subscription to site status changes
     const subscription = supabase
       .channel('site_status_changes')
       .on(
@@ -52,6 +50,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           filter: 'id=eq.global'
         },
         (payload) => {
+          console.log('Site status changed:', payload);
           setIsOnline(payload.new.is_online);
           setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
@@ -63,34 +62,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
-  // Check if user is admin to bypass maintenance
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session?.user?.id) {
-        setIsAdmin(false);
-      } else {
-        const _isAdmin = await checkIsAdmin(data.session.user.id);
-        setIsAdmin(_isAdmin);
-      }
-    };
-    checkAdmin();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user?.id) {
-        setIsAdmin(false);
-      } else {
-        const _isAdmin = await checkIsAdmin(session.user.id);
-        setIsAdmin(_isAdmin);
-      }
-    });
-
-    return () => {
-      listener?.subscription?.unsubscribe?.();
-    };
-  }, []);
-
-  if (loading || isAdmin === null) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -98,8 +70,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // If maintenance kill switch is ON, but user is admin, allow access
-  if (!isOnline && !isAdmin) {
+  if (!isOnline) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-md mx-auto text-center p-8">
