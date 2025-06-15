@@ -8,6 +8,7 @@ interface UserTableRowProps {
   user: {
     id: string;
     email: string;
+    username?: string;
     created_at: string;
     last_sign_in_at: string | null;
     banned: boolean;
@@ -23,7 +24,12 @@ export function UserTableRow({ user, formatDate, onStatusChange }: UserTableRowP
       <TableCell className="font-medium text-white">
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-gray-400" />
-          {user.email}
+          <div className="flex flex-col">
+            {user.username && (
+              <span className="font-semibold">{user.username}</span>
+            )}
+            <span className={user.username ? "text-sm text-gray-400" : ""}>{user.email}</span>
+          </div>
         </div>
       </TableCell>
       <TableCell className="text-gray-300">{formatDate(user.created_at)}</TableCell>

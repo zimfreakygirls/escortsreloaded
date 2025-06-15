@@ -16,6 +16,7 @@ import { UserTableRow } from "./UserTableRow";
 interface UserData {
   id: string;
   email: string;
+  username?: string;
   created_at: string;
   last_sign_in_at: string | null;
   banned: boolean;
@@ -37,9 +38,12 @@ export function UsersTable() {
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
         // If admin API works, map the user data
         const mappedUsers = authUsers.users.map(user => {
+          const username = user.user_metadata?.username || user.user_metadata?.full_name || null;
+          
           return {
             id: user.id,
             email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
+            username: username,
             created_at: user.created_at || new Date().toISOString(),
             last_sign_in_at: user.last_sign_in_at,
             banned: false, // Will be updated from user_status
@@ -85,6 +89,7 @@ export function UsersTable() {
           const usersFromStatus = userStatusData.map(status => ({
             id: status.user_id,
             email: `user-${status.user_id.substring(0, 6)}@example.com`, // Email unknown from status
+            username: undefined,
             created_at: status.created_at || new Date().toISOString(),
             last_sign_in_at: null,
             banned: status.banned,
@@ -97,6 +102,7 @@ export function UsersTable() {
           setUsers([{
             id: "1",
             email: "admin@escortsreloaded.com",
+            username: "Admin",
             created_at: new Date().toISOString(),
             last_sign_in_at: new Date().toISOString(),
             banned: false,
@@ -122,6 +128,7 @@ export function UsersTable() {
       setUsers([{
         id: "1",
         email: "admin@escortsreloaded.com",
+        username: "Admin",
         created_at: new Date().toISOString(),
         last_sign_in_at: new Date().toISOString(),
         banned: false,
@@ -166,7 +173,7 @@ export function UsersTable() {
         <Table>
           <TableHeader className="bg-[#1e1c2e]">
             <TableRow className="hover:bg-transparent border-gray-800">
-              <TableHead className="text-gray-300">Email</TableHead>
+              <TableHead className="text-gray-300">User</TableHead>
               <TableHead className="text-gray-300">Created At</TableHead>
               <TableHead className="text-gray-300">Last Sign In</TableHead>
               <TableHead className="text-gray-300">Status</TableHead>
