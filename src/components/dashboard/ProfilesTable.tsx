@@ -91,6 +91,7 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
   const toggleVerificationStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `verify-${profileId}`;
     setUpdatingStatus(statusKey);
+    console.log(`toggleVerificationStatus called for ${profileId}, currentStatus: ${currentStatus}`);
 
     // Optimistically update UI
     setLocalProfiles((prev) =>
@@ -100,24 +101,28 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
           : profile
       )
     );
-
     try {
       const newStatus = !currentStatus;
+      console.log(`Updating Supabase: { is_verified: ${newStatus} }`);
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_verified: newStatus })
         .eq('id', profileId)
         .select();
 
+      console.log('Supabase update response:', data, error);
+
       if (error) throw error;
 
-      // Replace updated profile with the db response, if available:
       if (data && data.length) {
         setLocalProfiles((prev) =>
           prev.map(profile =>
             profile.id === profileId ? { ...profile, ...data[0] } : profile
           )
         );
+        console.log('Local profile updated from Supabase data:', data[0]);
+      } else {
+        console.log('No data returned from Supabase after update.');
       }
 
       toast({
@@ -130,7 +135,7 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       setLocalProfiles((prev) =>
         prev.map(profile =>
           profile.id === profileId
-            ? { ...profile, is_verified: currentStatus } // revert
+            ? { ...profile, is_verified: currentStatus }
             : profile
         )
       );
@@ -142,12 +147,14 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       });
     } finally {
       setUpdatingStatus(null);
+      console.log('setUpdatingStatus(null) called in finally (verify).');
     }
   };
 
   const togglePremiumStatus = async (profileId: string, currentStatus: boolean) => {
     const statusKey = `premium-${profileId}`;
     setUpdatingStatus(statusKey);
+    console.log(`togglePremiumStatus called for ${profileId}, currentStatus: ${currentStatus}`);
 
     // Optimistically update UI
     setLocalProfiles((prev) =>
@@ -157,24 +164,28 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
           : profile
       )
     );
-
     try {
       const newStatus = !currentStatus;
+      console.log(`Updating Supabase: { is_premium: ${newStatus} }`);
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_premium: newStatus })
         .eq('id', profileId)
         .select();
 
+      console.log('Supabase update response:', data, error);
+
       if (error) throw error;
 
-      // Replace updated profile with the db response, if available:
       if (data && data.length) {
         setLocalProfiles((prev) =>
           prev.map(profile =>
             profile.id === profileId ? { ...profile, ...data[0] } : profile
           )
         );
+        console.log('Local profile updated from Supabase data:', data[0]);
+      } else {
+        console.log('No data returned from Supabase after update.');
       }
 
       toast({
@@ -186,7 +197,7 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       setLocalProfiles((prev) =>
         prev.map(profile =>
           profile.id === profileId
-            ? { ...profile, is_premium: currentStatus } // revert
+            ? { ...profile, is_premium: currentStatus }
             : profile
         )
       );
@@ -198,6 +209,7 @@ export function ProfilesTable({ profiles: propProfiles, onDelete, currencySymbol
       });
     } finally {
       setUpdatingStatus(null);
+      console.log('setUpdatingStatus(null) called in finally (premium).');
     }
   };
 
