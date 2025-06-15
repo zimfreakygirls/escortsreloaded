@@ -38,16 +38,32 @@ export function UsersTable() {
       if (!authError && authUsers?.users && authUsers.users.length > 0) {
         console.log("Fetched auth users:", authUsers.users);
         
-        // If admin API works, map the user data with proper username extraction
+        // If admin API works, map the user data with better username extraction
         const mappedUsers = authUsers.users.map(user => {
-          // Try multiple metadata fields for username
-          const username = user.user_metadata?.username || 
-                          user.user_metadata?.full_name || 
-                          user.user_metadata?.name ||
-                          null;
+          // Try multiple metadata fields for username with better fallback logic
+          const metadata = user.user_metadata || {};
+          const appMetadata = user.app_metadata || {};
           
-          console.log(`User ${user.id} metadata:`, user.user_metadata);
-          console.log(`Extracted username: ${username}`);
+          let username = metadata.username || 
+                        metadata.user_name || 
+                        metadata.full_name || 
+                        metadata.name ||
+                        metadata.display_name ||
+                        appMetadata.username ||
+                        appMetadata.full_name ||
+                        null;
+          
+          // If we have an email but no username, extract username from email
+          if (!username && user.email) {
+            username = user.email.split('@')[0];
+          }
+          
+          console.log(`User ${user.id}:`, {
+            email: user.email,
+            metadata: metadata,
+            appMetadata: appMetadata,
+            extractedUsername: username
+          });
           
           return {
             id: user.id,
