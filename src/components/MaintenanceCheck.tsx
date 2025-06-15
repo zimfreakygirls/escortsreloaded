@@ -74,9 +74,11 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
       const { data } = await supabase.auth.getSession();
       if (!data.session?.user?.id) {
         setIsAdmin(false);
+        console.log("No user session found, setIsAdmin(false)");
       } else {
         const _isAdmin = await checkIsAdmin(data.session.user.id);
         setIsAdmin(_isAdmin);
+        console.log(`Admin check for user ${data.session.user.id}:`, _isAdmin);
       }
     };
     checkAdmin();
@@ -84,9 +86,11 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session?.user?.id) {
         setIsAdmin(false);
+        console.log("Auth state: No session -> setIsAdmin(false)");
       } else {
         const _isAdmin = await checkIsAdmin(session.user.id);
         setIsAdmin(_isAdmin);
+        console.log(`Auth state: Admin check for user ${session.user.id}:`, _isAdmin);
       }
     });
 
@@ -95,6 +99,17 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
+  // LOGIC DEBUGGING 
+  console.log(
+    "[MaintenanceCheck]",
+    { 
+      path: location.pathname,
+      loading,
+      isAdmin,
+      isOnline,
+    }
+  );
+
   // If we're still loading or checking admin, show spinner
   if (loading || isAdmin === null) {
     // But: if we're on /admin-login or /dashboard, show spinner for a short time ONLY, then let the page through so user doesn't get stuck
@@ -102,6 +117,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
       location.pathname === "/admin-login" ||
       location.pathname === "/dashboard"
     ) {
+      console.log("Spinner shown for /admin-login or /dashboard during loading.");
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -119,6 +135,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
 
   // Allow /admin-login at all times
   if (location.pathname === "/admin-login") {
+    console.log("Allowing /admin-login at all times");
     return <>{children}</>;
   }
 
@@ -130,10 +147,14 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
       location.pathname === "/admin-login" ||
       location.pathname.startsWith("/dashboard")
     ) {
+      console.log(
+        "Maintenance: Allowing /admin-login or /dashboard path even though not online and not admin."
+      );
       return <>{children}</>;
     }
 
     // Everyone else gets maintenance screen
+    console.log("Maintenance: Blocking path for non-admin user.");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-md mx-auto text-center p-8">
@@ -151,5 +172,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
   }
 
   // Otherwise, let everything through
+  console.log("Allowing all content through:", { path: location.pathname });
   return <>{children}</>;
 }
