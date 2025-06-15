@@ -8,7 +8,19 @@ interface ProfileContactInfoProps {
   session: any;
 }
 
+const getCurrencySymbol = (currency: string) => {
+  switch (currency) {
+    case 'USD': return '$';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    case 'ZMW': return 'K';
+    default: return '$';
+  }
+};
+
 export function ProfileContactInfo({ profile, showPhone, session }: ProfileContactInfoProps) {
+  const currencySymbol = getCurrencySymbol(profile.currency || 'USD');
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div className="flex items-center gap-2 text-base sm:text-lg">
@@ -18,7 +30,7 @@ export function ProfileContactInfo({ profile, showPhone, session }: ProfileConta
       
       <div className="flex items-center gap-2 text-base sm:text-lg">
         <Clock className="h-5 w-5 text-primary" />
-        <span>${profile.price_per_hour}/hr</span>
+        <span>{currencySymbol}{profile.price_per_hour}/hr</span>
       </div>
       
       {showPhone ? (

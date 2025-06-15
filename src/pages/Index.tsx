@@ -71,7 +71,7 @@ export default function Index() {
     setError(null);
 
     try {
-      // Fetch all profiles, then filter out is_video
+      // Fetch all profiles with currency information
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -80,6 +80,7 @@ export default function Index() {
       if (profilesError) {
         throw profilesError;
       }
+      
       // Filter on client side for non-video profiles
       const nonVideoProfiles = (profilesData || []).filter(profile => !profile.is_video);
       setProfiles(nonVideoProfiles);

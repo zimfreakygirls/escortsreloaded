@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -48,24 +49,19 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     const fetchCountries = async () => {
       try {
         setCountriesLoading(true);
-        console.log('Fetching countries...');
         
-        // First check if any countries exist
         const { data: allCountries, error: allError } = await supabase
           .from('countries')
           .select('*')
+          .eq('active', true)
           .order('name', { ascending: true });
         
-        console.log('All countries:', allCountries);
-        
         if (allError) {
-          console.error('Error fetching all countries:', allError);
+          console.error('Error fetching countries:', allError);
+          throw allError;
         }
 
-        // If no countries exist, create some default ones
         if (!allCountries || allCountries.length === 0) {
-          console.log('No countries found, creating default countries...');
-          
           const defaultCountries = [
             { name: 'United States', currency: 'USD', active: true },
             { name: 'United Kingdom', currency: 'GBP', active: true },
@@ -83,17 +79,12 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
             .select();
 
           if (insertError) {
-            console.error('Error inserting default countries:', insertError);
             throw insertError;
           }
 
-          console.log('Default countries created:', insertedCountries);
           setCountries(insertedCountries || []);
         } else {
-          // Filter active countries
-          const activeCountries = allCountries.filter(c => c.active);
-          console.log('Active countries:', activeCountries);
-          setCountries(activeCountries);
+          setCountries(allCountries);
         }
       } catch (error) {
         console.error('Error fetching countries:', error);
@@ -136,6 +127,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     const uploadedUrls: string[] = [];
 
     try {
+      // Check if bucket exists, create if it doesn't
       const { data: bucketData, error: bucketError } = await supabase.storage
         .getBucket('profile-images');
 
@@ -146,15 +138,14 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         });
       }
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      // Upload files in parallel for better performance
+      const uploadPromises = Array.from(files).map(async (file) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('profile-images')
-          .upload(filePath, file);
+          .upload(fileName, file);
 
         if (uploadError) {
           throw uploadError;
@@ -162,12 +153,13 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
 
         const { data: urlData } = supabase.storage
           .from('profile-images')
-          .getPublicUrl(filePath);
+          .getPublicUrl(fileName);
 
-        uploadedUrls.push(urlData.publicUrl);
-      }
+        return urlData.publicUrl;
+      });
 
-      return uploadedUrls;
+      const urls = await Promise.all(uploadPromises);
+      return urls;
     } catch (error: any) {
       console.error('Upload error:', error);
       throw new Error('Failed to upload images: ' + error.message);
@@ -186,17 +178,16 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         throw new Error("Please select a country");
       }
 
-      const countryName = data.country.trim();
-      const formattedCountry = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase();
-
+      // Upload images first
       const imageUrls = await uploadImages(selectedImages);
 
-      const { data: profileData, error } = await supabase.from('profiles').insert({
+      // Insert profile with proper currency
+      const { error } = await supabase.from('profiles').insert({
         name: data.name,
         age: parseInt(data.age),
         location: data.location,
         city: data.city,
-        country: formattedCountry,
+        country: selectedCountry.name,
         currency: selectedCountry.currency,
         price_per_hour: parseInt(data.price_per_hour),
         phone: data.phone || null,
@@ -204,24 +195,10 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         images: imageUrls,
         is_premium: data.is_premium || false,
         is_verified: data.is_verified || false,
-      }).select();
+      });
 
       if (error) {
         throw error;
-      }
-
-      const { data: countryExists, error: countryCheckError } = await supabase
-        .from('countries')
-        .select('id')
-        .eq('name', formattedCountry)
-        .single();
-
-      if (countryCheckError && countryCheckError.code === 'PGRST116') {
-        await supabase.from('countries').insert({
-          name: formattedCountry,
-          active: true,
-          currency: selectedCountry.currency
-        });
       }
 
       toast({
@@ -315,11 +292,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
                   )}
                 </SelectContent>
               </Select>
-            )}
-            {countries.length === 0 && !countriesLoading && (
-              <p className="text-sm text-yellow-400 mt-1">
-                No countries found. Please add countries in the Countries tab first.
-              </p>
             )}
           </div>
           <div>
