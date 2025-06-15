@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Country {
   id: string;
@@ -18,6 +19,7 @@ export function CountryManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const fetchCountries = async () => {
     try {
@@ -117,15 +119,15 @@ export function CountryManager() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleAddCountry} className="flex gap-4">
+      <form onSubmit={handleAddCountry} className={`flex gap-4 ${isMobile ? 'flex-col' : ''}`}>
         <Input
           placeholder="Enter country name..."
           value={newCountry}
           onChange={(e) => setNewCountry(e.target.value)}
-          className="max-w-xs"
+          className={isMobile ? 'w-full' : 'max-w-xs'}
           disabled={isSubmitting}
         />
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className={isMobile ? 'w-full' : ''}>
           {isSubmitting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -141,19 +143,23 @@ export function CountryManager() {
         {countries.map((country) => (
           <div 
             key={country.id}
-            className="flex items-center justify-between p-3 bg-card rounded-lg"
+            className={`flex items-center justify-between p-3 bg-card rounded-lg ${isMobile ? 'flex-col gap-2' : ''}`}
           >
-            <span className="font-medium">{country.name}</span>
+            <span className={`font-medium ${isMobile ? 'text-center' : ''}`}>{country.name}</span>
             <Button 
               variant="destructive" 
               size="sm"
               onClick={() => handleRemoveCountry(country.id)}
               disabled={isSubmitting}
+              className={isMobile ? 'w-full' : ''}
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4" />
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove
+                </>
               )}
             </Button>
           </div>

@@ -174,7 +174,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto py-24 px-4">
+    <div className="container mx-auto py-6 md:py-24 px-2 md:px-4">
       <DashboardHeader onLogout={handleLogout} />
       
       <DashboardTabs>
