@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -11,17 +12,30 @@ export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        const isAdmin = await checkIsAdmin(data.session.user.id);
-        if (isAdmin) {
-          navigate('/dashboard');
+      try {
+        console.log("Checking existing session...");
+        const { data } = await supabase.auth.getSession();
+        
+        if (data.session) {
+          console.log("Session found, checking admin status...");
+          const isAdmin = await checkIsAdmin(data.session.user.id);
+          if (isAdmin) {
+            console.log("User is admin, redirecting to dashboard");
+            navigate('/dashboard');
+            return;
+          }
         }
+        console.log("No valid admin session found");
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setInitialLoading(false);
       }
     };
     
@@ -33,21 +47,25 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
+      console.log("Starting login process...");
+      
       if (username === "admin" && password === "admin") {
         const email = 'admin@escortsreloaded.com';
         
-        console.log("Attempting to sign in with:", { email });
+        console.log("Attempting admin login with:", { email });
 
+        // Sign out first to ensure clean state
         await supabase.auth.signOut();
         const supabasePassword = "admin123"; 
 
-        let authData;
         const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password: supabasePassword,
         });
 
         if (loginError) {
+          console.log("Login failed, attempting signup:", loginError.message);
+          
           if (loginError.message.includes("Invalid login credentials")) {
             const { data: signupData, error: signupError } = await supabase.auth.signUp({
               email,
@@ -57,6 +75,7 @@ export default function AdminLogin() {
             if (signupError) throw signupError;
             
             if (signupData?.user) {
+              console.log("User created, adding to admin_users...");
               await supabase.from('admin_users').insert({ id: signupData.user.id });
               
               const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
@@ -66,31 +85,33 @@ export default function AdminLogin() {
               
               if (retryError) throw retryError;
               
-              authData = retryData;
+              console.log("Admin login successful after signup");
             }
           } else {
             throw loginError;
           }
         } else {
-          authData = loginData;
-        }
-
-        if (authData?.user) {
-          const isAdmin = await checkIsAdmin(authData.user.id);
+          console.log("Admin login successful");
           
+          // Ensure user is in admin_users table
+          const isAdmin = await checkIsAdmin(loginData.user.id);
           if (!isAdmin) {
-            await supabase.from('admin_users').insert({ id: authData.user.id });
+            console.log("Adding user to admin_users table...");
+            await supabase.from('admin_users').insert({ id: loginData.user.id });
           }
-
-          toast({
-            title: "Success!",
-            description: "You have been logged in as administrator.",
-          });
-
-          navigate("/dashboard");
         }
+
+        toast({
+          title: "Success!",
+          description: "You have been logged in as administrator.",
+        });
+
+        navigate("/dashboard");
       } else {
+        // Handle other admin users
         const email = `${username.toLowerCase()}@escortsreloaded.com`;
+        
+        console.log("Attempting custom admin login with:", { email });
         
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -126,6 +147,14 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">
+        <div className="animate-spin h-12 w-12 border-t-2 border-[#9b87f5] rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#1A1F2C] to-[#2d2b3a]">

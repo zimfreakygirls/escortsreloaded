@@ -17,6 +17,8 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
   useEffect(() => {
     const checkSiteStatus = async () => {
       try {
+        console.log("Checking site status...");
+        
         const { data, error } = await supabase
           .from('site_status')
           .select('is_online, maintenance_message')
@@ -24,14 +26,15 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           .single();
 
         if (error) {
-          console.error('Error checking site status:', error);
+          console.log('Site status check error (assuming online):', error);
           setIsOnline(true);
         } else {
+          console.log('Site status:', data);
           setIsOnline(data.is_online);
           setMaintenanceMessage(data.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
       } catch (error) {
-        console.error('Error checking site status:', error);
+        console.log('Site status check failed (assuming online):', error);
         setIsOnline(true);
       } finally {
         setLoading(false);
@@ -52,6 +55,7 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
           filter: 'id=eq.global'
         },
         (payload) => {
+          console.log('Site status updated:', payload.new);
           setIsOnline(payload.new.is_online);
           setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
         }
@@ -63,19 +67,13 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     };
   }, []);
 
-  // Always allow /admin-login and /dashboard access regardless of isOnline state
+  // Always allow admin routes access regardless of maintenance status
   const path = location.pathname;
   const adminRoutes = ["/admin-login", "/dashboard"];
+  const isAdminRoute = adminRoutes.includes(path);
 
-  // While loading, show spinner for admin routes and maintenance-check for others
-  if (loading) {
-    if (adminRoutes.includes(path)) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
-        </div>
-      );
-    }
+  // Show loading only for a short time and only for non-admin routes
+  if (loading && !isAdminRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-t-2 border-primary rounded-full"></div>
@@ -83,12 +81,12 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // If the site is offline but we're on admin-login or dashboard, allow admin access
-  if (!isOnline && adminRoutes.includes(path)) {
+  // Always allow admin access regardless of site status
+  if (isAdminRoute) {
     return <>{children}</>;
   }
 
-  // If site is offline (maintenance) and not an allowed route, show maintenance message
+  // If site is offline and not an admin route, show maintenance message
   if (!isOnline) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
@@ -106,6 +104,6 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // By default, render children (site is online)
+  // Site is online, render children
   return <>{children}</>;
 }
