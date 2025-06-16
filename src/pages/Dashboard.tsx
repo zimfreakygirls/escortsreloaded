@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -93,9 +92,23 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
+        // Only fetch profiles that were created by admins, not user registrations
+        // We filter out profiles that have a corresponding user_id in user_status table
+        // since those are user-registered accounts
+        const { data: userIds, error: userIdsError } = await supabase
+          .from('user_status')
+          .select('user_id');
+        
+        if (userIdsError) {
+          console.error('Error fetching user IDs:', userIdsError);
+        }
+
+        const userIdsList = userIds?.map(u => u.user_id) || [];
+
         const { data, error } = await supabase
           .from('profiles')
-          .select('*');
+          .select('*')
+          .not('id', 'in', `(${userIdsList.length > 0 ? userIdsList.join(',') : 'null'})`);
         
         if (error) throw error;
         setProfiles(data || []);
@@ -133,7 +146,21 @@ export default function Dashboard() {
   const handleProfileCreated = () => {
     const fetchProfiles = async () => {
       try {
-        const { data, error } = await supabase.from('profiles').select('*');
+        // Only fetch admin-created profiles, not user registrations
+        const { data: userIds, error: userIdsError } = await supabase
+          .from('user_status')
+          .select('user_id');
+        
+        if (userIdsError) {
+          console.error('Error fetching user IDs:', userIdsError);
+        }
+
+        const userIdsList = userIds?.map(u => u.user_id) || [];
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .not('id', 'in', `(${userIdsList.length > 0 ? userIdsList.join(',') : 'null'})`);
         
         if (error) throw error;
         setProfiles(data || []);
