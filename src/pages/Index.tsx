@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProfileCard } from "@/components/profile-card/ProfileCard";
@@ -40,29 +41,21 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
       }
     );
 
-    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Load profiles regardless of authentication status
     loadProfiles();
 
-    // Clean up
     return () => {
       subscription.unsubscribe();
-      isMounted = false;
     };
-    // eslint-disable-next-line
   }, []);
 
   const loadProfiles = async () => {
@@ -70,7 +63,8 @@ export default function Index() {
     setError(null);
 
     try {
-      // Fetch all profiles with currency information
+      console.log("Loading profiles for home page...");
+      
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -80,22 +74,15 @@ export default function Index() {
         throw profilesError;
       }
 
-      // Filter for real, admin-added non-video profiles:
-      // - Must have at least one image (image[0] is not /placeholder.svg/)
-      // - Optionally: require is_verified true (uncomment if desired).
-      // - Exclude default/empty profiles with no image and no price
+      console.log("Raw profiles data:", profilesData?.length || 0);
+
       const nonVideoProfiles = (profilesData || []).filter(profile => {
-        // A "real" profile must have at least one image URL that is not the placeholder and that is not empty
         const hasRealImage =
           Array.isArray(profile.images) &&
           profile.images.length > 0 &&
           profile.images[0] &&
           !profile.images[0].includes("placeholder.svg");
 
-        // Optionally filter for verified only (uncomment next line if you want!)
-        // const isActuallyVerified = !!profile.is_verified;
-
-        // Potential criteria: Must have image, non-default name, phone present, admin sets is_verified
         const isAdminAdded =
           hasRealImage &&
           typeof profile.name === "string" &&
@@ -105,15 +92,11 @@ export default function Index() {
           typeof profile.country === "string" &&
           profile.country.trim().length > 0;
 
-        // filter out entries that might be default or missing details
-        return (
-          !profile.is_video &&
-          isAdminAdded
-          // && isActuallyVerified // Uncomment if you want to restrict to only verified profiles
-        );
+        return !profile.is_video && isAdminAdded;
       });
 
-      // Preload first few images for better perceived performance
+      console.log("Filtered profiles:", nonVideoProfiles.length);
+
       const imagesToPreload = nonVideoProfiles.slice(0, 6);
       imagesToPreload.forEach(profile => {
         if (profile.images && profile.images[0]) {
@@ -123,10 +106,9 @@ export default function Index() {
       });
 
       setProfiles(nonVideoProfiles);
-
-      // Fetch settings and visible profiles
       await fetchSettings();
     } catch (err) {
+      console.error("Error loading profiles:", err);
       setError("Failed to load profiles. Please try again later.");
       toast({
         title: "Error",
@@ -260,7 +242,6 @@ export default function Index() {
                   viewMode={viewMode}
                   city={profile.city}
                   country={profile.country}
-                  // Always pass phone as-is; ProfileCard handles logic of display based on isVerified/isPremium/etc.
                   phone={profile.phone}
                   isVerified={profile.is_verified}
                   isPremium={profile.is_premium}

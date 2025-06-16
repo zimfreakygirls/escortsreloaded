@@ -41,9 +41,19 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
       }
     };
 
+    // Always allow admin routes immediate access
+    const path = location.pathname;
+    const adminRoutes = ["/admin-login", "/dashboard"];
+    const isAdminRoute = adminRoutes.includes(path);
+
+    if (isAdminRoute) {
+      setLoading(false);
+      setIsOnline(true);
+      return;
+    }
+
     checkSiteStatus();
 
-    // Set up real-time subscription to site status changes
     const subscription = supabase
       .channel('site_status_changes')
       .on(
@@ -56,8 +66,10 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
         },
         (payload) => {
           console.log('Site status updated:', payload.new);
-          setIsOnline(payload.new.is_online);
-          setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
+          if (!isAdminRoute) {
+            setIsOnline(payload.new.is_online);
+            setMaintenanceMessage(payload.new.maintenance_message || "The site is currently under maintenance. Please check back later.");
+          }
         }
       )
       .subscribe();
@@ -65,14 +77,12 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [location.pathname]);
 
-  // Always allow admin routes access regardless of maintenance status
   const path = location.pathname;
   const adminRoutes = ["/admin-login", "/dashboard"];
   const isAdminRoute = adminRoutes.includes(path);
 
-  // Show loading only for a short time and only for non-admin routes
   if (loading && !isAdminRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -81,12 +91,10 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // Always allow admin access regardless of site status
   if (isAdminRoute) {
     return <>{children}</>;
   }
 
-  // If site is offline and not an admin route, show maintenance message
   if (!isOnline) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
@@ -104,6 +112,5 @@ export function MaintenanceCheck({ children }: MaintenanceCheckProps) {
     );
   }
 
-  // Site is online, render children
   return <>{children}</>;
 }

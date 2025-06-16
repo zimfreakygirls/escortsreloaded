@@ -28,17 +28,12 @@ export default function Dashboard() {
   const [activeSettings, setActiveSettings] = useState<any>(null);
 
   useEffect(() => {
-    let mounted = true;
-
     const initializeDashboard = async () => {
       try {
         console.log("Initializing dashboard...");
         
-        // Get current session
         const { data: sessionData } = await supabase.auth.getSession();
         console.log("Session data:", sessionData);
-        
-        if (!mounted) return;
         
         if (!sessionData.session) {
           console.log("No session found, redirecting to admin login");
@@ -48,12 +43,8 @@ export default function Dashboard() {
 
         setSession(sessionData.session);
 
-        // Check admin status
-        console.log("Checking admin status...");
         const adminStatus = await checkIsAdmin(sessionData.session.user.id);
         console.log("Admin status:", adminStatus);
-        
-        if (!mounted) return;
         
         if (!adminStatus) {
           console.log("Not admin, redirecting to home");
@@ -63,88 +54,20 @@ export default function Dashboard() {
 
         setIsAdmin(true);
         
-        // Load profiles and settings
-        await Promise.all([
-          loadProfiles(),
-          loadSettings()
-        ]);
+        // Load data
+        loadProfiles();
+        loadSettings();
 
       } catch (error) {
         console.error('Dashboard initialization error:', error);
-        if (mounted) {
-          navigate("/admin-login");
-        }
+        navigate("/admin-login");
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const loadProfiles = async () => {
-      try {
-        console.log("Loading profiles...");
-        
-        // Get all profiles first
-        const { data: allProfiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-          return;
-        }
-
-        // Try to get user status data to filter out user registrations
-        const { data: userStatusData } = await supabase
-          .from('user_status')
-          .select('user_id');
-        
-        let adminProfiles = allProfiles || [];
-        
-        // If user_status table has data, filter out those user IDs
-        if (userStatusData && userStatusData.length > 0) {
-          const userIds = userStatusData.map(u => u.user_id);
-          adminProfiles = adminProfiles.filter(profile => !userIds.includes(profile.id));
-          console.log("Filtered profiles, excluding user registrations:", userIds);
-        }
-        
-        console.log("Admin profiles loaded:", adminProfiles.length);
-        setProfiles(adminProfiles);
-        
-      } catch (error) {
-        console.error('Error loading profiles:', error);
-        setProfiles([]);
-      }
-    };
-
-    const loadSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('*')
-          .eq('id', 'default')
-          .single();
-        
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching settings:', error);
-        }
-        
-        setActiveSettings(data || {
-          id: "default",
-          profiles_per_page: 6,
-          currency: "USD",
-          created_at: new Date().toISOString()
-        });
-      } catch (error) {
-        console.error('Error loading settings:', error);
+        setLoading(false);
       }
     };
 
     initializeDashboard();
 
-    // Set up auth listener
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
@@ -164,12 +87,57 @@ export default function Dashboard() {
       }
     });
 
-    // Cleanup
     return () => {
-      mounted = false;
       authListener?.subscription.unsubscribe();
     };
   }, [navigate]);
+
+  const loadProfiles = async () => {
+    try {
+      console.log("Loading profiles...");
+      
+      const { data: allProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        setProfiles([]);
+        return;
+      }
+
+      console.log("All profiles loaded:", allProfiles?.length || 0);
+      setProfiles(allProfiles || []);
+      
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+      setProfiles([]);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 'default')
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching settings:', error);
+      }
+      
+      setActiveSettings(data || {
+        id: "default",
+        profiles_per_page: 6,
+        currency: "USD",
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   // Add GSAP animations after loading is complete
   useEffect(() => {
@@ -196,36 +164,6 @@ export default function Dashboard() {
   }, [loading, isAdmin]);
 
   const handleProfileCreated = () => {
-    // Refresh profiles after creation
-    const loadProfiles = async () => {
-      try {
-        const { data: allProfiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-          return;
-        }
-
-        const { data: userStatusData } = await supabase
-          .from('user_status')
-          .select('user_id');
-        
-        let adminProfiles = allProfiles || [];
-        
-        if (userStatusData && userStatusData.length > 0) {
-          const userIds = userStatusData.map(u => u.user_id);
-          adminProfiles = adminProfiles.filter(profile => !userIds.includes(profile.id));
-        }
-        
-        setProfiles(adminProfiles);
-      } catch (error) {
-        console.error('Error refreshing profiles:', error);
-      }
-    };
-    
     loadProfiles();
   };
 
