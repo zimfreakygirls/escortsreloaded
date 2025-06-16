@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -92,28 +93,62 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        // Only fetch profiles that were created by admins, not user registrations
-        // We filter out profiles that have a corresponding user_id in user_status table
-        // since those are user-registered accounts
+        console.log("Fetching profiles...");
+        
+        // First try to get user IDs from user_status table
         const { data: userIds, error: userIdsError } = await supabase
           .from('user_status')
           .select('user_id');
         
         if (userIdsError) {
           console.error('Error fetching user IDs:', userIdsError);
+          // If user_status table doesn't exist or has issues, just fetch all profiles
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) throw error;
+          setProfiles(data || []);
+          return;
         }
 
         const userIdsList = userIds?.map(u => u.user_id) || [];
+        console.log("User IDs to exclude:", userIdsList);
 
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .not('id', 'in', `(${userIdsList.length > 0 ? userIdsList.join(',') : 'null'})`);
+        // If no user IDs to exclude, fetch all profiles
+        if (userIdsList.length === 0) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) throw error;
+          setProfiles(data || []);
+        } else {
+          // Fetch profiles excluding user registrations
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .not('id', 'in', `(${userIdsList.join(',')})`);
+          
+          if (error) throw error;
+          setProfiles(data || []);
+        }
         
-        if (error) throw error;
-        setProfiles(data || []);
+        console.log("Profiles fetched successfully");
       } catch (error) {
         console.error('Error fetching profiles:', error);
+        // Fallback: fetch all profiles if filtering fails
+        try {
+          const { data, error: fallbackError } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (fallbackError) throw fallbackError;
+          setProfiles(data || []);
+        } catch (fallbackError) {
+          console.error('Fallback profile fetch failed:', fallbackError);
+          setProfiles([]);
+        }
       }
     };
 
@@ -146,24 +181,42 @@ export default function Dashboard() {
   const handleProfileCreated = () => {
     const fetchProfiles = async () => {
       try {
-        // Only fetch admin-created profiles, not user registrations
+        console.log("Refreshing profiles after creation...");
+        
         const { data: userIds, error: userIdsError } = await supabase
           .from('user_status')
           .select('user_id');
         
         if (userIdsError) {
           console.error('Error fetching user IDs:', userIdsError);
+          // Fallback to all profiles
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) throw error;
+          setProfiles(data || []);
+          return;
         }
 
         const userIdsList = userIds?.map(u => u.user_id) || [];
 
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .not('id', 'in', `(${userIdsList.length > 0 ? userIdsList.join(',') : 'null'})`);
-        
-        if (error) throw error;
-        setProfiles(data || []);
+        if (userIdsList.length === 0) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) throw error;
+          setProfiles(data || []);
+        } else {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .not('id', 'in', `(${userIdsList.join(',')})`);
+          
+          if (error) throw error;
+          setProfiles(data || []);
+        }
       } catch (error) {
         console.error('Error refreshing profiles:', error);
       }
