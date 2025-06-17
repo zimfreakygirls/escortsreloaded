@@ -44,8 +44,8 @@ export function ProfileCard({
   const isListView = viewMode === "list";
   const session = useAuthSession();
 
-  // Always show phone if it exists
-  const showPhone = !!phone;
+  // For premium profiles, only show phone if user is logged in
+  const showPhone = phone && (!isPremium || (isPremium && session));
 
   return (
     <div className={`profile-card group relative ${
@@ -84,4 +84,3 @@ export function ProfileCard({
     </div>
   );
 }
-

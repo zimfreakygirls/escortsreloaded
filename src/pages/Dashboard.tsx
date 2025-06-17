@@ -7,7 +7,6 @@ import { gsap } from "gsap";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
-import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
 import { PaymentVerificationsTabContent } from "@/components/dashboard/PaymentVerificationsTabContent";
 import { CountryManager } from "@/components/dashboard/CountryManager";
 import { TabsContent } from "@/components/ui/tabs";
@@ -209,8 +208,6 @@ export default function Dashboard() {
                           activeSettings?.currency === 'EUR' ? '€' : 
                           activeSettings?.currency === 'GBP' ? '£' : '$'} 
         />
-
-        <UsersTabContent />
         
         <PaymentVerificationsTabContent />
         

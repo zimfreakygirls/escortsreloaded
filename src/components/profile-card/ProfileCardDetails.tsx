@@ -36,6 +36,9 @@ export function ProfileCardDetails({
   eyeColor,
   meetingWith
 }: ProfileCardDetailsProps) {
+  // For premium profiles, only show phone if user is logged in
+  const shouldShowPhone = phone && (!isPremium || (isPremium && session));
+
   return (
     <div className={`${
       isListView 
@@ -49,7 +52,7 @@ export function ProfileCardDetails({
             <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> {city}, {country}
           </p>
         )}
-        {showPhone && (
+        {shouldShowPhone && (
           <p className="text-sm text-gray-300">
             <span className="text-primary">☎</span> {phone}
           </p>

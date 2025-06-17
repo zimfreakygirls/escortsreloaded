@@ -21,6 +21,9 @@ const getCurrencySymbol = (currency: string) => {
 export function ProfileContactInfo({ profile, showPhone, session }: ProfileContactInfoProps) {
   const currencySymbol = getCurrencySymbol(profile.currency || 'USD');
   
+  // For premium profiles, only show phone if user is logged in
+  const shouldShowPhone = profile.phone && (!profile.is_premium || (profile.is_premium && session));
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div className="flex items-center gap-2 text-base sm:text-lg">
@@ -33,12 +36,12 @@ export function ProfileContactInfo({ profile, showPhone, session }: ProfileConta
         <span>{currencySymbol}{profile.price_per_hour}/hr</span>
       </div>
       
-      {showPhone ? (
+      {shouldShowPhone ? (
         <div className="flex items-center gap-2 text-base sm:text-lg">
           <Phone className="h-5 w-5 text-primary" />
           <span>{profile.phone}</span>
         </div>
-      ) : profile.is_premium && !session ? (
+      ) : profile.is_premium && !session && profile.phone ? (
         <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
           <Lock className="h-5 w-5 text-primary" />
           <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
