@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +8,7 @@ import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { ProfilesTabContent } from "@/components/dashboard/ProfilesTabContent";
 import { PaymentVerificationsTabContent } from "@/components/dashboard/PaymentVerificationsTabContent";
 import { CountryManager } from "@/components/dashboard/CountryManager";
+import { UsersTabContent } from "@/components/dashboard/UsersTabContent";
 import { TabsContent } from "@/components/ui/tabs";
 import { 
   DashboardTabContent, 
@@ -106,8 +106,19 @@ export default function Dashboard() {
         return;
       }
 
-      console.log("All profiles loaded:", allProfiles?.length || 0);
-      setProfiles(allProfiles || []);
+      // Filter out any records that don't have proper profile data (name, age, location, etc.)
+      const validProfiles = (allProfiles || []).filter(profile => 
+        profile.name && 
+        profile.age && 
+        profile.location && 
+        profile.city && 
+        profile.country &&
+        profile.price_per_hour !== null &&
+        profile.price_per_hour !== undefined
+      );
+
+      console.log("Valid profiles loaded:", validProfiles?.length || 0);
+      setProfiles(validProfiles);
       
     } catch (error) {
       console.error('Error loading profiles:', error);
@@ -208,6 +219,8 @@ export default function Dashboard() {
                           activeSettings?.currency === 'EUR' ? '€' : 
                           activeSettings?.currency === 'GBP' ? '£' : '$'} 
         />
+        
+        <UsersTabContent />
         
         <PaymentVerificationsTabContent />
         

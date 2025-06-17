@@ -15,6 +15,9 @@ export function DashboardTabs({ children }: DashboardTabsProps) {
         <TabsTrigger value="profiles" className="tabs-trigger text-xs sm:text-sm">
           Profiles
         </TabsTrigger>
+        <TabsTrigger value="users" className="tabs-trigger text-xs sm:text-sm">
+          Users
+        </TabsTrigger>
         <TabsTrigger value="payment-verifications" className="tabs-trigger text-xs sm:text-sm">
           Payments
         </TabsTrigger>
