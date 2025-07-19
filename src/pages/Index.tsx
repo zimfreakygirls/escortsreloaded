@@ -39,6 +39,7 @@ export default function Index() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<string>('Zambia');
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -51,12 +52,24 @@ export default function Index() {
       setSession(session);
     });
 
+    detectUserLocation();
     loadProfiles();
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const detectUserLocation = async () => {
+    try {
+      // Try to get user's location from IP (simplified - just defaulting to Zambia for now)
+      // In a real implementation, you'd use a geolocation service
+      setUserLocation('Zambia');
+    } catch (error) {
+      console.log('Could not detect location, defaulting to Zambia');
+      setUserLocation('Zambia');
+    }
+  };
 
   const loadProfiles = async () => {
     setIsLoading(true);
@@ -65,10 +78,23 @@ export default function Index() {
     try {
       console.log("Loading profiles for home page...");
       
-      const { data: profilesData, error: profilesError } = await supabase
+      // Filter by user location first, then show all if none found
+      let { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
+        .eq('country', userLocation)
         .order('created_at', { ascending: false });
+
+      // If no profiles found for user's location, show all profiles
+      if (!profilesError && (!profilesData || profilesData.length === 0)) {
+        const { data: allProfiles, error: allError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        profilesData = allProfiles;
+        profilesError = allError;
+      }
 
       if (profilesError) {
         throw profilesError;
@@ -169,7 +195,10 @@ export default function Index() {
       
       <main className="container pt-24 pb-12 px-4">
         <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
-          <h1 className="text-2xl font-bold">Discover Profiles</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Discover Profiles</h1>
+            <p className="text-sm text-gray-600 mt-1">Showing profiles from {userLocation}</p>
+          </div>
           <ToggleGroup 
             type="single" 
             value={viewMode} 

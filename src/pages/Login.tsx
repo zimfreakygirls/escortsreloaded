@@ -96,23 +96,17 @@ export default function Login() {
       // Convert username to email format
       const email = `${values.username.toLowerCase()}@escortsreloaded.com`;
       
-      // Prevent admin login on regular login page
-      if (email === 'admin@escortsreloaded.com') {
-        toast({
-          title: "Access Denied",
-          description: "Admin accounts must login through the admin login page.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+      // Check if this is an admin attempt (but don't tell them about admin page)
+      const isAdminAttempt = email === 'admin@escortsreloaded.com';
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: values.password,
       });
 
-      if (error) throw error;
+      if (error || isAdminAttempt) {
+        throw new Error("Wrong username or password");
+      }
       
       // Check if the user is approved - don't sign out if not approved, just show message
       const isApproved = await checkUserApprovalStatus(data.user.id);
