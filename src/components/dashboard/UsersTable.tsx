@@ -222,35 +222,76 @@ export function UsersTable() {
   return (
     <AnimationWrapper animation="fade" duration={0.5} className="space-y-6">
       <div className="rounded-md border border-gray-800 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-[#1e1c2e]">
-            <TableRow className="hover:bg-transparent border-gray-800">
-              <TableHead className="text-gray-300">User</TableHead>
-              <TableHead className="text-gray-300">Created At</TableHead>
-              <TableHead className="text-gray-300">Last Sign In</TableHead>
-              <TableHead className="text-gray-300">Status</TableHead>
-              <TableHead className="text-gray-300">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.length === 0 ? (
-              <TableRow className="border-gray-800">
-                <TableCell colSpan={5} className="text-center py-8 text-gray-400">
-                  No users found
-                </TableCell>
+        {/* Mobile Card View */}
+        <div className="block md:hidden space-y-4 p-4">
+          {users.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              No users found
+            </div>
+          ) : (
+            users.map((user) => (
+              <div key={user.id} className="bg-[#1e1c2e] rounded-lg p-4 border border-gray-800">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-medium text-white text-lg">
+                      {user.username || 'Unknown User'}
+                    </h3>
+                    <p className="text-gray-300 text-sm break-all">{user.email}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="text-gray-300">
+                      <span className="text-gray-400">Created:</span> {formatDate(user.created_at)}
+                    </div>
+                    <div className="text-gray-300">
+                      <span className="text-gray-400">Last Sign In:</span> {formatDate(user.last_sign_in_at)}
+                    </div>
+                  </div>
+                  
+                  <UserTableRow 
+                    user={user}
+                    formatDate={formatDate}
+                    onStatusChange={handleStatusChange}
+                    isMobile={true}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-[#1e1c2e]">
+              <TableRow className="hover:bg-transparent border-gray-800">
+                <TableHead className="text-gray-300 whitespace-nowrap">User</TableHead>
+                <TableHead className="text-gray-300 whitespace-nowrap">Created At</TableHead>
+                <TableHead className="text-gray-300 whitespace-nowrap">Last Sign In</TableHead>
+                <TableHead className="text-gray-300 whitespace-nowrap">Status</TableHead>
+                <TableHead className="text-gray-300 whitespace-nowrap">Actions</TableHead>
               </TableRow>
-            ) : (
-              users.map((user) => (
-                <UserTableRow 
-                  key={user.id}
-                  user={user}
-                  formatDate={formatDate}
-                  onStatusChange={handleStatusChange}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {users.length === 0 ? (
+                <TableRow className="border-gray-800">
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-400">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <UserTableRow 
+                    key={user.id}
+                    user={user}
+                    formatDate={formatDate}
+                    onStatusChange={handleStatusChange}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </AnimationWrapper>
   );

@@ -16,9 +16,26 @@ interface UserTableRowProps {
   };
   formatDate: (dateString: string | null) => string;
   onStatusChange: (userId: string, field: 'banned' | 'approved', value: boolean) => void;
+  isMobile?: boolean;
 }
 
-export function UserTableRow({ user, formatDate, onStatusChange }: UserTableRowProps) {
+export function UserTableRow({ user, formatDate, onStatusChange, isMobile = false }: UserTableRowProps) {
+  if (isMobile) {
+    return (
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-700">
+        <div className="flex items-center gap-2">
+          <UserStatus banned={user.banned} approved={user.approved} />
+        </div>
+        <UserActions 
+          userId={user.id} 
+          banned={user.banned} 
+          approved={user.approved} 
+          onStatusChange={onStatusChange}
+        />
+      </div>
+    );
+  }
+
   return (
     <TableRow className="border-gray-800 hover:bg-[#1e1c2e]/30">
       <TableCell className="font-medium text-white">

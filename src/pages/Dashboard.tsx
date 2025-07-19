@@ -206,8 +206,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto py-6 md:py-24 px-2 md:px-4 dashboard-content">
-      <DashboardHeader onLogout={handleLogout} />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-4 md:py-8 lg:py-24 px-4 dashboard-content">
+        <DashboardHeader onLogout={handleLogout} />
       
       <DashboardTabs>
         <DashboardTabContent />
@@ -238,6 +239,7 @@ export default function Dashboard() {
         
         <AdminTabContent />
       </DashboardTabs>
+      </div>
     </div>
   );
 }
