@@ -54,7 +54,17 @@ export function ProfileCardDetails({
         )}
         {shouldShowPhone && (
           <p className="text-sm text-gray-300">
-            <span className="text-primary">☎</span> {phone}
+            <span className="text-primary">☎</span>{" "}
+            <button
+              onClick={() => {
+                const message = `Hello! I got your number from Escorts Reloaded and would like to connect with you.`;
+                const whatsappUrl = `https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+              className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
+            >
+              {phone} (WhatsApp)
+            </button>
           </p>
         )}
         {isPremium && !session && phone && (

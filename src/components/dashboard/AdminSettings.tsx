@@ -47,15 +47,31 @@ export function AdminSettings() {
         throw new Error("No active session found");
       }
       
-      // Update the user's email (username) in Supabase Auth
-      const newEmail = `${values.newUsername}@escortsreloaded.com`;
+      // First, sign out to ensure clean state
+      await supabase.auth.signOut();
       
-      const { error: updateError } = await supabase.auth.updateUser({
+      // Create new admin account with new credentials
+      const newEmail = `${values.newUsername.toLowerCase()}@escortsreloaded.com`;
+      
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: newEmail,
         password: values.newPassword,
       });
       
-      if (updateError) throw updateError;
+      if (signupError) throw signupError;
+      
+      if (signupData?.user) {
+        // Add to admin_users table
+        await supabase.from('admin_users').insert({ id: signupData.user.id });
+        
+        // Sign in with new credentials
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: newEmail,
+          password: values.newPassword,
+        });
+        
+        if (loginError) throw loginError;
+      }
       
       toast({
         title: "Settings updated",

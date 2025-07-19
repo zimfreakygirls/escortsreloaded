@@ -39,7 +39,16 @@ export function ProfileContactInfo({ profile, showPhone, session }: ProfileConta
       {shouldShowPhone ? (
         <div className="flex items-center gap-2 text-base sm:text-lg">
           <Phone className="h-5 w-5 text-primary" />
-          <span>{profile.phone}</span>
+          <button
+            onClick={() => {
+              const message = `Hello! I got your number from Escorts Reloaded and would like to connect with you.`;
+              const whatsappUrl = `https://wa.me/${profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+              window.open(whatsappUrl, '_blank');
+            }}
+            className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
+          >
+            {profile.phone} (WhatsApp)
+          </button>
         </div>
       ) : profile.is_premium && !session && profile.phone ? (
         <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">

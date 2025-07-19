@@ -96,6 +96,17 @@ export default function Login() {
       // Convert username to email format
       const email = `${values.username.toLowerCase()}@escortsreloaded.com`;
       
+      // Prevent admin login on regular login page
+      if (email === 'admin@escortsreloaded.com') {
+        toast({
+          title: "Access Denied",
+          description: "Admin accounts must login through the admin login page.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: values.password,
