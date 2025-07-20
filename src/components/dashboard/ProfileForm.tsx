@@ -124,8 +124,6 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
   };
 
   const uploadImages = async (files: FileList): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-
     try {
       // Check if bucket exists, create if it doesn't
       const { data: bucketData, error: bucketError } = await supabase.storage
@@ -138,32 +136,95 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         });
       }
 
-      // Upload files in parallel for better performance
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      // Compress and resize images before upload for better performance
+      const processedFiles = await Promise.all(
+        Array.from(files).map(file => compressImage(file))
+      );
 
-        const { error: uploadError } = await supabase.storage
-          .from('profile-images')
-          .upload(fileName, file);
+      // Upload files in batches for better performance
+      const batchSize = 3; // Upload 3 images at a time
+      const uploadedUrls: string[] = [];
+      
+      for (let i = 0; i < processedFiles.length; i += batchSize) {
+        const batch = processedFiles.slice(i, i + batchSize);
+        
+        const batchPromises = batch.map(async (file) => {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
-        if (uploadError) {
-          throw uploadError;
-        }
+          const { error: uploadError } = await supabase.storage
+            .from('profile-images')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-        const { data: urlData } = supabase.storage
-          .from('profile-images')
-          .getPublicUrl(fileName);
+          if (uploadError) {
+            throw uploadError;
+          }
 
-        return urlData.publicUrl;
-      });
+          const { data: urlData } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(fileName);
 
-      const urls = await Promise.all(uploadPromises);
-      return urls;
+          return urlData.publicUrl;
+        });
+
+        const batchUrls = await Promise.all(batchPromises);
+        uploadedUrls.push(...batchUrls);
+      }
+
+      return uploadedUrls;
     } catch (error: any) {
       console.error('Upload error:', error);
       throw new Error('Failed to upload images: ' + error.message);
     }
+  };
+
+  // Image compression function for better performance
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 1200px width/height)
+        const maxSize = 1200;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            const compressedFile = new File([blob!], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          0.8 // 80% quality
+        );
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
   };
 
   const onSubmit = async (data: any) => {

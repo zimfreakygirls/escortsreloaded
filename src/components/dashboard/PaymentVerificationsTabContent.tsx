@@ -36,60 +36,74 @@ export function PaymentVerificationsTabContent() {
   const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
 
   const fetchVerifications = async () => {
-    setLoading(true);
     try {
-      const { data: verificationData, error: verificationError } = await supabase
-        .from("payment_verifications")
-        .select("*")
-        .order("created_at", { ascending: false });
+      setLoading(true);
       
-      if (verificationError) throw verificationError;
+      const { data: verificationData, error } = await supabase
+        .from('payment_verifications')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (!verificationData || verificationData.length === 0) {
-        setVerifications([]);
-        setLoading(false);
+      if (error) {
+        console.error('Error fetching verifications:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load payment verifications",
+          variant: "destructive",
+        });
         return;
       }
 
-      // For each verification, try to get user info from profiles table first, then fallback to user_id
-      const verificationWithUserData: PaymentVerification[] = await Promise.all(
-        verificationData.map(async (verification: PaymentVerification) => {
-          let email = `user-${verification.user_id.substring(0, 8)}@example.com`;
-          let username = `User ${verification.user_id.substring(0, 8)}`;
-
+      // If we have verifications, get the user details
+      if (verificationData && verificationData.length > 0) {
+        // Get user data from auth.users table via admin API  
+        const userPromises = verificationData.map(async (verification) => {
           try {
-            // First try to get from profiles table if it exists
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('name')
-              .eq('id', verification.user_id)
-              .maybeSingle();
-
-            if (profileData?.name && !profileError) {
-              username = profileData.name;
-            }
+            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(verification.user_id);
             
-            console.log(`Fetched user data for ${verification.user_id}:`, { username, email });
-          } catch (e) {
-            console.log("Error fetching user details for user_id:", verification.user_id, e);
+            if (userError) {
+              console.warn(`Could not fetch user data for ${verification.user_id}:`, userError);
+              return {
+                ...verification,
+                status: verification.status as 'pending' | 'approved' | 'declined',
+                email: `user-${verification.user_id.substring(0, 6)}@unknown.com`,
+                username: 'Unknown User'
+              };
+            }
+
+            return {
+              ...verification,
+              status: verification.status as 'pending' | 'approved' | 'declined',
+              email: userData.user?.email || `user-${verification.user_id.substring(0, 6)}@unknown.com`,
+              username: userData.user?.user_metadata?.username || 
+                       userData.user?.user_metadata?.name || 
+                       userData.user?.email?.split('@')[0] || 
+                       'Unknown User'
+            };
+          } catch (err) {
+            console.warn(`Error processing user ${verification.user_id}:`, err);
+            return {
+              ...verification,
+              status: verification.status as 'pending' | 'approved' | 'declined',
+              email: `user-${verification.user_id.substring(0, 6)}@unknown.com`,
+              username: 'Unknown User'
+            };
           }
+        });
 
-          return {
-            ...verification,
-            email,
-            username,
-          };
-        })
-      );
-
-      setVerifications(verificationWithUserData);
-    } catch (error: any) {
-      console.error('Error fetching verifications:', error);
+        const enrichedVerifications = await Promise.all(userPromises);
+        setVerifications(enrichedVerifications);
+      } else {
+        setVerifications([]);
+      }
+    } catch (error) {
+      console.error('Error in fetchVerifications:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to load payment verifications",
         variant: "destructive",
       });
+      setVerifications([]);
     } finally {
       setLoading(false);
     }
@@ -97,7 +111,6 @@ export function PaymentVerificationsTabContent() {
 
   useEffect(() => {
     fetchVerifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleApproval = async (id: string, userId: string, approve: boolean) => {
@@ -157,21 +170,21 @@ export function PaymentVerificationsTabContent() {
       
       // Extract just the filename if it's a full URL
       let fileName = filePath;
-      if (filePath.includes('/storage/v1/object/public/payment-proofs/')) {
-        fileName = filePath.split('/storage/v1/object/public/payment-proofs/')[1];
+      if (filePath.includes('/storage/v1/object/public/Payment Proofs/')) {
+        fileName = filePath.split('/storage/v1/object/public/Payment Proofs/')[1];
       } else if (filePath.startsWith('http')) {
         // If it's already a full URL, return it as is
         return filePath;
       }
       
       const { data, error } = await supabase.storage
-        .from('payment-proofs')
+        .from('Payment Proofs')
         .createSignedUrl(fileName, 3600); // 1 hour expiry
       
       if (error) {
         console.error('Error creating signed URL:', error);
-        // Fallback to public URL
-        return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
+        // Fallback to public URL - note the bucket name has spaces
+        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
       }
       
       console.log('Generated signed URL:', data.signedUrl);
@@ -180,7 +193,7 @@ export function PaymentVerificationsTabContent() {
       console.error('Error in getSignedImageUrl:', error);
       // Fallback to public URL
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
     }
   };
 
