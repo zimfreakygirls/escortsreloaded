@@ -54,44 +54,48 @@ export function PaymentVerificationsTabContent() {
         return;
       }
 
-      // If we have verifications, get the user details
+      // If we have verifications, get the user details from user_profiles table
       if (verificationData && verificationData.length > 0) {
-        // Get user data from auth.users table via admin API  
-        const userPromises = verificationData.map(async (verification) => {
-          try {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(verification.user_id);
-            
-            if (userError) {
-              console.warn(`Could not fetch user data for ${verification.user_id}:`, userError);
-              return {
-                ...verification,
-                status: verification.status as 'pending' | 'approved' | 'declined',
-                email: `user-${verification.user_id.substring(0, 6)}@unknown.com`,
-                username: 'Unknown User'
-              };
-            }
+        const userIds = verificationData.map(v => v.user_id);
+        
+        // Get user profiles from our user_profiles table
+        const { data: userProfilesData, error: userProfilesError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .in('user_id', userIds);
 
-            return {
-              ...verification,
-              status: verification.status as 'pending' | 'approved' | 'declined',
-              email: userData.user?.email || `user-${verification.user_id.substring(0, 6)}@unknown.com`,
-              username: userData.user?.user_metadata?.username || 
-                       userData.user?.user_metadata?.name || 
-                       userData.user?.email?.split('@')[0] || 
-                       'Unknown User'
-            };
-          } catch (err) {
-            console.warn(`Error processing user ${verification.user_id}:`, err);
-            return {
-              ...verification,
-              status: verification.status as 'pending' | 'approved' | 'declined',
-              email: `user-${verification.user_id.substring(0, 6)}@unknown.com`,
-              username: 'Unknown User'
-            };
-          }
+        if (userProfilesError) {
+          console.error('Error fetching user profiles:', userProfilesError);
+          // Continue with verification data without user info
+          setVerifications(verificationData.map(verification => ({
+            ...verification,
+            status: verification.status as 'pending' | 'approved' | 'declined',
+            email: `user-${verification.user_id.substring(0, 6)}@unknown.com`,
+            username: 'Unknown User'
+          })));
+          return;
+        }
+
+        // Create a map of user profiles by user_id
+        const userProfilesMap = new Map();
+        if (userProfilesData) {
+          userProfilesData.forEach(profile => {
+            userProfilesMap.set(profile.user_id, profile);
+          });
+        }
+
+        // Enrich verifications with user data
+        const enrichedVerifications = verificationData.map(verification => {
+          const userProfile = userProfilesMap.get(verification.user_id);
+          
+          return {
+            ...verification,
+            status: verification.status as 'pending' | 'approved' | 'declined',
+            email: userProfile?.email || `user-${verification.user_id.substring(0, 6)}@unknown.com`,
+            username: userProfile?.username || userProfile?.full_name || 'Unknown User'
+          };
         });
 
-        const enrichedVerifications = await Promise.all(userPromises);
         setVerifications(enrichedVerifications);
       } else {
         setVerifications([]);

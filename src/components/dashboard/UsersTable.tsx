@@ -31,136 +31,53 @@ export function UsersTable() {
     try {
       setLoading(true);
       
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      // Load profile data FIRST (id = user_id relationship is assumed)
-      let profilesMap = new Map<string, string>();
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name');
+      // Get user profiles from our new user_profiles table
+      const { data: userProfilesData, error: userProfilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      console.log("Profiles fetch:", profilesData, "Error:", profilesError);
-
-      if (profilesError) {
+      if (userProfilesError) {
+        console.error('Error fetching user profiles:', userProfilesError);
         toast({
-          title: "Error loading profiles",
-          description: profilesError.message,
+          title: "Error",
+          description: "Failed to load user profiles",
           variant: "destructive",
         });
+        return;
       }
 
-      if (profilesData && profilesData.length > 0) {
-        profilesData.forEach(profile => {
-          profilesMap.set(profile.id, profile.name);
+      const mappedUsers = (userProfilesData || []).map(profile => ({
+        id: profile.user_id,
+        email: profile.email || `user-${profile.user_id.substring(0, 6)}@unknown.com`,
+        username: profile.username || profile.full_name || profile.email?.split('@')[0] || 'Unknown User',
+        created_at: profile.created_at,
+        last_sign_in_at: null, // We don't have this info in user_profiles
+        banned: false,
+        approved: false
+      }));
+
+      // Get user_status for banned/approved info
+      const { data: userStatusData } = await supabase
+        .from('user_status')
+        .select('*');
+        
+      if (userStatusData && userStatusData.length > 0) {
+        const statusMap = new Map();
+        userStatusData.forEach(status => {
+          statusMap.set(status.user_id, status);
+        });
+        
+        mappedUsers.forEach(user => {
+          const status = statusMap.get(user.id);
+          if (status) {
+            user.banned = status.banned;
+            user.approved = status.approved;
+          }
         });
       }
 
-      if (!authError && authUsers?.users && authUsers.users.length > 0) {
-        // Map the user data with better username extraction, fallback to profile name if available
-        const mappedUsers = authUsers.users.map(user => {
-          const profileName = profilesMap.get(user.id);
-          const metadata = user.user_metadata || {};
-          const appMetadata = user.app_metadata || {};
-
-          let username = 
-            profileName ||
-            metadata.username ||
-            metadata.user_name ||
-            metadata.full_name ||
-            metadata.name ||
-            metadata.display_name ||
-            appMetadata.username ||
-            appMetadata.full_name ||
-            null;
-
-          if (!username && user.email) {
-            username = user.email.split('@')[0];
-          }
-
-          // Diagnostics
-          console.log("user.id", user.id, "| user.email", user.email, "| profileName", profileName, "| resolved username", username);
-
-          return {
-            id: user.id,
-            email: user.email || `user-${user.id.substring(0, 6)}@example.com`,
-            username,
-            created_at: user.created_at || new Date().toISOString(),
-            last_sign_in_at: user.last_sign_in_at,
-            banned: false, // Will be updated below
-            approved: false // Will be updated below
-          };
-        });
-
-        // Warn if no usernames came from profiles at all:
-        if (profilesData && profilesData.length > 0) {
-          const usernamesFromProfiles = mappedUsers.filter(u => profilesMap.has(u.id));
-          if (usernamesFromProfiles.length === 0) {
-            toast({
-              title: "No usernames loaded from profiles",
-              description:
-                "Check that there are profile records for each user and that you have admin SELECT access to the profiles table.",
-            });
-          }
-        }
-
-        // Get user_status for merged banned/approved info
-        const { data: userStatusData } = await supabase
-          .from('user_status')
-          .select('*');
-          
-        if (userStatusData && userStatusData.length > 0) {
-          const statusMap = new Map();
-          userStatusData.forEach(status => {
-            statusMap.set(status.user_id, status);
-          });
-          
-          mappedUsers.forEach(user => {
-            const status = statusMap.get(user.id);
-            if (status) {
-              user.banned = status.banned;
-              user.approved = status.approved;
-            }
-          });
-        }
-        
-        setUsers(mappedUsers);
-      } else {
-        // Fallback: Get user_status and join on profiles
-        const { data: userStatusData, error: statusError } = await supabase
-          .from('user_status')
-          .select('*');
-        if (statusError) throw statusError;
-        
-        if (userStatusData && userStatusData.length > 0) {
-          const usersFromStatus = userStatusData.map(status => ({
-            id: status.user_id,
-            email: `user-${status.user_id.substring(0, 6)}@example.com`,
-            username: profilesMap.get(status.user_id) || undefined,
-            created_at: status.created_at || new Date().toISOString(),
-            last_sign_in_at: null,
-            banned: status.banned,
-            approved: status.approved
-          }));
-          
-          setUsers(usersFromStatus);
-        } else {
-          // Demo fallback
-          setUsers([{
-            id: "1",
-            email: "admin@escortsreloaded.com",
-            username: "Admin",
-            created_at: new Date().toISOString(),
-            last_sign_in_at: new Date().toISOString(),
-            banned: false,
-            approved: true
-          }]);
-          toast({
-            title: "Note",
-            description: "No user records found. Create users or add entries to the user_status table.",
-            variant: "default",
-          });
-        }
-      }
+      setUsers(mappedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -169,15 +86,7 @@ export function UsersTable() {
         variant: "destructive",
       });
       
-      setUsers([{
-        id: "1",
-        email: "admin@escortsreloaded.com",
-        username: "Admin",
-        created_at: new Date().toISOString(),
-        last_sign_in_at: new Date().toISOString(),
-        banned: false,
-        approved: true
-      }]);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
