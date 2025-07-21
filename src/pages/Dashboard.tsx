@@ -17,6 +17,7 @@ import {
   SettingsTabContent, 
   AdminTabContent 
 } from "@/components/dashboard/TabsContent";
+import { AdminUsersTabContent } from "@/components/dashboard/AdminUsersTabContent";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -70,19 +71,10 @@ export default function Dashboard() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (!session) {
+      // Only handle sign out events to prevent infinite loops
+      if (event === 'SIGNED_OUT' && !session) {
         navigate("/admin-login");
         return;
-      }
-
-      try {
-        const adminStatus = await checkIsAdmin(session.user.id);
-        if (!adminStatus) {
-          navigate("/");
-        }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        navigate("/admin-login");
       }
     });
 
@@ -238,6 +230,8 @@ export default function Dashboard() {
         />
         
         <AdminTabContent />
+        
+        <AdminUsersTabContent />
       </DashboardTabs>
       </div>
     </div>

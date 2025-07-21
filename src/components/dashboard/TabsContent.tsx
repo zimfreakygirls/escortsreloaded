@@ -6,6 +6,7 @@ import { ContactManager } from "@/components/dashboard/ContactManager";
 import { SettingsManager } from "@/components/dashboard/SettingsManager";
 import { AdminSettings } from "@/components/dashboard/AdminSettings";
 import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
+import { AdminUsersTabContent } from "@/components/dashboard/AdminUsersTabContent";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { SiteStatusManager } from "@/components/dashboard/SiteStatusManager";
 

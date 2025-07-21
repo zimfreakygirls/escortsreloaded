@@ -35,7 +35,10 @@ export function DashboardTabs({ children }: DashboardTabsProps) {
             Settings
           </TabsTrigger>
           <TabsTrigger value="admin" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
-            Admin
+            Settings
+          </TabsTrigger>
+          <TabsTrigger value="admin-users" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
+            Admins
           </TabsTrigger>
         </TabsList>
       </div>
