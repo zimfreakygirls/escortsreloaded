@@ -183,24 +183,24 @@ export function PaymentVerificationsTabContent() {
         fileName = filePath.split('/').pop() || filePath;
       }
       
-      // Try to get signed URL from the correct bucket name (Payment Proofs)
+      // Try to get signed URL from the correct bucket name (payment-proofs)
       const { data, error } = await supabase.storage
-        .from('Payment Proofs')
+        .from('payment-proofs')
         .createSignedUrl(fileName, 3600); // 1 hour expiry
       
       if (error) {
         console.error('Error creating signed URL:', error);
-        // Fallback to public URL with correct bucket name (URL encoded)
-        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
+        // Fallback to public URL with correct bucket name
+        return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
       }
       
       console.log('Generated signed URL:', data.signedUrl);
       return data.signedUrl;
     } catch (error) {
       console.error('Error in getSignedImageUrl:', error);
-      // Fallback to public URL with correct bucket name (URL encoded)
+      // Fallback to public URL with correct bucket name
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
     }
   };
 

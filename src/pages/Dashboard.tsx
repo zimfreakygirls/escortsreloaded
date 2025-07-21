@@ -17,6 +17,7 @@ import {
   SettingsTabContent, 
   AdminTabContent 
 } from "@/components/dashboard/TabsContent";
+import { AdminUsersTabContent } from "@/components/dashboard/AdminUsersTabContent";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -229,6 +230,8 @@ export default function Dashboard() {
         />
         
         <AdminTabContent />
+        
+        <AdminUsersTabContent />
       </DashboardTabs>
       </div>
     </div>
