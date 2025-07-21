@@ -41,14 +41,13 @@ export function AdminSettings() {
     setLoading(true);
     
     try {
-      // Get the current session
+      // Get the current session and user ID
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+      if (!sessionData.session?.user) {
         throw new Error("No active session found");
       }
       
-      // First, sign out to ensure clean state
-      await supabase.auth.signOut();
+      const currentUserId = sessionData.session.user.id;
       
       // Create new admin account with new credentials
       const newEmail = `${values.newUsername.toLowerCase()}@escortsreloaded.com`;
@@ -61,8 +60,14 @@ export function AdminSettings() {
       if (signupError) throw signupError;
       
       if (signupData?.user) {
-        // Add to admin_users table
+        // Add new admin to admin_users table
         await supabase.from('admin_users').insert({ id: signupData.user.id });
+        
+        // Remove old admin from admin_users table
+        await supabase.from('admin_users').delete().eq('id', currentUserId);
+        
+        // Sign out current session
+        await supabase.auth.signOut();
         
         // Sign in with new credentials
         const { error: loginError } = await supabase.auth.signInWithPassword({

@@ -69,7 +69,7 @@ export function SettingsManager({ settings, onSettingsChange }: SettingsManagerP
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
               <label htmlFor="profiles_per_page" className="block text-sm font-medium text-gray-300">
                 Profiles per page
@@ -132,10 +132,11 @@ export function SettingsManager({ settings, onSettingsChange }: SettingsManagerP
               </p>
             </div>
           </div>
-          <Button 
+          <div className="pt-4">
+            <Button 
             onClick={handleSaveSettings} 
             disabled={isSaving}
-            className="bg-gradient-to-r from-[#9b87f5] to-[#6E59A5] hover:from-[#8b77e5] hover:to-[#5E49A5] border-0 text-white"
+            className="w-full sm:w-auto bg-gradient-to-r from-[#9b87f5] to-[#6E59A5] hover:from-[#8b77e5] hover:to-[#5E49A5] border-0 text-white"
           >
             {isSaving ? (
               <>
@@ -146,6 +147,7 @@ export function SettingsManager({ settings, onSettingsChange }: SettingsManagerP
               "Save Settings"
             )}
           </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
