@@ -70,10 +70,19 @@ export default function Dashboard() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      // Only handle sign out events to prevent infinite loops
-      if (event === 'SIGNED_OUT' && !session) {
+      if (!session) {
         navigate("/admin-login");
         return;
+      }
+
+      try {
+        const adminStatus = await checkIsAdmin(session.user.id);
+        if (!adminStatus) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        navigate("/admin-login");
       }
     });
 

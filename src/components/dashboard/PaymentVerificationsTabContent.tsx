@@ -172,35 +172,32 @@ export function PaymentVerificationsTabContent() {
     try {
       console.log('Getting signed URL for:', filePath);
       
-      // If it's already a full URL, return it as is
-      if (filePath.startsWith('http')) {
+      // Extract just the filename if it's a full URL
+      let fileName = filePath;
+      if (filePath.includes('/storage/v1/object/public/Payment Proofs/')) {
+        fileName = filePath.split('/storage/v1/object/public/Payment Proofs/')[1];
+      } else if (filePath.startsWith('http')) {
+        // If it's already a full URL, return it as is
         return filePath;
       }
       
-      // Extract just the filename if it's a path
-      let fileName = filePath;
-      if (filePath.includes('/')) {
-        fileName = filePath.split('/').pop() || filePath;
-      }
-      
-      // Try to get signed URL from the correct bucket name (payment-proofs)
       const { data, error } = await supabase.storage
-        .from('payment-proofs')
+        .from('Payment Proofs')
         .createSignedUrl(fileName, 3600); // 1 hour expiry
       
       if (error) {
         console.error('Error creating signed URL:', error);
-        // Fallback to public URL with correct bucket name
-        return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
+        // Fallback to public URL - note the bucket name has spaces
+        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
       }
       
       console.log('Generated signed URL:', data.signedUrl);
       return data.signedUrl;
     } catch (error) {
       console.error('Error in getSignedImageUrl:', error);
-      // Fallback to public URL with correct bucket name
+      // Fallback to public URL
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${fileName}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
     }
   };
 
