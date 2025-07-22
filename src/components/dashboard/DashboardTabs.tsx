@@ -19,7 +19,7 @@ export function DashboardTabs({ children }: DashboardTabsProps) {
           <TabsTrigger value="users" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
             Users
           </TabsTrigger>
-          <TabsTrigger value="payment-verifications" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
+          <TabsTrigger value="payments" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
             Payments
           </TabsTrigger>
           <TabsTrigger value="countries" className="tabs-trigger text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
