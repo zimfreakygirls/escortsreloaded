@@ -172,8 +172,12 @@ export function PaymentVerificationsTabContent() {
     try {
       console.log('Getting signed URL for:', filePath);
       
-      // If it's already a full URL, return it as is
+      // If it's already a full URL, check if it needs bucket name correction
       if (filePath.startsWith('http')) {
+        // Fix old bucket name in existing URLs
+        if (filePath.includes('/payment-proofs/')) {
+          return filePath.replace('/payment-proofs/', '/Payment%20Proofs/');
+        }
         return filePath;
       }
       
