@@ -201,11 +201,13 @@ export function PaymentVerificationsTabContent() {
     try {
       console.log('Getting signed URL for:', filePath);
       
-      // If it's already a full URL, check if it needs bucket name correction
+      // If it's already a full URL, return the corrected public URL directly
       if (filePath.startsWith('http')) {
         // Fix old bucket name in existing URLs - encode the space properly
         if (filePath.includes('/payment-proofs/')) {
-          return filePath.replace('/payment-proofs/', '/Payment%20Proofs/');
+          const correctedUrl = filePath.replace('/payment-proofs/', '/Payment%20Proofs/');
+          console.log('Fixed URL from:', filePath, 'to:', correctedUrl);
+          return correctedUrl;
         }
         // Already a full URL, return as is
         return filePath;
@@ -217,19 +219,10 @@ export function PaymentVerificationsTabContent() {
         fileName = filePath.split('/').pop() || filePath;
       }
       
-      // Try to get signed URL from the correct bucket name (Payment Proofs)
-      const { data, error } = await supabase.storage
-        .from('Payment Proofs')
-        .createSignedUrl(fileName, 3600); // 1 hour expiry
-      
-      if (error) {
-        console.error('Error creating signed URL:', error);
-        // Fallback to public URL with correct bucket name and encoding
-        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName)}`;
-      }
-      
-      console.log('Generated signed URL:', data.signedUrl);
-      return data.signedUrl;
+      // For new files, create public URL directly (since bucket should be public)
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName)}`;
+      console.log('Generated public URL:', publicUrl);
+      return publicUrl;
     } catch (error) {
       console.error('Error in getSignedImageUrl:', error);
       // Fallback to public URL with correct bucket name and encoding
