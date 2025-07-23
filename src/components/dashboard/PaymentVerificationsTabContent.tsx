@@ -471,8 +471,17 @@ function ImageWithFallback({
       try {
         setLoading(true);
         setError(false);
-        const signedUrl = await getSignedUrl(src);
-        setImageSrc(signedUrl);
+        
+        // Fix the bucket name in the URL if it's the old format
+        let correctedSrc = src;
+        if (src.includes('/payment-proofs/')) {
+          correctedSrc = src.replace('/payment-proofs/', '/Payment%20Proofs/');
+          console.log('Fixed URL from:', src, 'to:', correctedSrc);
+          setImageSrc(correctedSrc);
+        } else {
+          const signedUrl = await getSignedUrl(correctedSrc);
+          setImageSrc(signedUrl);
+        }
       } catch (err) {
         console.error('Failed to load image:', err);
         setError(true);
