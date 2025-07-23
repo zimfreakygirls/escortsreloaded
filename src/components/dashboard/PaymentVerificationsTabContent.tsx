@@ -13,8 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimationWrapper } from "../ui/animation-wrapper";
 import { Badge } from "../ui/badge";
-import { CheckCircle, XCircle, Loader2, ExternalLink, Image, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, ExternalLink, Image, AlertTriangle, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface PaymentVerification {
   id: string;
@@ -158,6 +159,34 @@ export function PaymentVerificationsTabContent() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    setProcessingId(id);
+    try {
+      const { error } = await supabase
+        .from('payment_verifications')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+
+      toast({
+        title: "Verification Deleted",
+        description: "Payment verification has been deleted successfully",
+      });
+      
+      fetchVerifications();
+    } catch (error: any) {
+      console.error('Error deleting verification:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete verification",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -174,10 +203,11 @@ export function PaymentVerificationsTabContent() {
       
       // If it's already a full URL, check if it needs bucket name correction
       if (filePath.startsWith('http')) {
-        // Fix old bucket name in existing URLs
+        // Fix old bucket name in existing URLs - encode the space properly
         if (filePath.includes('/payment-proofs/')) {
           return filePath.replace('/payment-proofs/', '/Payment%20Proofs/');
         }
+        // Already a full URL, return as is
         return filePath;
       }
       
@@ -194,17 +224,17 @@ export function PaymentVerificationsTabContent() {
       
       if (error) {
         console.error('Error creating signed URL:', error);
-        // Fallback to public URL with correct bucket name
-        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
+        // Fallback to public URL with correct bucket name and encoding
+        return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName)}`;
       }
       
       console.log('Generated signed URL:', data.signedUrl);
       return data.signedUrl;
     } catch (error) {
       console.error('Error in getSignedImageUrl:', error);
-      // Fallback to public URL with correct bucket name
+      // Fallback to public URL with correct bucket name and encoding
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${fileName}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName || '')}`;
     }
   };
 
@@ -369,9 +399,44 @@ export function PaymentVerificationsTabContent() {
                           </Button>
                         </div>
                       ) : (
-                        <span className="text-gray-500 italic text-sm">
-                          {verification.status === 'approved' ? 'Approved' : 'Declined'}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-500 italic text-sm">
+                            {verification.status === 'approved' ? 'Approved' : 'Declined'}
+                          </span>
+                          {verification.status === 'approved' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                                  disabled={processingId === verification.id}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-[#292741] border border-[#9b87f5]/30">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Delete Verification</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-400">
+                                    Are you sure you want to delete this payment verification? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700 border-gray-700">
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(verification.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
