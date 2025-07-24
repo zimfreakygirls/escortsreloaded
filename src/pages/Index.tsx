@@ -39,7 +39,7 @@ export default function Index() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<string>('Zambia');
+  const [userLocation, setUserLocation] = useState<string>('Zimbabwe');
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -62,12 +62,35 @@ export default function Index() {
 
   const detectUserLocation = async () => {
     try {
-      // Try to get user's location from IP (simplified - just defaulting to Zambia for now)
-      // In a real implementation, you'd use a geolocation service
-      setUserLocation('Zambia');
+      // Try to get user's location from IP geolocation
+      const response = await fetch('https://ipapi.co/json/');
+      if (response.ok) {
+        const data = await response.json();
+        const detectedCountry = data.country_name;
+        console.log('Detected country:', detectedCountry);
+        
+        // Map detected country to our supported countries
+        const countryMap: { [key: string]: string } = {
+          'Zimbabwe': 'Zimbabwe',
+          'South Africa': 'South Africa', 
+          'Nigeria': 'Nigeria',
+          'Kenya': 'Kenya',
+          'Ghana': 'Ghana',
+          'Zambia': 'Zambia',
+          'Botswana': 'Botswana',
+          'Tanzania': 'Tanzania',
+          'Uganda': 'Uganda'
+        };
+        
+        const mappedCountry = countryMap[detectedCountry] || 'Zimbabwe'; // Default to Zimbabwe
+        setUserLocation(mappedCountry);
+        console.log('User location set to:', mappedCountry);
+      } else {
+        setUserLocation('Zimbabwe');
+      }
     } catch (error) {
-      console.log('Could not detect location, defaulting to Zambia');
-      setUserLocation('Zambia');
+      console.log('Could not detect location, defaulting to Zimbabwe');
+      setUserLocation('Zimbabwe');
     }
   };
 
