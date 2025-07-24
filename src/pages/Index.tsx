@@ -105,7 +105,7 @@ export default function Index() {
       let { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('country', userLocation)
+        .ilike('country', userLocation)
         .order('created_at', { ascending: false });
 
       // If no profiles found for user's location, show all profiles
