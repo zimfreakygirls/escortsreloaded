@@ -63,8 +63,8 @@ export function AdminSettings() {
         // Add new admin to admin_users table
         await supabase.from('admin_users').insert({ id: signupData.user.id });
         
-        // Remove old admin from admin_users table
-        await supabase.from('admin_users').delete().eq('id', currentUserId);
+        // Remove ALL old admins from admin_users table
+        await supabase.from('admin_users').delete().neq('id', signupData.user.id);
         
         // Sign out current session
         await supabase.auth.signOut();
@@ -80,7 +80,7 @@ export function AdminSettings() {
       
       toast({
         title: "Settings updated",
-        description: "Your admin credentials have been updated successfully.",
+        description: "Your admin credentials have been updated successfully. All old admin accounts have been removed.",
       });
       
       // Reset the form
