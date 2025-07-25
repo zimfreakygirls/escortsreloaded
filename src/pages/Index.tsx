@@ -98,14 +98,10 @@ export default function Index() {
   };
 
   const checkShowCountryDialog = () => {
-    // Check if user has seen the country selection before
-    const hasSeenCountrySelection = localStorage.getItem('countrySelectionShown');
-    if (!hasSeenCountrySelection) {
-      // Show the dialog after a short delay for better UX
-      setTimeout(() => {
-        setShowCountryDialog(true);
-      }, 1000);
-    }
+    // Show the country selection dialog every time user visits
+    setTimeout(() => {
+      setShowCountryDialog(true);
+    }, 1000);
   };
 
   const handleCountrySelection = (country: string) => {

@@ -65,8 +65,6 @@ export function CountrySelectionDialog({ open, onCountrySelect }: CountrySelecti
 
   const handleCountrySelect = (country: string) => {
     onCountrySelect(country);
-    // Mark that user has seen the country selection
-    localStorage.setItem('countrySelectionShown', 'true');
   };
 
   return (
