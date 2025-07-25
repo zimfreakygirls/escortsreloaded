@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { CountrySelectionDialog } from "@/components/CountrySelectionDialog";
 
 interface Settings {
   id: string;
@@ -40,6 +41,7 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<string>('Zimbabwe');
+  const [showCountryDialog, setShowCountryDialog] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -54,6 +56,7 @@ export default function Index() {
 
     detectUserLocation();
     loadProfiles();
+    checkShowCountryDialog();
 
     return () => {
       subscription.unsubscribe();
@@ -91,6 +94,97 @@ export default function Index() {
     } catch (error) {
       console.log('Could not detect location, defaulting to Zimbabwe');
       setUserLocation('Zimbabwe');
+    }
+  };
+
+  const checkShowCountryDialog = () => {
+    // Check if user has seen the country selection before
+    const hasSeenCountrySelection = localStorage.getItem('countrySelectionShown');
+    if (!hasSeenCountrySelection) {
+      // Show the dialog after a short delay for better UX
+      setTimeout(() => {
+        setShowCountryDialog(true);
+      }, 1000);
+    }
+  };
+
+  const handleCountrySelection = (country: string) => {
+    setShowCountryDialog(false);
+    if (country === 'All Countries') {
+      setUserLocation('');
+    } else {
+      setUserLocation(country);
+    }
+    // Reload profiles with the new country
+    loadProfilesForCountry(country === 'All Countries' ? '' : country);
+  };
+
+  const loadProfilesForCountry = async (country: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log("Loading profiles for country:", country || "All");
+      
+      let query = supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // If country is specified, filter by it
+      if (country && country.trim().length > 0) {
+        query = query.ilike('country', country);
+      }
+
+      const { data: profilesData, error: profilesError } = await query;
+
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      console.log("Raw profiles data:", profilesData?.length || 0);
+
+      const nonVideoProfiles = (profilesData || []).filter(profile => {
+        const hasRealImage =
+          Array.isArray(profile.images) &&
+          profile.images.length > 0 &&
+          profile.images[0] &&
+          !profile.images[0].includes("placeholder.svg");
+
+        const isAdminAdded =
+          hasRealImage &&
+          typeof profile.name === "string" &&
+          profile.name.trim().length > 0 &&
+          typeof profile.city === "string" &&
+          profile.city.trim().length > 0 &&
+          typeof profile.country === "string" &&
+          profile.country.trim().length > 0;
+
+        return !profile.is_video && isAdminAdded;
+      });
+
+      console.log("Filtered profiles:", nonVideoProfiles.length);
+
+      const imagesToPreload = nonVideoProfiles.slice(0, 6);
+      imagesToPreload.forEach(profile => {
+        if (profile.images && profile.images[0]) {
+          const img = new Image();
+          img.src = profile.images[0];
+        }
+      });
+
+      setProfiles(nonVideoProfiles);
+      await fetchSettings();
+    } catch (err) {
+      console.error("Error loading profiles:", err);
+      setError("Failed to load profiles. Please try again later.");
+      toast({
+        title: "Error",
+        description: "Failed to load profiles",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -220,7 +314,9 @@ export default function Index() {
         <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold">Discover Profiles</h1>
-            <p className="text-sm text-gray-600 mt-1">Showing profiles from {userLocation}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {userLocation ? `Showing profiles from ${userLocation}` : 'Showing all profiles'}
+            </p>
           </div>
           <ToggleGroup 
             type="single" 
@@ -320,6 +416,11 @@ export default function Index() {
           </div>
         )}
       </main>
+
+      <CountrySelectionDialog
+        open={showCountryDialog}
+        onCountrySelect={handleCountrySelection}
+      />
     </div>
   );
 }
