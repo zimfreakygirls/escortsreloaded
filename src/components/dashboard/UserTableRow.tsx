@@ -16,10 +16,11 @@ interface UserTableRowProps {
   };
   formatDate: (dateString: string | null) => string;
   onStatusChange: (userId: string, field: 'banned' | 'approved', value: boolean) => void;
+  onUserDeleted?: (userId: string) => void;
   isMobile?: boolean;
 }
 
-export function UserTableRow({ user, formatDate, onStatusChange, isMobile = false }: UserTableRowProps) {
+export function UserTableRow({ user, formatDate, onStatusChange, onUserDeleted, isMobile = false }: UserTableRowProps) {
   if (isMobile) {
     return (
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-700">
@@ -31,6 +32,7 @@ export function UserTableRow({ user, formatDate, onStatusChange, isMobile = fals
           banned={user.banned} 
           approved={user.approved} 
           onStatusChange={onStatusChange}
+          onUserDeleted={onUserDeleted}
         />
       </div>
     );
@@ -60,6 +62,7 @@ export function UserTableRow({ user, formatDate, onStatusChange, isMobile = fals
           banned={user.banned} 
           approved={user.approved} 
           onStatusChange={onStatusChange}
+          onUserDeleted={onUserDeleted}
         />
       </TableCell>
     </TableRow>

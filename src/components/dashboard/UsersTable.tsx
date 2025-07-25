@@ -107,6 +107,15 @@ export function UsersTable() {
     );
   };
 
+  const handleUserDeleted = (userId: string) => {
+    // Remove user from local state
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    toast({
+      title: "User Deleted",
+      description: "User has been successfully deleted",
+    });
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
@@ -157,12 +166,13 @@ export function UsersTable() {
                     </div>
                   </div>
                   
-                  <UserTableRow 
-                    user={user}
-                    formatDate={formatDate}
-                    onStatusChange={handleStatusChange}
-                    isMobile={true}
-                  />
+                   <UserTableRow 
+                     user={user}
+                     formatDate={formatDate}
+                     onStatusChange={handleStatusChange}
+                     onUserDeleted={handleUserDeleted}
+                     isMobile={true}
+                   />
                 </div>
               </div>
             ))
@@ -190,12 +200,13 @@ export function UsersTable() {
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <UserTableRow 
-                    key={user.id}
-                    user={user}
-                    formatDate={formatDate}
-                    onStatusChange={handleStatusChange}
-                  />
+                   <UserTableRow 
+                     key={user.id}
+                     user={user}
+                     formatDate={formatDate}
+                     onStatusChange={handleStatusChange}
+                     onUserDeleted={handleUserDeleted}
+                   />
                 ))
               )}
             </TableBody>
