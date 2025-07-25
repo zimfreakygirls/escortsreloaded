@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -80,27 +81,27 @@ export function CountrySelectionDialog({ open, onCountrySelect }: CountrySelecti
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3 max-h-80 overflow-y-auto">
+        <div className="space-y-4">
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : (
-            countries.map((country) => (
-              <Button
-                key={country.name}
-                variant="outline"
-                className="w-full justify-start text-left h-auto py-3 px-4 hover:bg-primary/10 hover:border-primary/50"
-                onClick={() => handleCountrySelect(country.name)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
-                    <MapPin className="w-3 h-3 text-primary" />
-                  </div>
-                  <span>{country.name}</span>
-                </div>
-              </Button>
-            ))
+            <Select onValueChange={handleCountrySelect}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a country" />
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((country) => (
+                  <SelectItem key={country.name} value={country.name}>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      {country.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
 
