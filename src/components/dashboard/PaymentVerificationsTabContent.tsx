@@ -205,7 +205,7 @@ export function PaymentVerificationsTabContent() {
       if (filePath.startsWith('http')) {
         // Fix old bucket name in existing URLs - encode the space properly
         if (filePath.includes('/payment-proofs/')) {
-          const correctedUrl = filePath.replace('/payment-proofs/', '/Payment%20Proofs/');
+          const correctedUrl = filePath.replace('/payment-proofs/', '/payment-proofs/');
           console.log('Fixed URL from:', filePath, 'to:', correctedUrl);
           return correctedUrl;
         }
@@ -220,14 +220,14 @@ export function PaymentVerificationsTabContent() {
       }
       
       // For new files, create public URL directly (since bucket should be public)
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName)}`;
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${encodeURIComponent(fileName)}`;
       console.log('Generated public URL:', publicUrl);
       return publicUrl;
     } catch (error) {
       console.error('Error in getSignedImageUrl:', error);
       // Fallback to public URL with correct bucket name and encoding
       const fileName = filePath.includes('/') ? filePath.split('/').pop() : filePath;
-      return `${SUPABASE_URL}/storage/v1/object/public/Payment%20Proofs/${encodeURIComponent(fileName || '')}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${encodeURIComponent(fileName || '')}`;
     }
   };
 
