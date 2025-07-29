@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Ban, User, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { AdminSettings } from "@/components/dashboard/AdminSettings";
+import { AdminSignupSettings } from "@/components/dashboard/AdminSignupSettings";
+import { SiteStatusManager } from "@/components/dashboard/SiteStatusManager";
 import {
   Table,
   TableBody,
@@ -197,131 +200,152 @@ export function AdminUsersTabContent() {
 
   if (loading) {
     return (
-      <TabsContent value="admin" className="space-y-4">
+      <TabsContent value="admin-users" className="space-y-4">
         <div className="flex justify-between items-center pb-4">
-          <h2 className="text-xl font-semibold text-white">Admin Users Management</h2>
+          <h2 className="text-xl font-semibold text-white">Admin Settings</h2>
         </div>
-        <div className="text-center py-8 text-gray-400">Loading admin users...</div>
+        <div className="text-center py-8 text-gray-400">Loading admin settings...</div>
       </TabsContent>
     );
   }
 
   return (
-    <TabsContent value="admin" className="space-y-4">
+    <TabsContent value="admin-users" className="space-y-4">
       <div className="flex justify-between items-center pb-4">
-        <h2 className="text-xl font-semibold text-white">Admin Users Management</h2>
-        <Badge variant="secondary" className="bg-blue-600 text-white">
-          <Shield className="w-3 h-3 mr-1" />
-          {adminUsers.length} Admin{adminUsers.length !== 1 ? 's' : ''}
-        </Badge>
+        <h2 className="text-xl font-semibold text-white">Admin Settings</h2>
       </div>
-
-      {adminUsers.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
-          <User className="mx-auto h-12 w-12 mb-4" />
-          <p>No admin users found</p>
+      
+      {/* Admin Settings Components */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AdminSettings />
+        <AdminSignupSettings />
+      </div>
+      
+      {/* Site Status Manager */}
+      <div className="mb-6">
+        <SiteStatusManager />
+      </div>
+      
+      {/* Admin Users Management Section */}
+      <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-white flex items-center">
+            <Shield className="w-5 h-5 mr-2" />
+            Admin Users Management
+          </h3>
+          <Badge variant="secondary" className="bg-blue-600 text-white">
+            <Shield className="w-3 h-3 mr-1" />
+            {adminUsers.length} Admin{adminUsers.length !== 1 ? 's' : ''}
+          </Badge>
         </div>
-      ) : (
-        <div className="bg-[#1E1B31] rounded-lg border border-gray-800 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-gray-800 hover:bg-gray-800/50">
-                <TableHead className="text-gray-300">Email</TableHead>
-                <TableHead className="text-gray-300">Full Name</TableHead>
-                <TableHead className="text-gray-300">Username</TableHead>
-                <TableHead className="text-gray-300">Created At</TableHead>
-                <TableHead className="text-gray-300 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {adminUsers.map((admin) => (
-                <TableRow 
-                  key={admin.id} 
-                  className="border-gray-800 hover:bg-gray-800/30"
-                >
-                  <TableCell className="text-white">
-                    {admin.email || 'No email'}
-                  </TableCell>
-                  <TableCell className="text-white">
-                    {admin.full_name || 'No name'}
-                  </TableCell>
-                  <TableCell className="text-white">
-                    {admin.username || 'No username'}
-                  </TableCell>
-                  <TableCell className="text-gray-400">
-                    {new Date(admin.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white"
-                        >
-                          <Ban className="w-3 h-3 mr-1" />
-                          Ban
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-[#1E1B31] border-gray-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">Ban User</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-400">
-                            Are you sure you want to ban this user? This will prevent them from accessing the platform.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleBanUser(admin.id)}
-                            className="bg-orange-600 hover:bg-orange-700"
-                          >
-                            Ban User
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Remove
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-[#1E1B31] border-gray-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">Remove Admin Privileges</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-400">
-                            Are you sure you want to remove admin privileges from this user? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleRemoveAdmin(admin.id)}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Remove Admin
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
+        {adminUsers.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <User className="mx-auto h-12 w-12 mb-4" />
+            <p>No admin users found</p>
+          </div>
+        ) : (
+          <div className="bg-[#1E1B31] rounded-lg border border-gray-800 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-800 hover:bg-gray-800/50">
+                  <TableHead className="text-gray-300">Email</TableHead>
+                  <TableHead className="text-gray-300">Full Name</TableHead>
+                  <TableHead className="text-gray-300">Username</TableHead>
+                  <TableHead className="text-gray-300">Created At</TableHead>
+                  <TableHead className="text-gray-300 text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              </TableHeader>
+              <TableBody>
+                {adminUsers.map((admin) => (
+                  <TableRow 
+                    key={admin.id} 
+                    className="border-gray-800 hover:bg-gray-800/30"
+                  >
+                    <TableCell className="text-white">
+                      {admin.email || 'No email'}
+                    </TableCell>
+                    <TableCell className="text-white">
+                      {admin.full_name || 'No name'}
+                    </TableCell>
+                    <TableCell className="text-white">
+                      {admin.username || 'No username'}
+                    </TableCell>
+                    <TableCell className="text-gray-400">
+                      {new Date(admin.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white"
+                          >
+                            <Ban className="w-3 h-3 mr-1" />
+                            Ban
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#1E1B31] border-gray-800">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">Ban User</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">
+                              Are you sure you want to ban this user? This will prevent them from accessing the platform.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleBanUser(admin.id)}
+                              className="bg-orange-600 hover:bg-orange-700"
+                            >
+                              Ban User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Remove
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#1E1B31] border-gray-800">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">Remove Admin Privileges</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">
+                              Are you sure you want to remove admin privileges from this user? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleRemoveAdmin(admin.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Remove Admin
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
     </TabsContent>
   );
 }
