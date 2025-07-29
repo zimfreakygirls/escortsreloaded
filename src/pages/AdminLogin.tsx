@@ -56,7 +56,7 @@ export default function AdminLogin() {
 
         // Sign out first to ensure clean state
         await supabase.auth.signOut();
-        const supabasePassword = "admin123"; 
+        const supabasePassword = "Mcdchiez16Admin2024!"; 
 
         const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
           email,
