@@ -31,14 +31,14 @@ export function UsersTable() {
     try {
       setLoading(true);
       
-      // Get user profiles from our new user_profiles table
-      const { data: userProfilesData, error: userProfilesError } = await supabase
+      // Get all users from auth.users first (with pagination if needed)
+      const { data: authUsersData, error: authUsersError } = await supabase
         .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (userProfilesError) {
-        console.error('Error fetching user profiles:', userProfilesError);
+      if (authUsersError) {
+        console.error('Error fetching user profiles:', authUsersError);
         toast({
           title: "Error",
           description: "Failed to load user profiles",
@@ -47,36 +47,43 @@ export function UsersTable() {
         return;
       }
 
-      const mappedUsers = (userProfilesData || []).map(profile => ({
-        id: profile.user_id,
-        email: profile.email || `user-${profile.user_id.substring(0, 6)}@unknown.com`,
-        username: profile.username || profile.full_name || profile.email?.split('@')[0] || 'Unknown User',
-        created_at: profile.created_at,
-        last_sign_in_at: null, // We don't have this info in user_profiles
-        banned: false,
-        approved: false
-      }));
+      console.log('Fetched user profiles:', authUsersData?.length || 0);
 
-      // Get user_status for banned/approved info
+      if (!authUsersData || authUsersData.length === 0) {
+        setUsers([]);
+        return;
+      }
+
+      // Get user_status for banned/approved info for all users
+      const userIds = authUsersData.map(profile => profile.user_id);
       const { data: userStatusData } = await supabase
         .from('user_status')
-        .select('*');
+        .select('*')
+        .in('user_id', userIds);
         
-      if (userStatusData && userStatusData.length > 0) {
-        const statusMap = new Map();
+      // Create a map of user status
+      const statusMap = new Map();
+      if (userStatusData) {
         userStatusData.forEach(status => {
           statusMap.set(status.user_id, status);
         });
-        
-        mappedUsers.forEach(user => {
-          const status = statusMap.get(user.id);
-          if (status) {
-            user.banned = status.banned;
-            user.approved = status.approved;
-          }
-        });
       }
 
+      // Map the data properly
+      const mappedUsers = authUsersData.map(profile => {
+        const status = statusMap.get(profile.user_id);
+        return {
+          id: profile.user_id,
+          email: profile.email || `user-${profile.user_id.substring(0, 6)}@unknown.com`,
+          username: profile.username || profile.full_name || profile.email?.split('@')[0] || 'Unknown User',
+          created_at: profile.created_at,
+          last_sign_in_at: null, // We don't store this in user_profiles
+          banned: status?.banned || false,
+          approved: status?.approved || false
+        };
+      });
+
+      console.log('Mapped users:', mappedUsers.length);
       setUsers(mappedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error);
