@@ -14,8 +14,7 @@ import {
   DashboardTabContent, 
   VideosTabContent, 
   ContactsTabContent, 
-  SettingsTabContent, 
-  AdminTabContent 
+  SettingsTabContent
 } from "@/components/dashboard/TabsContent";
 import { AdminUsersTabContent } from "@/components/dashboard/AdminUsersTabContent";
 
@@ -228,8 +227,6 @@ export default function Dashboard() {
           settings={activeSettings} 
           onSettingsChange={handleSettingsChange} 
         />
-        
-        <AdminTabContent />
         
         <AdminUsersTabContent />
       </DashboardTabs>
