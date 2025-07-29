@@ -19,9 +19,10 @@ interface Country {
 interface CountrySelectionDialogProps {
   open: boolean;
   onCountrySelect: (country: string) => void;
+  onCancel?: () => void;
 }
 
-export function CountrySelectionDialog({ open, onCountrySelect }: CountrySelectionDialogProps) {
+export function CountrySelectionDialog({ open, onCountrySelect, onCancel }: CountrySelectionDialogProps) {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +70,7 @@ export function CountrySelectionDialog({ open, onCountrySelect }: CountrySelecti
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={(open) => !open && onCancel?.()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -105,13 +106,20 @@ export function CountrySelectionDialog({ open, onCountrySelect }: CountrySelecti
           )}
         </div>
 
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4 pt-4 border-t space-y-2">
           <Button
             variant="ghost"
             className="w-full"
             onClick={() => handleCountrySelect('All Countries')}
           >
             View All Countries
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onCancel}
+          >
+            Cancel
           </Button>
         </div>
       </DialogContent>

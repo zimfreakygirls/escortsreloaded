@@ -49,7 +49,7 @@ export default function AdminLogin() {
     try {
       console.log("Starting login process...");
       
-      if (username === "admin" && password === "admin") {
+      if (username === "Mcdchiez16" && password === "mcdonald2001@") {
         const email = 'admin@escortsreloaded.com';
         
         console.log("Attempting admin login with:", { email });

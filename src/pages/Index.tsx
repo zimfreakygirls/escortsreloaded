@@ -98,10 +98,14 @@ export default function Index() {
   };
 
   const checkShowCountryDialog = () => {
-    // Show the country selection dialog every time user visits
-    setTimeout(() => {
-      setShowCountryDialog(true);
-    }, 1000);
+    // Only show for new visitors (check localStorage)
+    const hasVisited = localStorage.getItem('hasVisitedSite');
+    if (!hasVisited) {
+      setTimeout(() => {
+        setShowCountryDialog(true);
+      }, 1000);
+      localStorage.setItem('hasVisitedSite', 'true');
+    }
   };
 
   const handleCountrySelection = (country: string) => {
@@ -113,6 +117,10 @@ export default function Index() {
     }
     // Reload profiles with the new country
     loadProfilesForCountry(country === 'All Countries' ? '' : country);
+  };
+
+  const handleCancelCountryDialog = () => {
+    setShowCountryDialog(false);
   };
 
   const loadProfilesForCountry = async (country: string) => {
@@ -416,6 +424,7 @@ export default function Index() {
       <CountrySelectionDialog
         open={showCountryDialog}
         onCountrySelect={handleCountrySelection}
+        onCancel={handleCancelCountryDialog}
       />
     </div>
   );
