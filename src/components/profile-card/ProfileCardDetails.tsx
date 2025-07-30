@@ -49,13 +49,26 @@ export function ProfileCardDetails({
     }`}>
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <h3 className={`font-bold bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent ${isListView ? "text-2xl" : "text-xl"}`}>
+          <div className="space-y-2">
+            <h3 className={`font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight ${
+              isListView 
+                ? "text-lg sm:text-xl md:text-2xl lg:text-3xl" 
+                : "text-base sm:text-lg md:text-xl lg:text-2xl"
+            }`}>
               {name}
             </h3>
-            <p className={`text-primary font-semibold ${isListView ? "text-lg" : "text-sm"}`}>
-              {age} years old
-            </p>
+            <div className="flex items-center gap-2">
+              <span className={`text-primary font-bold ${
+                isListView ? "text-sm sm:text-base md:text-lg" : "text-xs sm:text-sm md:text-base"
+              }`}>
+                {age}
+              </span>
+              <span className={`text-muted-foreground font-medium ${
+                isListView ? "text-sm sm:text-base md:text-lg" : "text-xs sm:text-sm md:text-base"
+              }`}>
+                years old
+              </span>
+            </div>
           </div>
           {!isListView && shouldShowPhone && (
             <div className="flex items-center gap-1">
@@ -90,10 +103,12 @@ export function ProfileCardDetails({
         </div>
         
         {(location || city || country) && (
-          <div className="flex items-center gap-3 px-3 py-2 bg-primary/10 rounded-xl border border-primary/20">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <Flag className="w-4 h-4 text-primary flex-shrink-0" />
-            <p className="text-sm text-foreground font-semibold">
+          <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 rounded-2xl border border-primary/30 shadow-inner backdrop-blur-sm">
+            <div className="w-2 h-2 bg-gradient-to-r from-primary to-accent rounded-full animate-pulse shadow-lg"></div>
+            <Flag className="w-4 h-4 text-primary flex-shrink-0 drop-shadow-sm" />
+            <p className={`font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent ${
+              isListView ? "text-sm sm:text-base md:text-lg" : "text-xs sm:text-sm md:text-base"
+            }`}>
               {[location, city, country].filter(Boolean).join(' • ')}
             </p>
           </div>
@@ -146,41 +161,59 @@ export function ProfileCardDetails({
         )}
 
         {isListView && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
             {height && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">📏</span>
-                <span>Height: {height}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">📏</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Height</span>
+                  <span className="text-sm font-bold text-foreground">{height}</span>
+                </div>
               </div>
             )}
             {weight && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">⚖️</span>
-                <span>Weight: {weight}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">⚖️</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Weight</span>
+                  <span className="text-sm font-bold text-foreground">{weight}</span>
+                </div>
               </div>
             )}
             {proportions && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">📐</span>
-                <span>Proportions: {proportions}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">📐</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Proportions</span>
+                  <span className="text-sm font-bold text-foreground">{proportions}</span>
+                </div>
               </div>
             )}
             {hairColor && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">💇</span>
-                <span>Hair: {hairColor}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">💇</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Hair</span>
+                  <span className="text-sm font-bold text-foreground">{hairColor}</span>
+                </div>
               </div>
             )}
             {eyeColor && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">👁️</span>
-                <span>Eyes: {eyeColor}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">👁️</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Eyes</span>
+                  <span className="text-sm font-bold text-foreground">{eyeColor}</span>
+                </div>
               </div>
             )}
             {meetingWith && (
-              <div className="flex items-center gap-2">
-                <span className="text-primary">🤝</span>
-                <span>Meeting: {meetingWith}</span>
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-muted/40">
+                <span className="text-lg">🤝</span>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium block">Meeting</span>
+                  <span className="text-sm font-bold text-foreground">{meetingWith}</span>
+                </div>
               </div>
             )}
           </div>
