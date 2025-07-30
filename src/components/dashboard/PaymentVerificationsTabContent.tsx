@@ -219,6 +219,9 @@ export function PaymentVerificationsTabContent() {
         fileName = filePath.split('/').pop() || filePath;
       }
       
+      // Remove leading slash if present
+      fileName = fileName.startsWith('/') ? fileName.substring(1) : fileName;
+      
       // For new files, create public URL directly (since bucket should be public)
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${encodeURIComponent(fileName)}`;
       console.log('Generated public URL:', publicUrl);
