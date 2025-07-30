@@ -4,6 +4,7 @@ import { Flag } from "lucide-react";
 interface ProfileCardDetailsProps {
   name: string;
   age: number;
+  location?: string;
   city?: string;
   country?: string;
   showPhone: boolean;
@@ -22,6 +23,7 @@ interface ProfileCardDetailsProps {
 export function ProfileCardDetails({ 
   name, 
   age, 
+  location,
   city, 
   country, 
   showPhone, 
@@ -47,9 +49,10 @@ export function ProfileCardDetails({
     }`}>
       <div className="space-y-1">
         <h3 className="text-lg font-semibold text-white">{name}, {age}</h3>
-        {city && country && (
+        {(location || city || country) && (
           <p className="text-sm text-gray-300 flex items-center">
-            <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> {city}, {country}
+            <Flag className="w-3.5 h-3.5 mr-1 text-gray-400" /> 
+            {[location, city, country].filter(Boolean).join(', ')}
           </p>
         )}
         {shouldShowPhone && (

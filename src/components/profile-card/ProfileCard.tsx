@@ -67,6 +67,7 @@ export function ProfileCard({
       <ProfileCardDetails
         name={name}
         age={age}
+        location={location}
         city={city}
         country={country}
         showPhone={showPhone}
