@@ -468,15 +468,15 @@ function ImageWithFallback({
         setLoading(true);
         setError(false);
         
-        // Fix the bucket name in the URL if it's the old format
+        // Fix the bucket name in the URL if it's the old format with spaces
         let correctedSrc = src;
-        if (src.includes('/payment-proofs/')) {
-          correctedSrc = src.replace('/payment-proofs/', '/Payment%20Proofs/');
+        if (src.includes('/Payment%20Proofs/')) {
+          correctedSrc = src.replace('/Payment%20Proofs/', '/payment-proofs/');
           console.log('Fixed URL from:', src, 'to:', correctedSrc);
           setImageSrc(correctedSrc);
         } else {
-          const signedUrl = await getSignedUrl(correctedSrc);
-          setImageSrc(signedUrl);
+          // Use the src directly if it's already in the correct format
+          setImageSrc(src);
         }
       } catch (err) {
         console.error('Failed to load image:', err);
