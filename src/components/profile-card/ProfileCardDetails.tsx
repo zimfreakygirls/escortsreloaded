@@ -95,14 +95,28 @@ export function ProfileCardDetails({
           )}
         </div>
         
-        {(location || city || country) && (
-          <div className="flex items-center gap-3 px-3 py-2 bg-muted/20 rounded-lg border border-border/40">
-            <Flag className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <p className={`text-muted-foreground font-medium ${
-              isListView ? "text-sm" : "text-xs"
-            }`}>
-              {[location, city, country].filter(Boolean).join(' • ')}
-            </p>
+        {(location || city) && (
+          <div className="space-y-2">
+            {location && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <p className={`text-primary font-semibold ${
+                  isListView ? "text-sm" : "text-xs"
+                }`}>
+                  {location}
+                </p>
+              </div>
+            )}
+            {city && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/10 rounded-md border border-border/30">
+                <Flag className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                <p className={`text-muted-foreground italic font-medium ${
+                  isListView ? "text-sm" : "text-xs"
+                }`}>
+                  {city}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
