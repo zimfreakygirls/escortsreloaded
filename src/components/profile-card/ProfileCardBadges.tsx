@@ -10,17 +10,17 @@ export function ProfileCardBadges({ isVerified, isPremium }: ProfileCardBadgesPr
   if (!isVerified && !isPremium) return null;
 
   return (
-    <div className="absolute top-4 right-4 flex flex-col gap-3 z-10">
+    <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
       {isVerified && (
-        <div className="bg-gradient-to-br from-blue-500/95 via-blue-600/90 to-blue-700/95 backdrop-blur-md py-2 px-3 sm:px-4 rounded-2xl text-white text-xs sm:text-sm font-bold shadow-xl border border-blue-400/30 flex items-center transform hover:scale-105 transition-all duration-300">
-          <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 drop-shadow-sm" />
-          <span className="tracking-wide text-xs sm:text-sm font-extrabold">VERIFIED</span>
+        <div className="bg-blue-600 backdrop-blur-sm py-1.5 px-3 rounded-lg text-white text-xs font-semibold shadow-md border border-blue-500/30 flex items-center">
+          <BadgeCheck className="w-3.5 h-3.5 mr-1.5" />
+          <span>Verified</span>
         </div>
       )}
       {isPremium && (
-        <div className="bg-gradient-to-br from-amber-500/95 via-amber-600/90 to-orange-600/95 backdrop-blur-md py-2 px-3 sm:px-4 rounded-2xl text-white text-xs sm:text-sm font-bold shadow-xl border border-amber-400/30 flex items-center transform hover:scale-105 transition-all duration-300">
-          <Crown className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 drop-shadow-sm" />
-          <span className="tracking-wide text-xs sm:text-sm font-extrabold">PREMIUM</span>
+        <div className="bg-amber-600 backdrop-blur-sm py-1.5 px-3 rounded-lg text-white text-xs font-semibold shadow-md border border-amber-500/30 flex items-center">
+          <Crown className="w-3.5 h-3.5 mr-1.5" />
+          <span>Premium</span>
         </div>
       )}
     </div>

@@ -48,10 +48,10 @@ export function ProfileCard({
   const showPhone = phone && (!isPremium || (isPremium && session));
 
   return (
-    <div className={`profile-card group relative overflow-hidden transition-all duration-500 hover:shadow-2xl ${
+    <div className={`profile-card group relative overflow-hidden transition-all duration-300 hover:shadow-lg ${
       isListView 
-        ? "flex items-stretch bg-gradient-to-r from-card/95 via-card/90 to-card/95 backdrop-blur-md rounded-3xl border border-primary/20 shadow-lg h-full hover:border-primary/40"
-        : "bg-gradient-to-b from-card/95 to-card/85 backdrop-blur-md rounded-3xl border border-primary/20 shadow-lg h-full hover:scale-[1.03] hover:border-primary/40"
+        ? "flex items-stretch bg-card backdrop-blur-sm rounded-xl border border-border/60 shadow-sm h-full hover:border-border/80"
+        : "bg-card backdrop-blur-sm rounded-xl border border-border/60 shadow-sm h-full hover:scale-[1.02] hover:border-border/80"
     }`}>
       {!isListView && (
         <div className="relative overflow-hidden rounded-t-2xl">
