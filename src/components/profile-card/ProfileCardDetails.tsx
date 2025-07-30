@@ -44,14 +44,19 @@ export function ProfileCardDetails({
   return (
     <div className={`${
       isListView 
-        ? "flex-1 p-6 flex flex-col justify-between min-h-0"
-        : "p-4 bg-card/95 backdrop-blur-sm border-t border-border/30"
+        ? "flex-1 p-8 flex flex-col justify-between min-h-0 bg-gradient-to-r from-transparent via-card/10 to-transparent"
+        : "p-6 bg-gradient-to-t from-card/98 via-card/95 to-card/90 backdrop-blur-sm border-t border-primary/30"
     }`}>
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className={`font-bold text-foreground ${isListView ? "text-xl" : "text-lg"}`}>
-            {name}, {age}
-          </h3>
+          <div className="space-y-1">
+            <h3 className={`font-bold bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent ${isListView ? "text-2xl" : "text-xl"}`}>
+              {name}
+            </h3>
+            <p className={`text-primary font-semibold ${isListView ? "text-lg" : "text-sm"}`}>
+              {age} years old
+            </p>
+          </div>
           {!isListView && shouldShowPhone && (
             <div className="flex items-center gap-1">
               <button
@@ -85,10 +90,11 @@ export function ProfileCardDetails({
         </div>
         
         {(location || city || country) && (
-          <div className="flex items-center gap-2">
-            <Flag className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <p className="text-sm text-muted-foreground font-medium">
-              {[location, city, country].filter(Boolean).join(', ')}
+          <div className="flex items-center gap-3 px-3 py-2 bg-primary/10 rounded-xl border border-primary/20">
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+            <Flag className="w-4 h-4 text-primary flex-shrink-0" />
+            <p className="text-sm text-foreground font-semibold">
+              {[location, city, country].filter(Boolean).join(' • ')}
             </p>
           </div>
         )}
