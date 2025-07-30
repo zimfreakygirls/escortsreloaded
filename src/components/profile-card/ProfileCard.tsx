@@ -48,21 +48,38 @@ export function ProfileCard({
   const showPhone = phone && (!isPremium || (isPremium && session));
 
   return (
-    <div className={`profile-card group relative ${
+    <div className={`profile-card group relative overflow-hidden transition-all duration-300 hover:shadow-xl ${
       isListView 
-        ? "flex items-center gap-6 bg-card rounded-xl overflow-hidden h-full"
-        : "rounded-xl overflow-hidden bg-card h-full"
+        ? "flex items-stretch bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 h-full"
+        : "bg-card/90 backdrop-blur-sm rounded-2xl border border-border/50 h-full hover:scale-[1.02]"
     }`}>
-      <ProfileCardImage 
-        imageUrl={imageUrl}
-        name={name}
-        isListView={isListView}
-      />
-
-      <ProfileCardBadges 
-        isVerified={isVerified}
-        isPremium={isPremium}
-      />
+      {!isListView && (
+        <div className="relative overflow-hidden rounded-t-2xl">
+          <ProfileCardImage 
+            imageUrl={imageUrl}
+            name={name}
+            isListView={isListView}
+          />
+          <ProfileCardBadges 
+            isVerified={isVerified}
+            isPremium={isPremium}
+          />
+        </div>
+      )}
+      
+      {isListView && (
+        <div className="relative overflow-hidden rounded-l-2xl">
+          <ProfileCardImage 
+            imageUrl={imageUrl}
+            name={name}
+            isListView={isListView}
+          />
+          <ProfileCardBadges 
+            isVerified={isVerified}
+            isPremium={isPremium}
+          />
+        </div>
+      )}
 
       <ProfileCardDetails
         name={name}
