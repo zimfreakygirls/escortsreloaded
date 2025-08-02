@@ -2,45 +2,24 @@
 import { Header } from "@/components/Header";
 import { useEffect, useRef } from "react";
 
-// Add WidgetBot to the window object type
-declare global {
-  interface Window {
-    WidgetBot?: any;
-  }
-}
-
 export default function Chat() {
   const containerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Load the WidgetBot script dynamically
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@widgetbot/html-embed";
-    script.async = true;
-    document.body.appendChild(script);
-    
-    // Create the WidgetBot element after the script is loaded
-    script.onload = () => {
-      if (containerRef.current && window.WidgetBot) {
-        const widgetBotElement = document.createElement('div');
-        widgetBotElement.className = 'widgetbot';
-        widgetBotElement.setAttribute('server', '1097581099510677577');
-        widgetBotElement.setAttribute('channel', '1097581099510677580');
-        widgetBotElement.style.width = '100%';
-        widgetBotElement.style.height = '600px';
-        
-        // Clear container and append the element
-        containerRef.current.innerHTML = '';
-        containerRef.current.appendChild(widgetBotElement);
-      }
-    };
-    
-    return () => {
-      // Clean up the script when component unmounts
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
+    // Create the iframe for the chat widget
+    if (containerRef.current) {
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://e.widgetbot.io/channels/1097581099510677577/1097581099510677580';
+      iframe.width = '100%';
+      iframe.height = '600';
+      iframe.style.border = 'none';
+      iframe.style.borderRadius = '8px';
+      iframe.setAttribute('allowTransparency', 'true');
+      iframe.allow = 'autoplay; camera; microphone; clipboard-read; clipboard-write; web-share';
+      
+      containerRef.current.innerHTML = '';
+      containerRef.current.appendChild(iframe);
+    }
   }, []);
 
   return (

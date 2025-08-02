@@ -54,16 +54,22 @@ export default function Index() {
       setSession(session);
     });
 
-    detectUserLocation();
-    loadProfiles();
     checkShowCountryDialog();
+    
+    // Initialize location detection and load profiles in sequence
+    const initializeData = async () => {
+      await detectUserLocation();
+      await loadProfiles();
+    };
+    
+    initializeData();
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const detectUserLocation = async () => {
+  const detectUserLocation = async (): Promise<string> => {
     try {
       // Try to get user's location from IP geolocation
       const response = await fetch('https://ipapi.co/json/');
@@ -88,12 +94,15 @@ export default function Index() {
         const mappedCountry = countryMap[detectedCountry] || 'Zimbabwe'; // Default to Zimbabwe
         setUserLocation(mappedCountry);
         console.log('User location set to:', mappedCountry);
+        return mappedCountry;
       } else {
         setUserLocation('Zimbabwe');
+        return 'Zimbabwe';
       }
     } catch (error) {
       console.log('Could not detect location, defaulting to Zimbabwe');
       setUserLocation('Zimbabwe');
+      return 'Zimbabwe';
     }
   };
 
@@ -199,11 +208,14 @@ export default function Index() {
     try {
       console.log("Loading profiles for home page...");
       
+      // Get current user location or detect it
+      const currentLocation = userLocation || await detectUserLocation();
+      
       // Filter by user location first, then show all if none found
       let { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .ilike('country', userLocation)
+        .ilike('country', currentLocation)
         .order('created_at', { ascending: false });
 
       // If no profiles found for user's location, show all profiles
