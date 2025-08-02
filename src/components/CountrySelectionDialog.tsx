@@ -112,6 +112,7 @@ export function CountrySelectionDialog({ open, onCountrySelect, onCancel }: Coun
             className="w-full"
             onClick={() => handleCountrySelect('All Countries')}
           >
+            <MapPin className="w-4 h-4 mr-2" />
             View All Countries
           </Button>
           <Button

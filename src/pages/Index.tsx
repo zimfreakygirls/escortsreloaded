@@ -119,13 +119,18 @@ export default function Index() {
 
   const handleCountrySelection = (country: string) => {
     setShowCountryDialog(false);
-    if (country === 'All Countries') {
-      setUserLocation('');
+    const selectedCountry = country === 'All Countries' ? '' : country;
+    
+    // Store selection in localStorage
+    if (selectedCountry) {
+      localStorage.setItem('selectedCountry', selectedCountry);
     } else {
-      setUserLocation(country);
+      localStorage.removeItem('selectedCountry');
     }
+    
+    setUserLocation(selectedCountry);
     // Reload profiles with the new country
-    loadProfilesForCountry(country === 'All Countries' ? '' : country);
+    loadProfilesForCountry(selectedCountry);
   };
 
   const handleCancelCountryDialog = () => {
@@ -208,16 +213,31 @@ export default function Index() {
     try {
       console.log("Loading profiles for home page...");
       
-      // Always detect user location fresh to ensure accuracy
-      const detectedLocation = await detectUserLocation();
-      console.log("Using location for filtering:", detectedLocation);
+      // Check if user has a saved country selection first
+      const savedCountry = localStorage.getItem('selectedCountry');
+      let filterCountry: string;
       
-      // Filter by detected user location
-      let { data: profilesData, error: profilesError } = await supabase
+      if (savedCountry) {
+        filterCountry = savedCountry;
+        setUserLocation(savedCountry);
+        console.log("Using saved country selection:", savedCountry);
+      } else {
+        // Only detect location if no saved selection
+        filterCountry = await detectUserLocation();
+        console.log("Using detected location:", filterCountry);
+      }
+      
+      // Filter by the determined country
+      let query = supabase
         .from('profiles')
         .select('*')
-        .ilike('country', detectedLocation)
         .order('created_at', { ascending: false });
+
+      if (filterCountry && filterCountry.trim().length > 0) {
+        query = query.ilike('country', filterCountry);
+      }
+
+      const { data: profilesData, error: profilesError } = await query;
 
       if (profilesError) {
         throw profilesError;
