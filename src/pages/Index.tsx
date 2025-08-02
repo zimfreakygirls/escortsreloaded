@@ -208,14 +208,15 @@ export default function Index() {
     try {
       console.log("Loading profiles for home page...");
       
-      // Get current user location or detect it
-      const currentLocation = userLocation || await detectUserLocation();
+      // Always detect user location fresh to ensure accuracy
+      const detectedLocation = await detectUserLocation();
+      console.log("Using location for filtering:", detectedLocation);
       
-      // Filter by user location first, then show all if none found
+      // Filter by detected user location
       let { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .ilike('country', currentLocation)
+        .ilike('country', detectedLocation)
         .order('created_at', { ascending: false });
 
       if (profilesError) {
