@@ -218,17 +218,6 @@ export default function Index() {
         .ilike('country', currentLocation)
         .order('created_at', { ascending: false });
 
-      // If no profiles found for user's location, show all profiles
-      if (!profilesError && (!profilesData || profilesData.length === 0)) {
-        const { data: allProfiles, error: allError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        profilesData = allProfiles;
-        profilesError = allError;
-      }
-
       if (profilesError) {
         throw profilesError;
       }
