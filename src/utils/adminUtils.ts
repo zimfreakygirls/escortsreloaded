@@ -6,19 +6,16 @@ export const checkIsAdmin = async (userId: string): Promise<boolean> => {
   if (!userId) return false;
   
   try {
-    // Only check if the user is in the admin_users table
-    const { data: adminRecord, error: adminError } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('id', userId)
-      .single();
+    // Use the security definer function to bypass RLS recursion issues
+    const { data, error } = await supabase
+      .rpc('is_admin', { user_id: userId });
     
-    if (adminError && adminError.code !== 'PGRST116') {
-      console.error("Error checking admin_users table:", adminError);
+    if (error) {
+      console.error("Error checking admin status:", error);
       return false;
     }
     
-    return !!adminRecord;
+    return !!data;
   } catch (error) {
     console.error("Failed to check admin status:", error);
     return false;

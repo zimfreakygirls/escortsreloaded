@@ -302,6 +302,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      is_admin: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
