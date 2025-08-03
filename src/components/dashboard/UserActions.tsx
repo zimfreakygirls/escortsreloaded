@@ -81,39 +81,15 @@ export function UserActions({ userId, banned, approved, onStatusChange, onUserDe
   const handleDeleteUser = async () => {
     setIsDeleting(true);
     try {
-      // Delete user from user_status table
-      const { error: statusError } = await supabase
-        .from('user_status')
-        .delete()
-        .eq('user_id', userId);
+      // Use the secure admin edge function to delete user completely
+      const { error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId }
+      });
 
-      if (statusError) {
-        console.error('Error deleting user status:', statusError);
+      if (error) {
+        console.error('Error deleting user:', error);
+        throw new Error(error.message || 'Failed to delete user');
       }
-
-      // Delete user from user_profiles table
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .delete()
-        .eq('user_id', userId);
-
-      if (profileError) {
-        console.error('Error deleting user profile:', profileError);
-        throw profileError;
-      }
-
-      // Delete user from payment_verifications table
-      const { error: paymentsError } = await supabase
-        .from('payment_verifications')
-        .delete()
-        .eq('user_id', userId);
-
-      if (paymentsError) {
-        console.error('Error deleting payment verifications:', paymentsError);
-      }
-
-      // Note: We cannot delete from auth.users table directly through the client
-      // The user will still exist in auth but without profile data
 
       toast({
         title: "User Deleted",
