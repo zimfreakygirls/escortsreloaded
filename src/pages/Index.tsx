@@ -55,17 +55,27 @@ export default function Index() {
       setSession(session);
     });
 
-    // Show country dialog on every visit after a short delay
-    const dialogTimer = setTimeout(() => {
-      setShowCountryDialog(true);
-    }, 1000);
+    // Only show country dialog if user hasn't made a selection before
+    const savedCountry = localStorage.getItem('selectedCountry');
+    const hasSeenDialog = localStorage.getItem('hasSeenCountryDialog');
+    
+    if (!savedCountry && !hasSeenDialog) {
+      const dialogTimer = setTimeout(() => {
+        setShowCountryDialog(true);
+        localStorage.setItem('hasSeenCountryDialog', 'true');
+      }, 1000);
+      
+      return () => {
+        subscription.unsubscribe();
+        clearTimeout(dialogTimer);
+      };
+    }
 
     // Initialize data loading
     initializeData();
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(dialogTimer);
     };
   }, []);
 
