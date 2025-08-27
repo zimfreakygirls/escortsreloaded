@@ -42,6 +42,7 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<string>('Zimbabwe');
   const [showCountryDialog, setShowCountryDialog] = useState(false);
+  const [hasDetectedLocation, setHasDetectedLocation] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -54,20 +55,62 @@ export default function Index() {
       setSession(session);
     });
 
-    checkShowCountryDialog();
-    
-    // Initialize location detection and load profiles in sequence
-    const initializeData = async () => {
-      await detectUserLocation();
-      await loadProfiles();
-    };
-    
+    // Show country dialog on every visit after a short delay
+    const dialogTimer = setTimeout(() => {
+      setShowCountryDialog(true);
+    }, 1000);
+
+    // Initialize data loading
     initializeData();
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(dialogTimer);
     };
   }, []);
+
+  const initializeData = async () => {
+    if (hasDetectedLocation) {
+      // If we've already detected location in this session, just load profiles
+      await loadProfilesWithStoredLocation();
+    } else {
+      // Detect location and then load profiles
+      await detectUserLocationAndLoadProfiles();
+    }
+  };
+
+  const detectUserLocationAndLoadProfiles = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Check if user has a saved country selection first
+      const savedCountry = localStorage.getItem('selectedCountry');
+      let filterCountry: string;
+      
+      if (savedCountry) {
+        filterCountry = savedCountry;
+        setUserLocation(savedCountry);
+        console.log("Using saved country selection:", savedCountry);
+      } else {
+        // Only detect location if no saved selection
+        filterCountry = await detectUserLocation();
+        console.log("Using detected location:", filterCountry);
+      }
+      
+      setHasDetectedLocation(true);
+      await loadProfilesForCountry(filterCountry);
+    } catch (err) {
+      console.error("Error in initialization:", err);
+      setError("Failed to load profiles. Please try again later.");
+      setIsLoading(false);
+    }
+  };
+
+  const loadProfilesWithStoredLocation = async () => {
+    const savedCountry = localStorage.getItem('selectedCountry') || userLocation;
+    await loadProfilesForCountry(savedCountry);
+  };
 
   const detectUserLocation = async (): Promise<string> => {
     try {
@@ -106,17 +149,6 @@ export default function Index() {
     }
   };
 
-  const checkShowCountryDialog = () => {
-    // Only show for new visitors (check localStorage)
-    const hasVisited = localStorage.getItem('hasVisitedSite');
-    if (!hasVisited) {
-      setTimeout(() => {
-        setShowCountryDialog(true);
-      }, 1000);
-      localStorage.setItem('hasVisitedSite', 'true');
-    }
-  };
-
   const handleCountrySelection = (country: string) => {
     setShowCountryDialog(false);
     const selectedCountry = country === 'All Countries' ? '' : country;
@@ -152,89 +184,6 @@ export default function Index() {
       // If country is specified, filter by it
       if (country && country.trim().length > 0) {
         query = query.ilike('country', country);
-      }
-
-      const { data: profilesData, error: profilesError } = await query;
-
-      if (profilesError) {
-        throw profilesError;
-      }
-
-      console.log("Raw profiles data:", profilesData?.length || 0);
-
-      const nonVideoProfiles = (profilesData || []).filter(profile => {
-        const hasRealImage =
-          Array.isArray(profile.images) &&
-          profile.images.length > 0 &&
-          profile.images[0] &&
-          !profile.images[0].includes("placeholder.svg");
-
-        const isAdminAdded =
-          hasRealImage &&
-          typeof profile.name === "string" &&
-          profile.name.trim().length > 0 &&
-          typeof profile.city === "string" &&
-          profile.city.trim().length > 0 &&
-          typeof profile.country === "string" &&
-          profile.country.trim().length > 0;
-
-        return !profile.is_video && isAdminAdded;
-      });
-
-      console.log("Filtered profiles:", nonVideoProfiles.length);
-
-      const imagesToPreload = nonVideoProfiles.slice(0, 6);
-      imagesToPreload.forEach(profile => {
-        if (profile.images && profile.images[0]) {
-          const img = new Image();
-          img.src = profile.images[0];
-        }
-      });
-
-      setProfiles(nonVideoProfiles);
-      await fetchSettings();
-    } catch (err) {
-      console.error("Error loading profiles:", err);
-      setError("Failed to load profiles. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to load profiles",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadProfiles = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      console.log("Loading profiles for home page...");
-      
-      // Check if user has a saved country selection first
-      const savedCountry = localStorage.getItem('selectedCountry');
-      let filterCountry: string;
-      
-      if (savedCountry) {
-        filterCountry = savedCountry;
-        setUserLocation(savedCountry);
-        console.log("Using saved country selection:", savedCountry);
-      } else {
-        // Only detect location if no saved selection
-        filterCountry = await detectUserLocation();
-        console.log("Using detected location:", filterCountry);
-      }
-      
-      // Filter by the determined country
-      let query = supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (filterCountry && filterCountry.trim().length > 0) {
-        query = query.ilike('country', filterCountry);
       }
 
       const { data: profilesData, error: profilesError } = await query;
