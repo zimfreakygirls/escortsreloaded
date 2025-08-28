@@ -45,12 +45,14 @@ export default function Index() {
   const [hasDetectedLocation, setHasDetectedLocation] = useState(false);
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
       }
     );
 
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
@@ -65,14 +67,21 @@ export default function Index() {
         localStorage.setItem('hasSeenCountryDialog', 'true');
       }, 1000);
       
+      // Initialize data loading after a short delay to avoid conflicts
+      setTimeout(() => {
+        initializeData();
+      }, 0);
+
       return () => {
         subscription.unsubscribe();
         clearTimeout(dialogTimer);
       };
+    } else {
+      // Initialize data loading after a short delay to avoid conflicts
+      setTimeout(() => {
+        initializeData();
+      }, 0);
     }
-
-    // Initialize data loading
-    initializeData();
 
     return () => {
       subscription.unsubscribe();
