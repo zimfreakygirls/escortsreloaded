@@ -85,10 +85,11 @@ export default function AdminLogin() {
         throw new Error("Invalid admin credentials. Please check your username and password.");
       }
 
-      // Verify admin status
-      const isAdmin = await checkIsAdmin(data.user.id);
+      // Verify admin status using direct RPC call
+      const { data: isAdminResult, error: adminError } = await supabase
+        .rpc('is_admin', { user_id: data.user.id });
       
-      if (!isAdmin) {
+      if (adminError || !isAdminResult) {
         await supabase.auth.signOut();
         logSecurityEvent('unauthorized_admin_access_attempt', { email, userId: data.user.id });
         throw new Error("Access denied. You do not have administrative privileges.");
