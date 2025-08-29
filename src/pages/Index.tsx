@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { CountrySelectionDialog } from "@/components/CountrySelectionDialog";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface Settings {
   id: string;
@@ -36,7 +37,7 @@ export default function Index() {
   const [visibleProfiles, setVisibleProfiles] = useState(6);
   const [viewMode, setViewMode] = useState("grid-2");
   const [displayLimit, setDisplayLimit] = useState(6);
-  const [session, setSession] = useState<any>(null);
+  const session = useAuthSession();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,18 +46,6 @@ export default function Index() {
   const [hasDetectedLocation, setHasDetectedLocation] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
     // Only show country dialog if user hasn't made a selection before
     const savedCountry = localStorage.getItem('selectedCountry');
     const hasSeenDialog = localStorage.getItem('hasSeenCountryDialog');
@@ -73,7 +62,6 @@ export default function Index() {
       }, 0);
 
       return () => {
-        subscription.unsubscribe();
         clearTimeout(dialogTimer);
       };
     } else {
@@ -82,10 +70,6 @@ export default function Index() {
         initializeData();
       }, 0);
     }
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   const initializeData = async () => {

@@ -7,6 +7,7 @@ import { UserDropdownMenu } from "./UserDropdownMenu";
 import { CountryDropdownMenu } from "./CountryDropdownMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin } from "@/utils/adminUtils";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface Country {
   id: string;
@@ -17,7 +18,7 @@ interface Country {
 export function Header() {
   const navigate = useNavigate();
   const [countries, setCountries] = useState<any[]>([]);
-  const [session, setSession] = useState<any>(null);
+  const session = useAuthSession();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -38,30 +39,12 @@ export function Header() {
     };
 
     fetchCountries();
-    
-    // Check current session
-    const checkSession = async () => {
-      setIsLoading(true);
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      
-      // Only check admin status if session exists
-      if (data.session?.user?.id) {
-        const adminStatus = await checkIsAdmin(data.session.user.id);
-        setIsAdmin(adminStatus);
-      } else {
-        setIsAdmin(false);
-      }
-      setIsLoading(false);
-    };
-    checkSession();
+  }, []);
 
-    // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
+  // Check admin status when session changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
       setIsLoading(true);
-      
-      // Check admin status on auth state change
       if (session?.user?.id) {
         const adminStatus = await checkIsAdmin(session.user.id);
         setIsAdmin(adminStatus);
@@ -69,13 +52,10 @@ export function Header() {
         setIsAdmin(false);
       }
       setIsLoading(false);
-    });
-    
-    // Clean up subscription
-    return () => {
-      authListener?.subscription.unsubscribe();
     };
-  }, []);
+    
+    checkAdminStatus();
+  }, [session]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
