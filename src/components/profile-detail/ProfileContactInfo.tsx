@@ -1,11 +1,13 @@
 
-import { MapPin, Clock, Phone, Lock } from "lucide-react";
+import { MapPin, Clock, Phone, Lock, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ProfileContactInfoProps {
   profile: any;
   showPhone: boolean;
   session: any;
+  isApproved: boolean;
+  checkingApproval: boolean;
 }
 
 const getCurrencySymbol = (currency: string) => {
@@ -18,11 +20,11 @@ const getCurrencySymbol = (currency: string) => {
   }
 };
 
-export function ProfileContactInfo({ profile, showPhone, session }: ProfileContactInfoProps) {
+export function ProfileContactInfo({ profile, showPhone, session, isApproved, checkingApproval }: ProfileContactInfoProps) {
   const currencySymbol = getCurrencySymbol(profile.currency || 'USD');
   
-  // For premium profiles, only show phone if user is logged in
-  const shouldShowPhone = profile.phone && (!profile.is_premium || (profile.is_premium && session));
+  // For premium profiles, only show phone if user is logged in AND approved
+  const shouldShowPhone = showPhone && profile.phone && (!profile.is_premium || (profile.is_premium && session && isApproved));
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -71,6 +73,11 @@ export function ProfileContactInfo({ profile, showPhone, session }: ProfileConta
         <div className="flex items-center gap-2 text-base sm:text-lg border border-primary/30 rounded-md p-2 bg-primary/5">
           <Lock className="h-5 w-5 text-primary" />
           <Link to="/login" className="text-primary hover:underline">Login to view contact</Link>
+        </div>
+      ) : profile.is_premium && session && !isApproved && !checkingApproval && profile.phone ? (
+        <div className="flex items-center gap-2 text-base sm:text-lg border border-amber-500/30 rounded-md p-2 bg-amber-500/5">
+          <AlertCircle className="h-5 w-5 text-amber-500" />
+          <span className="text-amber-500">Account pending admin approval</span>
         </div>
       ) : (
         <div className="flex items-center gap-2 text-base sm:text-lg">
